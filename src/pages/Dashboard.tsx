@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { GraduationCap, Plus, LogOut, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { CreateSetDialog } from "@/components/CreateSetDialog";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface FlashcardSet {
   id: string;
@@ -89,12 +90,15 @@ const Dashboard = () => {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-2 text-2xl font-bold text-primary">
             <GraduationCap className="h-8 w-8" />
-            <span>FlashLearn</span>
+            <span>Phormula</span>
           </Link>
-          <Button variant="ghost" onClick={handleSignOut}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button variant="ghost" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </nav>
 
@@ -123,16 +127,17 @@ const Dashboard = () => {
           {sets.map((set) => (
             <Link key={set.id} to={`/set/${set.id}`}>
               <Card
-                className="h-48 cursor-pointer hover:shadow-lg transition-all overflow-hidden group"
+                className="h-48 cursor-pointer hover:shadow-lg transition-all overflow-hidden group relative"
                 style={{
-                  borderTop: `4px solid ${set.color}`,
+                  borderTop: `6px solid ${set.color}`,
+                  background: `linear-gradient(to bottom, ${set.color}08, transparent)`,
                 }}
               >
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <span className="truncate">{set.title}</span>
                     <div
-                      className="w-4 h-4 rounded-full flex-shrink-0"
+                      className="w-6 h-6 rounded-full flex-shrink-0 shadow-md"
                       style={{ backgroundColor: set.color }}
                     />
                   </CardTitle>

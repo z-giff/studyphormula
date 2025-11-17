@@ -15,6 +15,15 @@ const PRESET_COLORS = [
   "#F59E0B", // Orange
   "#EC4899", // Pink
   "#14B8A6", // Teal
+  "#EF4444", // Red
+  "#F97316", // Bright Orange
+  "#84CC16", // Lime
+  "#06B6D4", // Cyan
+  "#6366F1", // Indigo
+  "#A855F7", // Violet
+  "#D946EF", // Fuchsia
+  "#F43F5E", // Rose
+  "#64748B", // Slate
 ];
 
 interface CreateSetDialogProps {
@@ -104,12 +113,12 @@ export const CreateSetDialog = ({ open, onOpenChange, onSuccess }: CreateSetDial
 
           <div className="space-y-2">
             <Label>Color Theme</Label>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-2">
               {PRESET_COLORS.map((color) => (
                 <button
                   key={color}
                   type="button"
-                  className={`w-10 h-10 rounded-lg transition-all ${
+                  className={`w-9 h-9 rounded-lg transition-all ${
                     formData.color === color
                       ? "ring-2 ring-offset-2 ring-primary scale-110"
                       : "hover:scale-105"
