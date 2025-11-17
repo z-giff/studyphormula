@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { GraduationCap, Palette, ImageIcon, BookmarkIcon, Shuffle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import heroImage from "@/assets/hero-image.jpg";
 
 const Index = () => {
@@ -47,9 +48,10 @@ const Index = () => {
         <nav className="relative container mx-auto px-4 py-6 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
             <GraduationCap className="h-8 w-8" />
-            <span>FlashLearn</span>
+            <span>Phormula</span>
           </Link>
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <Link to="/auth">
               <Button variant="ghost">Sign In</Button>
             </Link>

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { GraduationCap, ArrowLeft, Shuffle, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface Flashcard {
   id: string;
@@ -126,8 +127,9 @@ const StudyMode = () => {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-2 text-2xl font-bold text-primary">
             <GraduationCap className="h-8 w-8" />
-            <span>FlashLearn</span>
+            <span>Phormula</span>
           </Link>
+          <ThemeToggle />
         </div>
       </nav>
 
@@ -180,20 +182,25 @@ const StudyMode = () => {
 
           <div className="perspective-1000 mb-8">
             <Card
-              className="relative min-h-[500px] cursor-pointer transition-all duration-500 preserve-3d"
+              className="relative min-h-[500px] cursor-pointer transition-all duration-500 preserve-3d border-2"
               style={{
                 transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
                 transformStyle: "preserve-3d",
+                borderColor: set.color,
+                boxShadow: `0 10px 40px ${set.color}30`,
               }}
               onClick={handleFlip}
             >
               {/* Front of card */}
               <div
                 className="absolute inset-0 backface-hidden p-12 flex flex-col items-center justify-center"
-                style={{ backfaceVisibility: "hidden" }}
+                style={{ 
+                  backfaceVisibility: "hidden",
+                  background: `linear-gradient(135deg, ${set.color}08, transparent)`,
+                }}
               >
                 <div className="text-center space-y-4">
-                  <p className="text-sm text-muted-foreground uppercase tracking-wide">Term</p>
+                  <p className="text-sm uppercase tracking-wide" style={{ color: set.color }}>Term</p>
                   <h2 className="text-4xl font-bold">{currentCard.term}</h2>
                   <p className="text-sm text-muted-foreground mt-8">Click to reveal answer</p>
                 </div>
@@ -205,10 +212,11 @@ const StudyMode = () => {
                 style={{
                   backfaceVisibility: "hidden",
                   transform: "rotateY(180deg)",
+                  background: `linear-gradient(135deg, ${set.color}08, transparent)`,
                 }}
               >
                 <div className="text-center space-y-6 w-full">
-                  <p className="text-sm text-muted-foreground uppercase tracking-wide">Definition</p>
+                  <p className="text-sm uppercase tracking-wide" style={{ color: set.color }}>Definition</p>
                   {currentCard.image_url && (
                     <img
                       src={currentCard.image_url}

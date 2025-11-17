@@ -8,6 +8,7 @@ import { GraduationCap, Plus, ArrowLeft, Play, Pencil, Trash2 } from "lucide-rea
 import { toast } from "sonner";
 import { CreateFlashcardDialog } from "@/components/CreateFlashcardDialog";
 import { EditFlashcardDialog } from "@/components/EditFlashcardDialog";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface Flashcard {
   id: string;
@@ -118,8 +119,9 @@ const FlashcardSetPage = () => {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-2 text-2xl font-bold text-primary">
             <GraduationCap className="h-8 w-8" />
-            <span>FlashLearn</span>
+            <span>Phormula</span>
           </Link>
+          <ThemeToggle />
         </div>
       </nav>
 
