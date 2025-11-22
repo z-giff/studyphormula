@@ -113,6 +113,7 @@ export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: In
                   borderColor: getBoxBorderColor(box.id),
                   borderWidth: "2px",
                   backgroundColor: getBoxBackgroundColor(box.id),
+                  color: "#000000",
                 }}
               />
               {validationState[box.id] === "correct" && (
