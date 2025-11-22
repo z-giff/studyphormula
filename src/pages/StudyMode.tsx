@@ -184,55 +184,42 @@ const StudyMode = () => {
             </div>
           </div>
 
-          <div className="perspective-1000 mb-8">
+          <div className="mb-8">
             <Card
-              className="relative min-h-[500px] cursor-pointer border-0 overflow-hidden"
+              className="relative min-h-[500px] cursor-pointer border-0 overflow-hidden flex items-center justify-center"
               style={{
+                backgroundColor: cardColor,
+                color: textColor,
                 transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+                transition: "transform 0.6s ease",
                 transformStyle: "preserve-3d",
-                transition: "transform 0.6s",
               }}
               onClick={handleFlip}
             >
-              {/* Front of card */}
-              <div
-                className="absolute inset-0 p-12 flex flex-col items-center justify-center"
-                style={{ 
-                  backfaceVisibility: "hidden",
-                  WebkitBackfaceVisibility: "hidden",
-                  backgroundColor: cardColor,
-                  color: textColor,
-                }}
-              >
-                <div className="text-center space-y-4">
-                  <p className="text-sm uppercase tracking-wide opacity-80">Term</p>
-                  <h2 className="text-4xl font-bold break-words">{currentCard.term}</h2>
-                  <p className="text-sm opacity-60 mt-8">Click to reveal answer</p>
-                </div>
-              </div>
+              <div className="p-12 w-full max-w-3xl mx-auto text-center space-y-6">
+                <p className="text-sm uppercase tracking-wide opacity-80">
+                  {isFlipped ? "Definition" : "Term"}
+                </p>
 
-              {/* Back of card */}
-              <div
-                className="absolute inset-0 p-12 flex flex-col items-center justify-center"
-                style={{
-                  backfaceVisibility: "hidden",
-                  WebkitBackfaceVisibility: "hidden",
-                  transform: "rotateY(180deg)",
-                  backgroundColor: cardColor,
-                  color: textColor,
-                }}
-              >
-                <div className="text-center space-y-6 w-full">
-                  <p className="text-sm uppercase tracking-wide opacity-80">Definition</p>
-                  {currentCard.image_url && (
-                    <img
-                      src={currentCard.image_url}
-                      alt={currentCard.term}
-                      className="max-h-64 mx-auto rounded-lg object-contain"
-                    />
-                  )}
-                  <p className="text-2xl leading-relaxed whitespace-pre-wrap break-words">{currentCard.definition}</p>
-                </div>
+                {!isFlipped ? (
+                  <>
+                    <h2 className="text-4xl font-bold break-words">{currentCard.term}</h2>
+                    <p className="text-sm opacity-70 mt-8">Click to reveal answer</p>
+                  </>
+                ) : (
+                  <>
+                    {currentCard.image_url && (
+                      <img
+                        src={currentCard.image_url}
+                        alt={currentCard.term}
+                        className="max-h-64 mx-auto rounded-lg object-contain mb-6"
+                      />
+                    )}
+                    <p className="text-2xl leading-relaxed whitespace-pre-wrap break-words">
+                      {currentCard.definition}
+                    </p>
+                  </>
+                )}
               </div>
             </Card>
           </div>
