@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { getContrastColor } from "@/lib/utils";
 import { InteractiveFlashcardStudy } from "@/components/InteractiveFlashcardStudy";
-import { MermaidFlowchartDisplay } from "@/components/MermaidFlowchartDisplay";
+import { FlowchartCanvasDisplay } from "@/components/FlowchartCanvasDisplay";
 
 interface Flashcard {
   id: string;
@@ -18,12 +18,7 @@ interface Flashcard {
   image_url: string | null;
   color: string | null;
   flashcard_type?: string;
-  interactive_data?: {
-    textBoxes?: Array<{ id: string; x: number; y: number; width: number; height: number; answer: string }>;
-    mermaidCode?: string;
-    fontSize?: number;
-    fontFamily?: string;
-  };
+  interactive_data?: any;
 }
 
 interface FlashcardSet {
@@ -205,7 +200,7 @@ const StudyMode = () => {
                   cardColor={cardColor}
                 />
               </Card>
-            ) : currentCard.flashcard_type === "flowchart" && currentCard.interactive_data?.mermaidCode ? (
+            ) : currentCard.flashcard_type === "flowchart" && currentCard.interactive_data ? (
               <Card
                 className="relative min-h-[500px] cursor-pointer border-0 overflow-hidden flex flex-col"
                 style={{
@@ -233,10 +228,8 @@ const StudyMode = () => {
                   ) : (
                     <div className="flex-1 flex flex-col">
                       <p className="text-sm uppercase tracking-wide opacity-80 mb-4 text-center">Flowchart</p>
-                      <MermaidFlowchartDisplay
-                        mermaidCode={currentCard.interactive_data.mermaidCode}
-                        fontSize={currentCard.interactive_data.fontSize}
-                        fontFamily={currentCard.interactive_data.fontFamily}
+                      <FlowchartCanvasDisplay
+                        flowchartData={currentCard.interactive_data}
                       />
                     </div>
                   )}

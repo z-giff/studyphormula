@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { ImageIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InteractiveFlashcardEditor } from "./InteractiveFlashcardEditor";
-import { MermaidFlowchartEditor } from "./MermaidFlowchartEditor";
+import { FlowchartCanvasEditor } from "./FlowchartCanvasEditor";
 
 const PRESET_COLORS = [
   "#3B82F6", // Blue
@@ -52,11 +52,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
     imageUrl: "",
     textBoxes: [],
   });
-  const [flowchartData, setFlowchartData] = useState({
-    mermaidCode: "",
-    fontSize: 16,
-    fontFamily: "arial",
-  });
+  const [flowchartData, setFlowchartData] = useState({ nodes: [], edges: [] });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +80,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
         toast.error("Please provide a question/term");
         return;
       }
-      if (!flowchartData.mermaidCode.trim()) {
+      if (!flowchartData.nodes || flowchartData.nodes.length === 0) {
         toast.error("Please create a flowchart diagram");
         return;
       }
@@ -141,7 +137,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
       toast.success("Flashcard created successfully!");
       setFormData({ term: "", definition: "", imageUrl: "", color: null });
       setInteractiveData({ imageUrl: "", textBoxes: [] });
-      setFlowchartData({ mermaidCode: "", fontSize: 16, fontFamily: "arial" });
+      setFlowchartData({ nodes: [], edges: [] });
       setFlashcardType("standard");
       onOpenChange(false);
       onSuccess();
@@ -307,13 +303,9 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
                 </p>
               </div>
 
-              <MermaidFlowchartEditor
-                mermaidCode={flowchartData.mermaidCode}
-                onChange={(code) => setFlowchartData({ ...flowchartData, mermaidCode: code })}
-                fontSize={flowchartData.fontSize}
-                fontFamily={flowchartData.fontFamily}
-                onFontSizeChange={(size) => setFlowchartData({ ...flowchartData, fontSize: size })}
-                onFontFamilyChange={(family) => setFlowchartData({ ...flowchartData, fontFamily: family })}
+              <FlowchartCanvasEditor
+                flowchartData={flowchartData}
+                onChange={setFlowchartData}
               />
 
               <div className="space-y-2">
