@@ -11,6 +11,9 @@ interface TextBox {
   width: number;
   height: number;
   answer: string;
+  fontSize?: number;
+  fontWeight?: string;
+  fontColor?: string;
 }
 
 interface InteractiveFlashcardEditorProps {
@@ -24,7 +27,9 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange }: In
   const containerRef = useRef<HTMLDivElement>(null);
   const [isAddingBox, setIsAddingBox] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const resizeStartRef = useRef<{ x: number; y: number; width: number; height: number; handle: string } | null>(null);
+  const dragStartRef = useRef<{ x: number; y: number; boxX: number; boxY: number } | null>(null);
 
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isAddingBox || !containerRef.current) return;
@@ -40,6 +45,9 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange }: In
       width: 15,
       height: 5,
       answer: "",
+      fontSize: 14,
+      fontWeight: "normal",
+      fontColor: "#000000",
     };
 
     onChange([...textBoxes, newBox]);
@@ -50,6 +58,47 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange }: In
   const handleAnswerChange = (id: string, answer: string) => {
     onChange(textBoxes.map(box => box.id === id ? { ...box, answer } : box));
   };
+
+  const handleFontChange = (id: string, property: string, value: any) => {
+    onChange(textBoxes.map(box => box.id === id ? { ...box, [property]: value } : box));
+  };
+
+  const handleDragStart = useCallback((e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    const box = textBoxes.find(b => b.id === id);
+    if (!box || !containerRef.current) return;
+
+    setIsDragging(true);
+    dragStartRef.current = {
+      x: e.clientX,
+      y: e.clientY,
+      boxX: box.x,
+      boxY: box.y,
+    };
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (!dragStartRef.current || !containerRef.current) return;
+
+      const rect = containerRef.current.getBoundingClientRect();
+      const deltaX = ((moveEvent.clientX - dragStartRef.current.x) / rect.width) * 100;
+      const deltaY = ((moveEvent.clientY - dragStartRef.current.y) / rect.height) * 100;
+
+      const newX = Math.max(0, Math.min(100 - (textBoxes.find(b => b.id === id)?.width || 0), dragStartRef.current.boxX + deltaX));
+      const newY = Math.max(0, Math.min(100 - (textBoxes.find(b => b.id === id)?.height || 0), dragStartRef.current.boxY + deltaY));
+
+      onChange(textBoxes.map(box => box.id === id ? { ...box, x: newX, y: newY } : box));
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      dragStartRef.current = null;
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  }, [textBoxes, onChange]);
 
   const handleDeleteBox = (id: string) => {
     onChange(textBoxes.filter(box => box.id !== id));
@@ -150,7 +199,7 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange }: In
         {textBoxes.map((box) => (
           <div
             key={box.id}
-            className="absolute border-2 cursor-pointer group"
+            className="absolute border-2 cursor-move group"
             style={{
               left: `${box.x}%`,
               top: `${box.y}%`,
@@ -159,32 +208,44 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange }: In
               borderColor: selectedBox === box.id ? "hsl(var(--primary))" : "hsl(var(--primary) / 0.5)",
               backgroundColor: selectedBox === box.id ? "hsl(var(--primary) / 0.3)" : "hsl(var(--primary) / 0.15)",
             }}
+            onMouseDown={(e) => {
+              if (!isResizing) {
+                handleDragStart(e, box.id);
+              }
+            }}
             onClick={(e) => {
               e.stopPropagation();
               setSelectedBox(box.id);
             }}
           >
             {box.answer && (
-              <div className="absolute inset-0 flex items-center justify-center text-xs font-medium" style={{ color: "hsl(var(--primary-foreground))" }}>
+              <div 
+                className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                style={{ 
+                  fontSize: `${box.fontSize || 14}px`,
+                  fontWeight: box.fontWeight || "normal",
+                  color: box.fontColor || "#000000",
+                }}
+              >
                 {box.answer}
               </div>
             )}
-            {selectedBox === box.id && !isResizing && (
+            {selectedBox === box.id && !isResizing && !isDragging && (
               <>
                 <div 
-                  className="absolute w-3 h-3 bg-primary border border-background rounded-full -top-1.5 -left-1.5 cursor-nw-resize opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute w-3 h-3 bg-primary border border-background rounded-full -top-1.5 -left-1.5 cursor-nw-resize opacity-0 group-hover:opacity-100 transition-opacity z-10"
                   onMouseDown={(e) => handleResizeStart(e, box.id, "nw")}
                 />
                 <div 
-                  className="absolute w-3 h-3 bg-primary border border-background rounded-full -top-1.5 -right-1.5 cursor-ne-resize opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute w-3 h-3 bg-primary border border-background rounded-full -top-1.5 -right-1.5 cursor-ne-resize opacity-0 group-hover:opacity-100 transition-opacity z-10"
                   onMouseDown={(e) => handleResizeStart(e, box.id, "ne")}
                 />
                 <div 
-                  className="absolute w-3 h-3 bg-primary border border-background rounded-full -bottom-1.5 -left-1.5 cursor-sw-resize opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute w-3 h-3 bg-primary border border-background rounded-full -bottom-1.5 -left-1.5 cursor-sw-resize opacity-0 group-hover:opacity-100 transition-opacity z-10"
                   onMouseDown={(e) => handleResizeStart(e, box.id, "sw")}
                 />
                 <div 
-                  className="absolute w-3 h-3 bg-primary border border-background rounded-full -bottom-1.5 -right-1.5 cursor-se-resize opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute w-3 h-3 bg-primary border border-background rounded-full -bottom-1.5 -right-1.5 cursor-se-resize opacity-0 group-hover:opacity-100 transition-opacity z-10"
                   onMouseDown={(e) => handleResizeStart(e, box.id, "se")}
                 />
               </>
@@ -194,7 +255,7 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange }: In
       </div>
 
       {selectedBox && (
-        <div className="p-4 border rounded-lg space-y-3">
+        <div className="p-4 border rounded-lg space-y-4">
           <div className="flex items-center justify-between">
             <Label>Edit Selected Text Box</Label>
             <Button
@@ -214,6 +275,46 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange }: In
               onChange={(e) => handleAnswerChange(selectedBox, e.target.value)}
               placeholder="Enter the correct answer"
             />
+          </div>
+          
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <Label htmlFor="fontSize">Font Size</Label>
+              <Input
+                id="fontSize"
+                type="number"
+                min="8"
+                max="48"
+                value={textBoxes.find(b => b.id === selectedBox)?.fontSize || 14}
+                onChange={(e) => handleFontChange(selectedBox, "fontSize", parseInt(e.target.value))}
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="fontWeight">Font Weight</Label>
+              <select
+                id="fontWeight"
+                className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+                value={textBoxes.find(b => b.id === selectedBox)?.fontWeight || "normal"}
+                onChange={(e) => handleFontChange(selectedBox, "fontWeight", e.target.value)}
+              >
+                <option value="normal">Normal</option>
+                <option value="bold">Bold</option>
+                <option value="600">Semi-Bold</option>
+                <option value="300">Light</option>
+              </select>
+            </div>
+            
+            <div>
+              <Label htmlFor="fontColor">Font Color</Label>
+              <Input
+                id="fontColor"
+                type="color"
+                value={textBoxes.find(b => b.id === selectedBox)?.fontColor || "#000000"}
+                onChange={(e) => handleFontChange(selectedBox, "fontColor", e.target.value)}
+                className="h-9"
+              />
+            </div>
           </div>
         </div>
       )}

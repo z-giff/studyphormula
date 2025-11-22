@@ -19,6 +19,8 @@ interface Flashcard {
   position: number;
   section_id: string | null;
   color: string | null;
+  flashcard_type?: string;
+  interactive_data?: any;
 }
 
 interface FlashcardSet {

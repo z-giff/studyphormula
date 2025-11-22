@@ -10,6 +10,9 @@ interface TextBox {
   width: number;
   height: number;
   answer: string;
+  fontSize?: number;
+  fontWeight?: string;
+  fontColor?: string;
 }
 
 interface InteractiveFlashcardStudyProps {
@@ -108,12 +111,14 @@ export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: In
                   }
                 }}
                 disabled={showAnswers}
-                className="h-full text-xs px-1 text-center"
+                className="h-full px-1 text-center"
                 style={{
                   borderColor: getBoxBorderColor(box.id),
                   borderWidth: "2px",
                   backgroundColor: getBoxBackgroundColor(box.id),
-                  color: "#000000",
+                  color: box.fontColor || "#000000",
+                  fontSize: `${box.fontSize || 14}px`,
+                  fontWeight: box.fontWeight || "normal",
                 }}
               />
               {validationState[box.id] === "correct" && (

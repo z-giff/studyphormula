@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ImageIcon } from "lucide-react";
+import { InteractiveFlashcardEditor } from "@/components/InteractiveFlashcardEditor";
 
 const PRESET_COLORS = [
   "#3B82F6", // Blue
@@ -32,6 +34,10 @@ interface Flashcard {
   definition: string;
   image_url: string | null;
   color?: string | null;
+  flashcard_type?: string;
+  interactive_data?: {
+    textBoxes: Array<{ id: string; x: number; y: number; width: number; height: number; answer: string; fontSize?: number; fontWeight?: string; fontColor?: string }>;
+  };
 }
 
 interface EditFlashcardDialogProps {
@@ -43,41 +49,80 @@ interface EditFlashcardDialogProps {
 
 export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }: EditFlashcardDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [flashcardType, setFlashcardType] = useState<"standard" | "interactive">(
+    flashcard.flashcard_type === "interactive" ? "interactive" : "standard"
+  );
   const [formData, setFormData] = useState({
     term: flashcard.term,
     definition: flashcard.definition,
     imageUrl: flashcard.image_url || "",
     color: flashcard.color || null,
   });
+  const [interactiveData, setInteractiveData] = useState<{
+    textBoxes: Array<{ id: string; x: number; y: number; width: number; height: number; answer: string; fontSize?: number; fontWeight?: string; fontColor?: string }>;
+  }>({
+    textBoxes: flashcard.interactive_data?.textBoxes || [],
+  });
 
   useEffect(() => {
+    setFlashcardType(flashcard.flashcard_type === "interactive" ? "interactive" : "standard");
     setFormData({
       term: flashcard.term,
       definition: flashcard.definition,
       imageUrl: flashcard.image_url || "",
       color: flashcard.color || null,
     });
+    setInteractiveData({
+      textBoxes: flashcard.interactive_data?.textBoxes || [],
+    });
   }, [flashcard]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.term.trim() || !formData.definition.trim()) {
-      toast.error("Please fill in both term and definition");
-      return;
+    if (flashcardType === "standard") {
+      if (!formData.term.trim() || !formData.definition.trim()) {
+        toast.error("Please fill in both term and definition");
+        return;
+      }
+    } else {
+      if (!formData.imageUrl.trim()) {
+        toast.error("Please provide an image URL for interactive flashcards");
+        return;
+      }
+      if (interactiveData.textBoxes.length === 0) {
+        toast.error("Please add at least one text box");
+        return;
+      }
+      if (interactiveData.textBoxes.some(box => !box.answer.trim())) {
+        toast.error("Please fill in all text box answers");
+        return;
+      }
     }
 
     setIsLoading(true);
 
     try {
+      const updateData: any = {
+        flashcard_type: flashcardType,
+        color: formData.color,
+      };
+
+      if (flashcardType === "standard") {
+        updateData.term = formData.term.trim();
+        updateData.definition = formData.definition.trim();
+        updateData.image_url = formData.imageUrl.trim() || null;
+        updateData.interactive_data = null;
+      } else {
+        updateData.term = formData.term.trim() || "Interactive Flashcard";
+        updateData.definition = "Fill in the blanks";
+        updateData.image_url = formData.imageUrl.trim();
+        updateData.interactive_data = interactiveData;
+      }
+
       const { error } = await supabase
         .from("flashcards")
-        .update({
-          term: formData.term.trim(),
-          definition: formData.definition.trim(),
-          image_url: formData.imageUrl.trim() || null,
-          color: formData.color,
-        })
+        .update(updateData)
         .eq("id", flashcard.id);
 
       if (error) throw error;
@@ -94,57 +139,89 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Flashcard</DialogTitle>
           <DialogDescription>
-            Update the term, definition, or image for this flashcard.
+            Update your flashcard content and settings.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="edit-term">Term / Question *</Label>
-            <Input
-              id="edit-term"
-              placeholder="e.g., What is the mitochondria?"
-              value={formData.term}
-              onChange={(e) => setFormData({ ...formData, term: e.target.value })}
-              disabled={isLoading}
-              required
-            />
-          </div>
+          <Tabs value={flashcardType} onValueChange={(v) => setFlashcardType(v as "standard" | "interactive")}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="standard">Standard</TabsTrigger>
+              <TabsTrigger value="interactive">Interactive</TabsTrigger>
+            </TabsList>
 
-          <div className="space-y-2">
-            <Label htmlFor="edit-definition">Definition / Answer *</Label>
-            <Textarea
-              id="edit-definition"
-              placeholder="The powerhouse of the cell..."
-              value={formData.definition}
-              onChange={(e) => setFormData({ ...formData, definition: e.target.value })}
-              disabled={isLoading}
-              rows={4}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="edit-imageUrl">Image URL (Optional)</Label>
-            <div className="flex gap-2">
-              <div className="flex-1">
+            <TabsContent value="standard" className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-term">Term / Question *</Label>
                 <Input
-                  id="edit-imageUrl"
+                  id="edit-term"
+                  placeholder="e.g., What is the mitochondria?"
+                  value={formData.term}
+                  onChange={(e) => setFormData({ ...formData, term: e.target.value })}
+                  disabled={isLoading}
+                  required={flashcardType === "standard"}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-definition">Definition / Answer *</Label>
+                <Textarea
+                  id="edit-definition"
+                  placeholder="The powerhouse of the cell..."
+                  value={formData.definition}
+                  onChange={(e) => setFormData({ ...formData, definition: e.target.value })}
+                  disabled={isLoading}
+                  rows={4}
+                  required={flashcardType === "standard"}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-imageUrl">Image URL (Optional)</Label>
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <Input
+                      id="edit-imageUrl"
+                      type="url"
+                      placeholder="https://example.com/image.jpg"
+                      value={formData.imageUrl}
+                      onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                      disabled={isLoading}
+                    />
+                  </div>
+                  <Button type="button" variant="outline" disabled>
+                    <ImageIcon className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="interactive" className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label htmlFor="interactive-imageUrl">Image URL *</Label>
+                <Input
+                  id="interactive-imageUrl"
                   type="url"
                   placeholder="https://example.com/image.jpg"
                   value={formData.imageUrl}
                   onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
                   disabled={isLoading}
+                  required={flashcardType === "interactive"}
                 />
               </div>
-              <Button type="button" variant="outline" disabled>
-                <ImageIcon className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+
+              {formData.imageUrl && (
+                <InteractiveFlashcardEditor
+                  imageUrl={formData.imageUrl}
+                  textBoxes={interactiveData.textBoxes}
+                  onChange={(textBoxes) => setInteractiveData({ textBoxes })}
+                />
+              )}
+            </TabsContent>
+          </Tabs>
 
           <div className="space-y-2">
             <Label>Flashcard Color (Optional)</Label>
