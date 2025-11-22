@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { getContrastColor } from "@/lib/utils";
 import { InteractiveFlashcardStudy } from "@/components/InteractiveFlashcardStudy";
+import { MermaidFlowchartDisplay } from "@/components/MermaidFlowchartDisplay";
 
 interface Flashcard {
   id: string;
@@ -18,7 +19,10 @@ interface Flashcard {
   color: string | null;
   flashcard_type?: string;
   interactive_data?: {
-    textBoxes: Array<{ id: string; x: number; y: number; width: number; height: number; answer: string }>;
+    textBoxes?: Array<{ id: string; x: number; y: number; width: number; height: number; answer: string }>;
+    mermaidCode?: string;
+    fontSize?: number;
+    fontFamily?: string;
   };
 }
 
@@ -193,13 +197,50 @@ const StudyMode = () => {
           </div>
 
           <div className="mb-8">
-            {currentCard.flashcard_type === "interactive" && currentCard.interactive_data ? (
+            {currentCard.flashcard_type === "interactive" && currentCard.interactive_data?.textBoxes ? (
               <Card className="p-8" style={{ backgroundColor: cardColor }}>
                 <InteractiveFlashcardStudy
                   imageUrl={currentCard.image_url || ""}
                   textBoxes={currentCard.interactive_data.textBoxes}
                   cardColor={cardColor}
                 />
+              </Card>
+            ) : currentCard.flashcard_type === "flowchart" && currentCard.interactive_data?.mermaidCode ? (
+              <Card
+                className="relative min-h-[500px] cursor-pointer border-0 overflow-hidden flex flex-col"
+                style={{
+                  backgroundColor: cardColor,
+                  color: textColor,
+                  transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+                  transition: "transform 0.6s ease",
+                  transformStyle: "preserve-3d",
+                }}
+                onClick={handleFlip}
+              >
+                <div
+                  className="p-12 w-full h-full flex flex-col"
+                  style={{
+                    transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+                    transformStyle: "preserve-3d",
+                  }}
+                >
+                  {!isFlipped ? (
+                    <div className="text-center space-y-6 flex-1 flex flex-col items-center justify-center">
+                      <p className="text-sm uppercase tracking-wide opacity-80">Question</p>
+                      <h2 className="text-4xl font-bold break-words">{currentCard.term}</h2>
+                      <p className="text-sm opacity-70 mt-8">Click to reveal flowchart</p>
+                    </div>
+                  ) : (
+                    <div className="flex-1 flex flex-col">
+                      <p className="text-sm uppercase tracking-wide opacity-80 mb-4 text-center">Flowchart</p>
+                      <MermaidFlowchartDisplay
+                        mermaidCode={currentCard.interactive_data.mermaidCode}
+                        fontSize={currentCard.interactive_data.fontSize}
+                        fontFamily={currentCard.interactive_data.fontFamily}
+                      />
+                    </div>
+                  )}
+                </div>
               </Card>
             ) : (
               <Card

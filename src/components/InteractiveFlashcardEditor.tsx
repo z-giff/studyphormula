@@ -163,7 +163,7 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
           width: box.width,
           height: box.height,
           answer: box.text,
-          fontSize: box.fontSize || 14,
+          fontSize: 14,
           fontWeight: "normal",
           fontColor: "#000000",
         }));

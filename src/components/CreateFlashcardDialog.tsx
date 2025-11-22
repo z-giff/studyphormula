@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { ImageIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InteractiveFlashcardEditor } from "./InteractiveFlashcardEditor";
+import { MermaidFlowchartEditor } from "./MermaidFlowchartEditor";
 
 const PRESET_COLORS = [
   "#3B82F6", // Blue
@@ -37,7 +38,7 @@ interface CreateFlashcardDialogProps {
 
 export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: CreateFlashcardDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [flashcardType, setFlashcardType] = useState<"standard" | "interactive">("standard");
+  const [flashcardType, setFlashcardType] = useState<"standard" | "interactive" | "flowchart">("standard");
   const [formData, setFormData] = useState({
     term: "",
     definition: "",
@@ -51,6 +52,11 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
     imageUrl: "",
     textBoxes: [],
   });
+  const [flowchartData, setFlowchartData] = useState({
+    mermaidCode: "",
+    fontSize: 16,
+    fontFamily: "arial",
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +66,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
         toast.error("Please fill in both term and definition");
         return;
       }
-    } else {
+    } else if (flashcardType === "interactive") {
       if (!interactiveData.imageUrl.trim()) {
         toast.error("Please provide an image URL");
         return;
@@ -71,6 +77,15 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
       }
       if (interactiveData.textBoxes.some(box => !box.answer.trim())) {
         toast.error("Please fill in all text box answers");
+        return;
+      }
+    } else if (flashcardType === "flowchart") {
+      if (!formData.term.trim()) {
+        toast.error("Please provide a question/term");
+        return;
+      }
+      if (!flowchartData.mermaidCode.trim()) {
+        toast.error("Please create a flowchart diagram");
         return;
       }
     }
@@ -88,26 +103,36 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
 
       const maxPosition = existingCards && existingCards.length > 0 ? existingCards[0].position : -1;
 
-      const insertData = flashcardType === "standard"
-        ? {
-            set_id: setId,
-            term: formData.term.trim(),
-            definition: formData.definition.trim(),
-            image_url: formData.imageUrl.trim() || null,
-            color: formData.color,
-            position: maxPosition + 1,
-            flashcard_type: "standard",
-          }
-        : {
-            set_id: setId,
-            term: "Interactive Flashcard",
-            definition: "Fill in the blanks",
-            image_url: interactiveData.imageUrl.trim(),
-            color: formData.color,
-            position: maxPosition + 1,
-            flashcard_type: "interactive",
-            interactive_data: { textBoxes: interactiveData.textBoxes },
-          };
+      let insertData: any = {
+        set_id: setId,
+        color: formData.color,
+        position: maxPosition + 1,
+        flashcard_type: flashcardType,
+      };
+
+      if (flashcardType === "standard") {
+        insertData = {
+          ...insertData,
+          term: formData.term.trim(),
+          definition: formData.definition.trim(),
+          image_url: formData.imageUrl.trim() || null,
+        };
+      } else if (flashcardType === "interactive") {
+        insertData = {
+          ...insertData,
+          term: "Interactive Flashcard",
+          definition: "Fill in the blanks",
+          image_url: interactiveData.imageUrl.trim(),
+          interactive_data: { textBoxes: interactiveData.textBoxes },
+        };
+      } else if (flashcardType === "flowchart") {
+        insertData = {
+          ...insertData,
+          term: formData.term.trim(),
+          definition: "Flowchart diagram",
+          interactive_data: flowchartData,
+        };
+      }
 
       const { error } = await supabase.from("flashcards").insert(insertData);
 
@@ -116,6 +141,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
       toast.success("Flashcard created successfully!");
       setFormData({ term: "", definition: "", imageUrl: "", color: null });
       setInteractiveData({ imageUrl: "", textBoxes: [] });
+      setFlowchartData({ mermaidCode: "", fontSize: 16, fontFamily: "arial" });
       setFlashcardType("standard");
       onOpenChange(false);
       onSuccess();
@@ -136,10 +162,11 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <Tabs value={flashcardType} onValueChange={(v) => setFlashcardType(v as "standard" | "interactive")}>
-            <TabsList className="grid w-full grid-cols-2">
+          <Tabs value={flashcardType} onValueChange={(v) => setFlashcardType(v as "standard" | "interactive" | "flowchart")}>
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="standard">Standard</TabsTrigger>
               <TabsTrigger value="interactive">Interactive</TabsTrigger>
+              <TabsTrigger value="flowchart">Flowchart</TabsTrigger>
             </TabsList>
 
             <TabsContent value="standard" className="space-y-4 mt-4">
@@ -263,6 +290,55 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
                 </p>
               </div>
             </TabsContent>
+
+            <TabsContent value="flowchart" className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label htmlFor="flowchart-term">Question / Topic *</Label>
+                <Input
+                  id="flowchart-term"
+                  placeholder="e.g., Photosynthesis Process"
+                  value={formData.term}
+                  onChange={(e) => setFormData({ ...formData, term: e.target.value })}
+                  disabled={isLoading}
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  This will be shown on the question side of the flashcard
+                </p>
+              </div>
+
+              <MermaidFlowchartEditor
+                mermaidCode={flowchartData.mermaidCode}
+                onChange={(code) => setFlowchartData({ ...flowchartData, mermaidCode: code })}
+                fontSize={flowchartData.fontSize}
+                fontFamily={flowchartData.fontFamily}
+                onFontSizeChange={(size) => setFlowchartData({ ...flowchartData, fontSize: size })}
+                onFontFamilyChange={(family) => setFlowchartData({ ...flowchartData, fontFamily: family })}
+              />
+
+              <div className="space-y-2">
+                <Label>Flashcard Color (Optional)</Label>
+                <div className="flex flex-wrap gap-2">
+                  {PRESET_COLORS.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      className="w-10 h-10 rounded-full border-2 transition-all hover:scale-110"
+                      style={{
+                        backgroundColor: color,
+                        borderColor: formData.color === color ? "#000" : "transparent",
+                        boxShadow: formData.color === color ? `0 0 0 2px ${color}` : "none",
+                      }}
+                      onClick={() => setFormData({ ...formData, color: formData.color === color ? null : color })}
+                      disabled={isLoading}
+                    />
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Choose a custom color for this flashcard, or leave unselected to use the deck color
+                </p>
+              </div>
+            </TabsContent>
           </Tabs>
 
           <div className="flex gap-3 justify-end">
@@ -275,7 +351,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Creating..." : `Create ${flashcardType === "standard" ? "Flashcard" : "Interactive Flashcard"}`}
+              {isLoading ? "Creating..." : `Create ${flashcardType === "standard" ? "Flashcard" : flashcardType === "interactive" ? "Interactive Flashcard" : "Flowchart Flashcard"}`}
             </Button>
           </div>
         </form>
