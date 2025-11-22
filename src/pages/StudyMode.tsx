@@ -7,12 +7,14 @@ import { Card } from "@/components/ui/card";
 import { GraduationCap, ArrowLeft, Shuffle, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { getContrastColor } from "@/lib/utils";
 
 interface Flashcard {
   id: string;
   term: string;
   definition: string;
   image_url: string | null;
+  color: string | null;
 }
 
 interface FlashcardSet {
@@ -120,6 +122,8 @@ const StudyMode = () => {
   }
 
   const currentCard = flashcards[currentIndex];
+  const cardColor = currentCard.color || set.color;
+  const textColor = getContrastColor(cardColor);
 
   return (
     <div className="min-h-screen bg-background">
@@ -182,12 +186,11 @@ const StudyMode = () => {
 
           <div className="perspective-1000 mb-8">
             <Card
-              className="relative min-h-[500px] cursor-pointer transition-all duration-500 preserve-3d border-2"
+              className="relative min-h-[500px] cursor-pointer transition-all duration-500 preserve-3d border-0 overflow-hidden"
               style={{
                 transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
                 transformStyle: "preserve-3d",
-                borderColor: set.color,
-                boxShadow: `0 10px 40px ${set.color}30`,
+                backgroundColor: cardColor,
               }}
               onClick={handleFlip}
             >
@@ -196,13 +199,14 @@ const StudyMode = () => {
                 className="absolute inset-0 backface-hidden p-12 flex flex-col items-center justify-center"
                 style={{ 
                   backfaceVisibility: "hidden",
-                  background: `linear-gradient(135deg, ${set.color}08, transparent)`,
+                  backgroundColor: cardColor,
+                  color: textColor,
                 }}
               >
                 <div className="text-center space-y-4">
-                  <p className="text-sm uppercase tracking-wide" style={{ color: set.color }}>Term</p>
+                  <p className="text-sm uppercase tracking-wide opacity-80">Term</p>
                   <h2 className="text-4xl font-bold">{currentCard.term}</h2>
-                  <p className="text-sm text-muted-foreground mt-8">Click to reveal answer</p>
+                  <p className="text-sm opacity-60 mt-8">Click to reveal answer</p>
                 </div>
               </div>
 
@@ -212,11 +216,12 @@ const StudyMode = () => {
                 style={{
                   backfaceVisibility: "hidden",
                   transform: "rotateY(180deg)",
-                  background: `linear-gradient(135deg, ${set.color}08, transparent)`,
+                  backgroundColor: cardColor,
+                  color: textColor,
                 }}
               >
                 <div className="text-center space-y-6 w-full">
-                  <p className="text-sm uppercase tracking-wide" style={{ color: set.color }}>Definition</p>
+                  <p className="text-sm uppercase tracking-wide opacity-80">Definition</p>
                   {currentCard.image_url && (
                     <img
                       src={currentCard.image_url}

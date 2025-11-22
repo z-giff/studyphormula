@@ -46,6 +46,7 @@ export type Database = {
       }
       flashcards: {
         Row: {
+          color: string | null
           created_at: string | null
           definition: string
           id: string
@@ -57,6 +58,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          color?: string | null
           created_at?: string | null
           definition: string
           id?: string
@@ -68,6 +70,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          color?: string | null
           created_at?: string | null
           definition?: string
           id?: string
