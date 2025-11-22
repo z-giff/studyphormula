@@ -67,12 +67,9 @@ export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: In
   };
 
   const getBoxBackgroundColor = (id: string) => {
-    const state = validationState[id];
-    if (state === "correct") return "rgba(16, 185, 129, 0.2)";
-    if (state === "incorrect") return "rgba(239, 68, 68, 0.2)";
-    return "rgba(255, 255, 255, 0.9)";
+    // Always use a fully opaque background so underlying image text is not visible
+    return "hsl(var(--background))";
   };
-
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
