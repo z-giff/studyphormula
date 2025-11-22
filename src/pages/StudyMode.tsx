@@ -186,19 +186,20 @@ const StudyMode = () => {
 
           <div className="perspective-1000 mb-8">
             <Card
-              className="relative min-h-[500px] cursor-pointer transition-all duration-500 preserve-3d border-0 overflow-hidden"
+              className="relative min-h-[500px] cursor-pointer border-0 overflow-hidden"
               style={{
                 transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
                 transformStyle: "preserve-3d",
-                backgroundColor: cardColor,
+                transition: "transform 0.6s",
               }}
               onClick={handleFlip}
             >
               {/* Front of card */}
               <div
-                className="absolute inset-0 backface-hidden p-12 flex flex-col items-center justify-center"
+                className="absolute inset-0 p-12 flex flex-col items-center justify-center"
                 style={{ 
                   backfaceVisibility: "hidden",
+                  WebkitBackfaceVisibility: "hidden",
                   backgroundColor: cardColor,
                   color: textColor,
                 }}
@@ -212,9 +213,10 @@ const StudyMode = () => {
 
               {/* Back of card */}
               <div
-                className="absolute inset-0 backface-hidden p-12 flex flex-col items-center justify-center"
+                className="absolute inset-0 p-12 flex flex-col items-center justify-center"
                 style={{
                   backfaceVisibility: "hidden",
+                  WebkitBackfaceVisibility: "hidden",
                   transform: "rotateY(180deg)",
                   backgroundColor: cardColor,
                   color: textColor,
