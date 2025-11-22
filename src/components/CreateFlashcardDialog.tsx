@@ -8,6 +8,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ImageIcon } from "lucide-react";
 
+const PRESET_COLORS = [
+  "#3B82F6", // Blue
+  "#10B981", // Green
+  "#F59E0B", // Amber
+  "#EF4444", // Red
+  "#8B5CF6", // Purple
+  "#EC4899", // Pink
+  "#F97316", // Bright Orange
+  "#84CC16", // Lime
+  "#06B6D4", // Cyan
+  "#6366F1", // Indigo
+  "#7C3AED", // Violet
+  "#D946EF", // Fuchsia
+  "#F43F5E", // Rose
+  "#64748B", // Slate
+  "#14B8A6", // Teal
+];
+
 interface CreateFlashcardDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -21,6 +39,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
     term: "",
     definition: "",
     imageUrl: "",
+    color: null as string | null,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,13 +68,14 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
         term: formData.term.trim(),
         definition: formData.definition.trim(),
         image_url: formData.imageUrl.trim() || null,
+        color: formData.color,
         position: maxPosition + 1,
       });
 
       if (error) throw error;
 
       toast.success("Flashcard created successfully!");
-      setFormData({ term: "", definition: "", imageUrl: "" });
+      setFormData({ term: "", definition: "", imageUrl: "", color: null });
       onOpenChange(false);
       onSuccess();
     } catch (error: any) {
@@ -119,6 +139,29 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
             </div>
             <p className="text-xs text-muted-foreground">
               Paste a URL to an image or diagram for visual learning
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Flashcard Color (Optional)</Label>
+            <div className="flex flex-wrap gap-2">
+              {PRESET_COLORS.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  className="w-10 h-10 rounded-full border-2 transition-all hover:scale-110"
+                  style={{
+                    backgroundColor: color,
+                    borderColor: formData.color === color ? "#000" : "transparent",
+                    boxShadow: formData.color === color ? `0 0 0 2px ${color}` : "none",
+                  }}
+                  onClick={() => setFormData({ ...formData, color: formData.color === color ? null : color })}
+                  disabled={isLoading}
+                />
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Choose a custom color for this flashcard, or leave unselected to use the deck color
             </p>
           </div>
 
