@@ -53,6 +53,7 @@ export type Database = {
           id: string
           image_url: string | null
           interactive_data: Json | null
+          is_bookmarked: boolean | null
           position: number
           section_id: string | null
           set_id: string
@@ -67,6 +68,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           interactive_data?: Json | null
+          is_bookmarked?: boolean | null
           position?: number
           section_id?: string | null
           set_id: string
@@ -81,6 +83,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           interactive_data?: Json | null
+          is_bookmarked?: boolean | null
           position?: number
           section_id?: string | null
           set_id?: string

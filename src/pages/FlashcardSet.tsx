@@ -4,11 +4,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { GraduationCap, Plus, ArrowLeft, Play, Pencil, Trash2 } from "lucide-react";
+import { GraduationCap, Plus, ArrowLeft, Play, Pencil, Trash2, Bookmark, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { CreateFlashcardDialog } from "@/components/CreateFlashcardDialog";
 import { EditFlashcardDialog } from "@/components/EditFlashcardDialog";
 import { ImportFlashcardsDialog } from "@/components/ImportFlashcardsDialog";
+import { CopyFlashcardDialog } from "@/components/CopyFlashcardDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface Flashcard {
@@ -21,6 +22,7 @@ interface Flashcard {
   color: string | null;
   flashcard_type?: string;
   interactive_data?: any;
+  is_bookmarked?: boolean;
 }
 
 interface FlashcardSet {
@@ -40,6 +42,7 @@ const FlashcardSetPage = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [editingFlashcard, setEditingFlashcard] = useState<Flashcard | null>(null);
+  const [copyingFlashcard, setCopyingFlashcard] = useState<{ id: string; setId: string } | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -102,6 +105,22 @@ const FlashcardSetPage = () => {
       fetchFlashcards();
     } catch (error: any) {
       toast.error(error.message || "Failed to delete flashcard");
+    }
+  };
+
+  const handleToggleBookmark = async (flashcardId: string, currentBookmarkStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from("flashcards")
+        .update({ is_bookmarked: !currentBookmarkStatus })
+        .eq("id", flashcardId);
+
+      if (error) throw error;
+
+      toast.success(currentBookmarkStatus ? "Bookmark removed" : "Flashcard bookmarked");
+      fetchFlashcards();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update bookmark");
     }
   };
 
@@ -198,11 +217,23 @@ const FlashcardSetPage = () => {
                       className="w-full h-48 object-cover rounded-lg mb-4"
                     />
                   )}
-                  <h3 className="text-lg font-semibold mb-2">{flashcard.term}</h3>
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-lg font-semibold flex-1">{flashcard.term}</h3>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="p-1 h-auto"
+                      onClick={() => handleToggleBookmark(flashcard.id, flashcard.is_bookmarked || false)}
+                    >
+                      <Bookmark
+                        className={`h-5 w-5 ${flashcard.is_bookmarked ? "fill-primary text-primary" : "text-muted-foreground"}`}
+                      />
+                    </Button>
+                  </div>
                   <p className="text-muted-foreground line-clamp-3 mb-4">
                     {flashcard.definition}
                   </p>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       variant="outline"
                       size="sm"
@@ -210,6 +241,14 @@ const FlashcardSetPage = () => {
                     >
                       <Pencil className="h-4 w-4 mr-1" />
                       Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCopyingFlashcard({ id: flashcard.id, setId: id! })}
+                    >
+                      <Copy className="h-4 w-4 mr-1" />
+                      Copy
                     </Button>
                     <Button
                       variant="outline"
@@ -247,6 +286,15 @@ const FlashcardSetPage = () => {
           onOpenChange={(open) => !open && setEditingFlashcard(null)}
           flashcard={editingFlashcard}
           onSuccess={fetchFlashcards}
+        />
+      )}
+
+      {copyingFlashcard && (
+        <CopyFlashcardDialog
+          open={!!copyingFlashcard}
+          onOpenChange={(open) => !open && setCopyingFlashcard(null)}
+          flashcardId={copyingFlashcard.id}
+          currentSetId={copyingFlashcard.setId}
         />
       )}
     </div>
