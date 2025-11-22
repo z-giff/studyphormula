@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ImageIcon } from "lucide-react";
 import { InteractiveFlashcardEditor } from "@/components/InteractiveFlashcardEditor";
+import { MermaidFlowchartEditor } from "@/components/MermaidFlowchartEditor";
 
 const PRESET_COLORS = [
   "#3B82F6", // Blue
@@ -36,7 +37,10 @@ interface Flashcard {
   color?: string | null;
   flashcard_type?: string;
   interactive_data?: {
-    textBoxes: Array<{ id: string; x: number; y: number; width: number; height: number; answer: string; fontSize?: number; fontWeight?: string; fontColor?: string }>;
+    textBoxes?: Array<{ id: string; x: number; y: number; width: number; height: number; answer: string; fontSize?: number; fontWeight?: string; fontColor?: string }>;
+    mermaidCode?: string;
+    fontSize?: number;
+    fontFamily?: string;
   };
 }
 
@@ -49,8 +53,10 @@ interface EditFlashcardDialogProps {
 
 export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }: EditFlashcardDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [flashcardType, setFlashcardType] = useState<"standard" | "interactive">(
-    flashcard.flashcard_type === "interactive" ? "interactive" : "standard"
+  const [flashcardType, setFlashcardType] = useState<"standard" | "interactive" | "flowchart">(
+    flashcard.flashcard_type === "interactive" ? "interactive" : 
+    flashcard.flashcard_type === "flowchart" ? "flowchart" : 
+    "standard"
   );
   const [formData, setFormData] = useState({
     term: flashcard.term,
@@ -63,9 +69,18 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
   }>({
     textBoxes: flashcard.interactive_data?.textBoxes || [],
   });
+  const [flowchartData, setFlowchartData] = useState({
+    mermaidCode: flashcard.interactive_data?.mermaidCode || "",
+    fontSize: flashcard.interactive_data?.fontSize || 16,
+    fontFamily: flashcard.interactive_data?.fontFamily || "arial",
+  });
 
   useEffect(() => {
-    setFlashcardType(flashcard.flashcard_type === "interactive" ? "interactive" : "standard");
+    setFlashcardType(
+      flashcard.flashcard_type === "interactive" ? "interactive" : 
+      flashcard.flashcard_type === "flowchart" ? "flowchart" : 
+      "standard"
+    );
     setFormData({
       term: flashcard.term,
       definition: flashcard.definition,
@@ -74,6 +89,11 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
     });
     setInteractiveData({
       textBoxes: flashcard.interactive_data?.textBoxes || [],
+    });
+    setFlowchartData({
+      mermaidCode: flashcard.interactive_data?.mermaidCode || "",
+      fontSize: flashcard.interactive_data?.fontSize || 16,
+      fontFamily: flashcard.interactive_data?.fontFamily || "arial",
     });
   }, [flashcard]);
 
@@ -85,7 +105,7 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
         toast.error("Please fill in both term and definition");
         return;
       }
-    } else {
+    } else if (flashcardType === "interactive") {
       if (!formData.imageUrl.trim()) {
         toast.error("Please provide an image URL for interactive flashcards");
         return;
@@ -96,6 +116,15 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
       }
       if (interactiveData.textBoxes.some(box => !box.answer.trim())) {
         toast.error("Please fill in all text box answers");
+        return;
+      }
+    } else if (flashcardType === "flowchart") {
+      if (!formData.term.trim()) {
+        toast.error("Please provide a question/term");
+        return;
+      }
+      if (!flowchartData.mermaidCode.trim()) {
+        toast.error("Please create a flowchart diagram");
         return;
       }
     }
@@ -113,11 +142,16 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
         updateData.definition = formData.definition.trim();
         updateData.image_url = formData.imageUrl.trim() || null;
         updateData.interactive_data = null;
-      } else {
+      } else if (flashcardType === "interactive") {
         updateData.term = formData.term.trim() || "Interactive Flashcard";
         updateData.definition = "Fill in the blanks";
         updateData.image_url = formData.imageUrl.trim();
         updateData.interactive_data = interactiveData;
+      } else if (flashcardType === "flowchart") {
+        updateData.term = formData.term.trim();
+        updateData.definition = "Flowchart diagram";
+        updateData.image_url = null;
+        updateData.interactive_data = flowchartData;
       }
 
       const { error } = await supabase
@@ -147,10 +181,11 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <Tabs value={flashcardType} onValueChange={(v) => setFlashcardType(v as "standard" | "interactive")}>
-            <TabsList className="grid w-full grid-cols-2">
+          <Tabs value={flashcardType} onValueChange={(v) => setFlashcardType(v as "standard" | "interactive" | "flowchart")}>
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="standard">Standard</TabsTrigger>
               <TabsTrigger value="interactive">Interactive</TabsTrigger>
+              <TabsTrigger value="flowchart">Flowchart</TabsTrigger>
             </TabsList>
 
             <TabsContent value="standard" className="space-y-4 mt-4">
@@ -221,6 +256,29 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
                   onImageChange={(imageUrl) => setFormData({ ...formData, imageUrl })}
                 />
               )}
+            </TabsContent>
+
+            <TabsContent value="flowchart" className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label htmlFor="flowchart-edit-term">Question / Topic *</Label>
+                <Input
+                  id="flowchart-edit-term"
+                  placeholder="e.g., Photosynthesis Process"
+                  value={formData.term}
+                  onChange={(e) => setFormData({ ...formData, term: e.target.value })}
+                  disabled={isLoading}
+                  required={flashcardType === "flowchart"}
+                />
+              </div>
+
+              <MermaidFlowchartEditor
+                mermaidCode={flowchartData.mermaidCode}
+                onChange={(code) => setFlowchartData({ ...flowchartData, mermaidCode: code })}
+                fontSize={flowchartData.fontSize}
+                fontFamily={flowchartData.fontFamily}
+                onFontSizeChange={(size) => setFlowchartData({ ...flowchartData, fontSize: size })}
+                onFontFamilyChange={(family) => setFlowchartData({ ...flowchartData, fontFamily: family })}
+              />
             </TabsContent>
           </Tabs>
 
