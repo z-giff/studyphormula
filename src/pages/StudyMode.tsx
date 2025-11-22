@@ -8,6 +8,7 @@ import { GraduationCap, ArrowLeft, Shuffle, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { getContrastColor } from "@/lib/utils";
+import { InteractiveFlashcardStudy } from "@/components/InteractiveFlashcardStudy";
 
 interface Flashcard {
   id: string;
@@ -15,6 +16,10 @@ interface Flashcard {
   definition: string;
   image_url: string | null;
   color: string | null;
+  flashcard_type?: string;
+  interactive_data?: {
+    textBoxes: Array<{ id: string; x: number; y: number; width: number; height: number; answer: string }>;
+  };
 }
 
 interface FlashcardSet {
@@ -56,7 +61,10 @@ const StudyMode = () => {
       if (cardsResult.error) throw cardsResult.error;
 
       setSet(setResult.data);
-      setFlashcards(cardsResult.data || []);
+      setFlashcards((cardsResult.data || []).map(card => ({
+        ...card,
+        interactive_data: card.interactive_data as any,
+      })));
     } catch (error: any) {
       toast.error(error.message || "Failed to load study session");
       navigate(`/set/${id}`);
@@ -185,49 +193,59 @@ const StudyMode = () => {
           </div>
 
           <div className="mb-8">
-            <Card
-              className="relative min-h-[500px] cursor-pointer border-0 overflow-hidden flex items-center justify-center"
-              style={{
-                backgroundColor: cardColor,
-                color: textColor,
-                transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
-                transition: "transform 0.6s ease",
-                transformStyle: "preserve-3d",
-              }}
-              onClick={handleFlip}
-            >
-              <div
-                className="p-12 w-full max-w-3xl mx-auto text-center space-y-6"
+            {currentCard.flashcard_type === "interactive" && currentCard.interactive_data ? (
+              <Card className="p-8" style={{ backgroundColor: cardColor }}>
+                <InteractiveFlashcardStudy
+                  imageUrl={currentCard.image_url || ""}
+                  textBoxes={currentCard.interactive_data.textBoxes}
+                  cardColor={cardColor}
+                />
+              </Card>
+            ) : (
+              <Card
+                className="relative min-h-[500px] cursor-pointer border-0 overflow-hidden flex items-center justify-center"
                 style={{
+                  backgroundColor: cardColor,
+                  color: textColor,
                   transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+                  transition: "transform 0.6s ease",
                   transformStyle: "preserve-3d",
                 }}
+                onClick={handleFlip}
               >
-                <p className="text-sm uppercase tracking-wide opacity-80">
-                  {isFlipped ? "Definition" : "Term"}
-                </p>
+                <div
+                  className="p-12 w-full max-w-3xl mx-auto text-center space-y-6"
+                  style={{
+                    transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+                    transformStyle: "preserve-3d",
+                  }}
+                >
+                  <p className="text-sm uppercase tracking-wide opacity-80">
+                    {isFlipped ? "Definition" : "Term"}
+                  </p>
 
-                {!isFlipped ? (
-                  <>
-                    <h2 className="text-4xl font-bold break-words">{currentCard.term}</h2>
-                    <p className="text-sm opacity-70 mt-8">Click to reveal answer</p>
-                  </>
-                ) : (
-                  <>
-                    {currentCard.image_url && (
-                      <img
-                        src={currentCard.image_url}
-                        alt={currentCard.term}
-                        className="max-h-64 mx-auto rounded-lg object-contain mb-6"
-                      />
-                    )}
-                    <p className="text-2xl leading-relaxed whitespace-pre-wrap break-words">
-                      {currentCard.definition}
-                    </p>
-                  </>
-                )}
-              </div>
-            </Card>
+                  {!isFlipped ? (
+                    <>
+                      <h2 className="text-4xl font-bold break-words">{currentCard.term}</h2>
+                      <p className="text-sm opacity-70 mt-8">Click to reveal answer</p>
+                    </>
+                  ) : (
+                    <>
+                      {currentCard.image_url && (
+                        <img
+                          src={currentCard.image_url}
+                          alt={currentCard.term}
+                          className="max-h-64 mx-auto rounded-lg object-contain mb-6"
+                        />
+                      )}
+                      <p className="text-2xl leading-relaxed whitespace-pre-wrap break-words">
+                        {currentCard.definition}
+                      </p>
+                    </>
+                  )}
+                </div>
+              </Card>
+            )}
           </div>
 
           <div className="flex justify-between">

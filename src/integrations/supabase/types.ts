@@ -49,8 +49,10 @@ export type Database = {
           color: string | null
           created_at: string | null
           definition: string
+          flashcard_type: string | null
           id: string
           image_url: string | null
+          interactive_data: Json | null
           position: number
           section_id: string | null
           set_id: string
@@ -61,8 +63,10 @@ export type Database = {
           color?: string | null
           created_at?: string | null
           definition: string
+          flashcard_type?: string | null
           id?: string
           image_url?: string | null
+          interactive_data?: Json | null
           position?: number
           section_id?: string | null
           set_id: string
@@ -73,8 +77,10 @@ export type Database = {
           color?: string | null
           created_at?: string | null
           definition?: string
+          flashcard_type?: string | null
           id?: string
           image_url?: string | null
+          interactive_data?: Json | null
           position?: number
           section_id?: string | null
           set_id?: string
