@@ -2,7 +2,9 @@ import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { X } from "lucide-react";
+import { X, Upload, Wand2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TextBox {
   id: string;
@@ -20,14 +22,18 @@ interface InteractiveFlashcardEditorProps {
   imageUrl: string;
   textBoxes: TextBox[];
   onChange: (textBoxes: TextBox[]) => void;
+  onImageChange: (imageUrl: string) => void;
 }
 
-export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange }: InteractiveFlashcardEditorProps) => {
+export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onImageChange }: InteractiveFlashcardEditorProps) => {
+  const { toast } = useToast();
   const [selectedBox, setSelectedBox] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isAddingBox, setIsAddingBox] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isDetecting, setIsDetecting] = useState(false);
   const resizeStartRef = useRef<{ x: number; y: number; width: number; height: number; handle: string } | null>(null);
   const dragStartRef = useRef<{ x: number; y: number; boxX: number; boxY: number } | null>(null);
 
@@ -105,6 +111,87 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange }: In
     setSelectedBox(null);
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      // Convert file to data URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUrl = reader.result as string;
+        onImageChange(dataUrl);
+        toast({
+          title: "Image uploaded",
+          description: "Click 'Auto-detect text' to automatically create text boxes",
+        });
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload image",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAutoDetect = async () => {
+    if (!imageUrl) {
+      toast({
+        title: "No image",
+        description: "Please add an image first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsDetecting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('detect-text', {
+        body: { imageUrl }
+      });
+
+      if (error) throw error;
+
+      if (data?.textBoxes && Array.isArray(data.textBoxes)) {
+        const newBoxes: TextBox[] = data.textBoxes.map((box: any) => ({
+          id: Math.random().toString(36).substr(2, 9),
+          x: box.x,
+          y: box.y,
+          width: box.width,
+          height: box.height,
+          answer: box.text,
+          fontSize: box.fontSize || 14,
+          fontWeight: "normal",
+          fontColor: "#000000",
+        }));
+
+        onChange([...textBoxes, ...newBoxes]);
+        toast({
+          title: "Text detected",
+          description: `Found ${newBoxes.length} text region${newBoxes.length !== 1 ? 's' : ''}`,
+        });
+      } else {
+        toast({
+          title: "No text found",
+          description: "Could not detect any text in the image",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error detecting text:', error);
+      toast({
+        title: "Detection failed",
+        description: "Failed to detect text in image",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDetecting(false);
+    }
+  };
+
   const handleResizeStart = useCallback((e: React.MouseEvent, id: string, handle: string) => {
     e.stopPropagation();
     const box = textBoxes.find(b => b.id === id);
@@ -177,7 +264,33 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange }: In
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileUpload}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <Upload className="h-4 w-4 mr-2" />
+          Upload Image
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleAutoDetect}
+          disabled={isDetecting || !imageUrl}
+        >
+          <Wand2 className="h-4 w-4 mr-2" />
+          {isDetecting ? "Detecting..." : "Auto-detect Text"}
+        </Button>
         <Button
           type="button"
           variant={isAddingBox ? "default" : "outline"}

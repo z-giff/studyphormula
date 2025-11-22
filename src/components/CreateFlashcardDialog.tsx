@@ -236,6 +236,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
                   imageUrl={interactiveData.imageUrl}
                   textBoxes={interactiveData.textBoxes}
                   onChange={(textBoxes) => setInteractiveData({ ...interactiveData, textBoxes })}
+                  onImageChange={(imageUrl) => setInteractiveData({ ...interactiveData, imageUrl })}
                 />
               )}
 
