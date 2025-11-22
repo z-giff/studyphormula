@@ -11,6 +11,8 @@ import {
   Background,
   MiniMap,
   Panel,
+  Handle,
+  Position,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { Button } from "@/components/ui/button";
@@ -59,22 +61,85 @@ const TEMPLATES = {
 
 const nodeTypes = {
   default: ({ data }: { data: any }) => (
-    <div
-      style={{
-        padding: "10px 20px",
-        borderRadius: "8px",
-        background: data.color || "#3b82f6",
-        color: "white",
-        border: "2px solid #1e293b",
-        minWidth: "120px",
-        textAlign: "center",
-      }}
-    >
-      {data.image && (
-        <img src={data.image} alt="" style={{ width: "100%", maxHeight: "60px", objectFit: "cover", marginBottom: "8px", borderRadius: "4px" }} />
-      )}
-      <div style={{ fontWeight: 500 }}>{data.label}</div>
-    </div>
+    <>
+      <Handle type="target" position={Position.Top} style={{ background: "#555" }} />
+      <div
+        style={{
+          padding: "10px 20px",
+          borderRadius: "8px",
+          background: data.color || "#3b82f6",
+          color: "white",
+          border: "2px solid #1e293b",
+          minWidth: "120px",
+          textAlign: "center",
+        }}
+      >
+        {data.image && (
+          <img src={data.image} alt="" style={{ width: "100%", maxHeight: "60px", objectFit: "cover", marginBottom: "8px", borderRadius: "4px" }} />
+        )}
+        <div style={{ fontWeight: 500 }}>{data.label}</div>
+      </div>
+      <Handle type="source" position={Position.Bottom} style={{ background: "#555" }} />
+    </>
+  ),
+  circle: ({ data }: { data: any }) => (
+    <>
+      <Handle type="target" position={Position.Top} style={{ background: "#555" }} />
+      <div
+        style={{
+          padding: "20px",
+          borderRadius: "50%",
+          background: data.color || "#3b82f6",
+          color: "white",
+          border: "2px solid #1e293b",
+          width: "120px",
+          height: "120px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+        }}
+      >
+        {data.image && (
+          <img src={data.image} alt="" style={{ width: "60px", height: "60px", objectFit: "cover", marginBottom: "4px", borderRadius: "50%" }} />
+        )}
+        <div style={{ fontWeight: 500, fontSize: "12px", wordBreak: "break-word" }}>{data.label}</div>
+      </div>
+      <Handle type="source" position={Position.Bottom} style={{ background: "#555" }} />
+    </>
+  ),
+  diamond: ({ data }: { data: any }) => (
+    <>
+      <Handle type="target" position={Position.Top} style={{ background: "#555", top: "-5px" }} />
+      <div
+        style={{
+          width: "120px",
+          height: "120px",
+          background: data.color || "#f59e0b",
+          border: "2px solid #1e293b",
+          transform: "rotate(45deg)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            transform: "rotate(-45deg)",
+            color: "white",
+            fontWeight: 500,
+            fontSize: "12px",
+            textAlign: "center",
+            padding: "10px",
+            wordBreak: "break-word",
+          }}
+        >
+          {data.label}
+        </div>
+      </div>
+      <Handle type="source" position={Position.Bottom} style={{ background: "#555", bottom: "-5px" }} />
+    </>
   ),
 };
 
@@ -112,13 +177,14 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
   const addNode = (shape: string = "default") => {
     const newNode: Node = {
       id: `${nodes.length + 1}`,
-      data: { label: "New Node", color: "#3b82f6", shape },
+      type: shape,
+      data: { label: "New Node", color: shape === "diamond" ? "#f59e0b" : "#3b82f6" },
       position: { x: Math.random() * 300, y: Math.random() * 300 },
     };
     const newNodes = [...nodes, newNode];
     setNodes(newNodes);
     onChange({ nodes: newNodes, edges });
-    toast({ title: "Node added", description: "Drag it to position" });
+    toast({ title: "Node added", description: "Drag to position, drag from handles to connect" });
   };
 
   const updateSelectedNode = () => {
@@ -177,12 +243,15 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
         </div>
         <div>
           <Label>Add Shape</Label>
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={() => addNode("default")} className="flex-1">
-              <Plus className="w-4 h-4 mr-1" /> Rectangle
+          <div className="grid grid-cols-3 gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => addNode("default")}>
+              <Plus className="w-4 h-4 mr-1" /> Box
             </Button>
-            <Button type="button" variant="outline" size="sm" onClick={() => addNode("circle")} className="flex-1">
+            <Button type="button" variant="outline" size="sm" onClick={() => addNode("circle")}>
               <Plus className="w-4 h-4 mr-1" /> Circle
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => addNode("diamond")}>
+              <Plus className="w-4 h-4 mr-1" /> Diamond
             </Button>
           </div>
         </div>
@@ -247,7 +316,7 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
           <MiniMap />
           <Panel position="top-left">
             <div className="bg-background/90 backdrop-blur-sm p-2 rounded-lg text-xs text-muted-foreground">
-              Click nodes to edit • Drag to connect • Scroll to zoom
+              Click nodes to edit • Drag from handles to connect • Scroll to zoom
             </div>
           </Panel>
         </ReactFlow>
