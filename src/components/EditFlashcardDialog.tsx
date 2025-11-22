@@ -218,6 +218,7 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
                   imageUrl={formData.imageUrl}
                   textBoxes={interactiveData.textBoxes}
                   onChange={(textBoxes) => setInteractiveData({ textBoxes })}
+                  onImageChange={(imageUrl) => setFormData({ ...formData, imageUrl })}
                 />
               )}
             </TabsContent>
