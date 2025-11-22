@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, type ChangeEvent } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +17,7 @@ interface Flashcard {
   image_url: string | null;
   position: number;
   section_id: string | null;
+  color: string | null;
 }
 
 interface FlashcardSet {
@@ -35,6 +36,8 @@ const FlashcardSetPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingFlashcard, setEditingFlashcard] = useState<Flashcard | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -82,6 +85,86 @@ const FlashcardSetPage = () => {
     }
   };
 
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !id) return;
+
+    setIsImporting(true);
+
+    try {
+      const text = await file.text();
+      const rows = text
+        .split(/\r?\n/)
+        .map((row) => row.trim())
+        .filter((row) => row.length > 0);
+
+      if (rows.length === 0) {
+        toast.error("CSV file is empty");
+        return;
+      }
+
+      let dataRows = rows;
+      const header = rows[0].toLowerCase();
+      if (header.includes("term") && header.includes("definition")) {
+        dataRows = rows.slice(1);
+      }
+
+      if (dataRows.length === 0) {
+        toast.error("No flashcards found in CSV");
+        return;
+      }
+
+      const { data: existingCards, error: positionError } = await supabase
+        .from("flashcards")
+        .select("position")
+        .eq("set_id", id)
+        .order("position", { ascending: false })
+        .limit(1);
+
+      if (positionError) throw positionError;
+
+      let currentPosition =
+        existingCards && existingCards.length > 0 ? existingCards[0].position + 1 : 0;
+
+      const newCards = dataRows
+        .map((row) => {
+          const columns = row.split(",").map((col) => col.trim());
+          const [term, definition, image_url, color] = columns;
+
+          return {
+            set_id: id,
+            term: term || "",
+            definition: definition || "",
+            image_url: image_url || null,
+            color: color || null,
+            position: currentPosition++,
+          };
+        })
+        .filter((card) => card.term && card.definition);
+
+      if (newCards.length === 0) {
+        toast.error("No valid flashcards found in CSV");
+        return;
+      }
+
+      const { error: insertError } = await supabase.from("flashcards").insert(newCards);
+      if (insertError) throw insertError;
+
+      toast.success(`Imported ${newCards.length} flashcards`);
+      await fetchFlashcards();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to import flashcards from CSV");
+    } finally {
+      setIsImporting(false);
+      if (event.target) {
+        event.target.value = "";
+      }
+    }
+  };
   const handleDeleteFlashcard = async (flashcardId: string) => {
     if (!confirm("Are you sure you want to delete this flashcard?")) return;
 
@@ -159,11 +242,26 @@ const FlashcardSetPage = () => {
           </div>
         </div>
 
-        <div className="mb-6">
+        <div className="mb-6 flex flex-wrap items-center gap-3">
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add Flashcard
           </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleImportClick}
+            disabled={isImporting}
+          >
+            {isImporting ? "Importing..." : "Import from CSV"}
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv"
+            className="hidden"
+            onChange={handleFileChange}
+          />
         </div>
 
         {flashcards.length === 0 ? (
