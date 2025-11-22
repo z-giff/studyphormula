@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ImageIcon } from "lucide-react";
 import { InteractiveFlashcardEditor } from "@/components/InteractiveFlashcardEditor";
-import { MermaidFlowchartEditor } from "@/components/MermaidFlowchartEditor";
+import { FlowchartCanvasEditor } from "@/components/FlowchartCanvasEditor";
 
 const PRESET_COLORS = [
   "#3B82F6", // Blue
@@ -36,12 +36,7 @@ interface Flashcard {
   image_url: string | null;
   color?: string | null;
   flashcard_type?: string;
-  interactive_data?: {
-    textBoxes?: Array<{ id: string; x: number; y: number; width: number; height: number; answer: string; fontSize?: number; fontWeight?: string; fontColor?: string }>;
-    mermaidCode?: string;
-    fontSize?: number;
-    fontFamily?: string;
-  };
+  interactive_data?: any;
 }
 
 interface EditFlashcardDialogProps {
@@ -69,11 +64,11 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
   }>({
     textBoxes: flashcard.interactive_data?.textBoxes || [],
   });
-  const [flowchartData, setFlowchartData] = useState({
-    mermaidCode: flashcard.interactive_data?.mermaidCode || "",
-    fontSize: flashcard.interactive_data?.fontSize || 16,
-    fontFamily: flashcard.interactive_data?.fontFamily || "arial",
-  });
+  const [flowchartData, setFlowchartData] = useState(
+    flashcard.flashcard_type === "flowchart" && flashcard.interactive_data
+      ? flashcard.interactive_data
+      : { nodes: [], edges: [] }
+  );
 
   useEffect(() => {
     setFlashcardType(
@@ -90,11 +85,11 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
     setInteractiveData({
       textBoxes: flashcard.interactive_data?.textBoxes || [],
     });
-    setFlowchartData({
-      mermaidCode: flashcard.interactive_data?.mermaidCode || "",
-      fontSize: flashcard.interactive_data?.fontSize || 16,
-      fontFamily: flashcard.interactive_data?.fontFamily || "arial",
-    });
+    setFlowchartData(
+      flashcard.flashcard_type === "flowchart" && flashcard.interactive_data
+        ? flashcard.interactive_data
+        : { nodes: [], edges: [] }
+    );
   }, [flashcard]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -123,7 +118,7 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
         toast.error("Please provide a question/term");
         return;
       }
-      if (!flowchartData.mermaidCode.trim()) {
+      if (!flowchartData.nodes || flowchartData.nodes.length === 0) {
         toast.error("Please create a flowchart diagram");
         return;
       }
@@ -271,13 +266,9 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
                 />
               </div>
 
-              <MermaidFlowchartEditor
-                mermaidCode={flowchartData.mermaidCode}
-                onChange={(code) => setFlowchartData({ ...flowchartData, mermaidCode: code })}
-                fontSize={flowchartData.fontSize}
-                fontFamily={flowchartData.fontFamily}
-                onFontSizeChange={(size) => setFlowchartData({ ...flowchartData, fontSize: size })}
-                onFontFamilyChange={(family) => setFlowchartData({ ...flowchartData, fontFamily: family })}
+              <FlowchartCanvasEditor
+                flowchartData={flowchartData}
+                onChange={setFlowchartData}
               />
             </TabsContent>
           </Tabs>

@@ -1,0 +1,257 @@
+import { useCallback, useState } from "react";
+import {
+  ReactFlow,
+  Node,
+  Edge,
+  addEdge,
+  Connection,
+  useNodesState,
+  useEdgesState,
+  Controls,
+  Background,
+  MiniMap,
+  Panel,
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Plus, Trash2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+interface FlowchartCanvasEditorProps {
+  flowchartData: { nodes: Node[]; edges: Edge[] };
+  onChange: (data: { nodes: Node[]; edges: Edge[] }) => void;
+}
+
+const TEMPLATES = {
+  blank: { nodes: [], edges: [] },
+  basic: {
+    nodes: [
+      { id: "1", type: "input", data: { label: "Start", color: "#22c55e" }, position: { x: 250, y: 0 } },
+      { id: "2", data: { label: "Process", color: "#3b82f6" }, position: { x: 250, y: 100 } },
+      { id: "3", type: "output", data: { label: "End", color: "#ef4444" }, position: { x: 250, y: 200 } },
+    ],
+    edges: [
+      { id: "e1-2", source: "1", target: "2", animated: true },
+      { id: "e2-3", source: "2", target: "3", animated: true },
+    ],
+  },
+  decision: {
+    nodes: [
+      { id: "1", type: "input", data: { label: "Start", color: "#22c55e" }, position: { x: 250, y: 0 } },
+      { id: "2", data: { label: "Decision?", color: "#f59e0b", shape: "diamond" }, position: { x: 250, y: 100 } },
+      { id: "3", data: { label: "Yes Path", color: "#3b82f6" }, position: { x: 100, y: 200 } },
+      { id: "4", data: { label: "No Path", color: "#3b82f6" }, position: { x: 400, y: 200 } },
+      { id: "5", type: "output", data: { label: "End", color: "#ef4444" }, position: { x: 250, y: 300 } },
+    ],
+    edges: [
+      { id: "e1-2", source: "1", target: "2", animated: true },
+      { id: "e2-3", source: "2", target: "3", label: "Yes" },
+      { id: "e2-4", source: "2", target: "4", label: "No" },
+      { id: "e3-5", source: "3", target: "5" },
+      { id: "e4-5", source: "4", target: "5" },
+    ],
+  },
+};
+
+const nodeTypes = {
+  default: ({ data }: { data: any }) => (
+    <div
+      style={{
+        padding: "10px 20px",
+        borderRadius: "8px",
+        background: data.color || "#3b82f6",
+        color: "white",
+        border: "2px solid #1e293b",
+        minWidth: "120px",
+        textAlign: "center",
+      }}
+    >
+      {data.image && (
+        <img src={data.image} alt="" style={{ width: "100%", maxHeight: "60px", objectFit: "cover", marginBottom: "8px", borderRadius: "4px" }} />
+      )}
+      <div style={{ fontWeight: 500 }}>{data.label}</div>
+    </div>
+  ),
+};
+
+export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanvasEditorProps) => {
+  const { toast } = useToast();
+  const [nodes, setNodes, onNodesChange] = useNodesState(flowchartData.nodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(flowchartData.edges);
+  const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const [nodeLabel, setNodeLabel] = useState("");
+  const [nodeColor, setNodeColor] = useState("#3b82f6");
+  const [nodeImage, setNodeImage] = useState("");
+
+  const onConnect = useCallback(
+    (params: Connection) => {
+      const newEdges = addEdge({ ...params, animated: true }, edges);
+      setEdges(newEdges);
+      onChange({ nodes, edges: newEdges });
+    },
+    [edges, nodes, onChange, setEdges]
+  );
+
+  const handleNodesChange = useCallback(
+    (changes: any) => {
+      onNodesChange(changes);
+      setTimeout(() => {
+        setNodes((nds) => {
+          onChange({ nodes: nds, edges });
+          return nds;
+        });
+      }, 0);
+    },
+    [onNodesChange, setNodes, edges, onChange]
+  );
+
+  const addNode = (shape: string = "default") => {
+    const newNode: Node = {
+      id: `${nodes.length + 1}`,
+      data: { label: "New Node", color: "#3b82f6", shape },
+      position: { x: Math.random() * 300, y: Math.random() * 300 },
+    };
+    const newNodes = [...nodes, newNode];
+    setNodes(newNodes);
+    onChange({ nodes: newNodes, edges });
+    toast({ title: "Node added", description: "Drag it to position" });
+  };
+
+  const updateSelectedNode = () => {
+    if (!selectedNode) return;
+    const newNodes = nodes.map((node) =>
+      node.id === selectedNode
+        ? { ...node, data: { ...node.data, label: nodeLabel, color: nodeColor, image: nodeImage } }
+        : node
+    );
+    setNodes(newNodes);
+    onChange({ nodes: newNodes, edges });
+    toast({ title: "Node updated" });
+  };
+
+  const deleteSelectedNode = () => {
+    if (!selectedNode) return;
+    const newNodes = nodes.filter((node) => node.id !== selectedNode);
+    const newEdges = edges.filter((edge) => edge.source !== selectedNode && edge.target !== selectedNode);
+    setNodes(newNodes);
+    setEdges(newEdges);
+    onChange({ nodes: newNodes, edges: newEdges });
+    setSelectedNode(null);
+    toast({ title: "Node deleted" });
+  };
+
+  const loadTemplate = (template: keyof typeof TEMPLATES) => {
+    const templateData = TEMPLATES[template];
+    setNodes(templateData.nodes);
+    setEdges(templateData.edges);
+    onChange(templateData);
+    toast({ title: "Template loaded" });
+  };
+
+  const onNodeClick = useCallback((_: any, node: Node) => {
+    setSelectedNode(node.id);
+    setNodeLabel(String(node.data.label || ""));
+    setNodeColor(String(node.data.color || "#3b82f6"));
+    setNodeImage(String(node.data.image || ""));
+  }, []);
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label>Template</Label>
+          <Select onValueChange={(value) => loadTemplate(value as keyof typeof TEMPLATES)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Choose template" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="blank">Blank Canvas</SelectItem>
+              <SelectItem value="basic">Basic Flow</SelectItem>
+              <SelectItem value="decision">Decision Tree</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>Add Shape</Label>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => addNode("default")} className="flex-1">
+              <Plus className="w-4 h-4 mr-1" /> Rectangle
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => addNode("circle")} className="flex-1">
+              <Plus className="w-4 h-4 mr-1" /> Circle
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {selectedNode && (
+        <div className="border rounded-lg p-4 space-y-3 bg-muted/50">
+          <div className="flex items-center justify-between">
+            <Label className="text-base font-semibold">Edit Selected Node</Label>
+            <Button type="button" variant="destructive" size="sm" onClick={deleteSelectedNode}>
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+          <div>
+            <Label htmlFor="node-label">Text</Label>
+            <Textarea
+              id="node-label"
+              value={nodeLabel}
+              onChange={(e) => setNodeLabel(e.target.value)}
+              placeholder="Enter text"
+              rows={2}
+            />
+          </div>
+          <div>
+            <Label htmlFor="node-color">Color</Label>
+            <Input
+              id="node-color"
+              type="color"
+              value={nodeColor}
+              onChange={(e) => setNodeColor(e.target.value)}
+            />
+          </div>
+          <div>
+            <Label htmlFor="node-image">Image URL (optional)</Label>
+            <Input
+              id="node-image"
+              type="text"
+              value={nodeImage}
+              onChange={(e) => setNodeImage(e.target.value)}
+              placeholder="https://example.com/image.jpg"
+            />
+          </div>
+          <Button type="button" onClick={updateSelectedNode} className="w-full">
+            Update Node
+          </Button>
+        </div>
+      )}
+
+      <div className="border rounded-lg bg-background" style={{ height: "500px" }}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={handleNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onNodeClick={onNodeClick}
+          nodeTypes={nodeTypes}
+          fitView
+        >
+          <Background />
+          <Controls />
+          <MiniMap />
+          <Panel position="top-left">
+            <div className="bg-background/90 backdrop-blur-sm p-2 rounded-lg text-xs text-muted-foreground">
+              Click nodes to edit • Drag to connect • Scroll to zoom
+            </div>
+          </Panel>
+        </ReactFlow>
+      </div>
+    </div>
+  );
+};
