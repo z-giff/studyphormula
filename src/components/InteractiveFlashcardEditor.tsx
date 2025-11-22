@@ -319,7 +319,7 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
               width: `${box.width}%`,
               height: `${box.height}%`,
               borderColor: selectedBox === box.id ? "hsl(var(--primary))" : "hsl(var(--primary) / 0.5)",
-              backgroundColor: selectedBox === box.id ? "hsl(var(--primary) / 0.3)" : "hsl(var(--primary) / 0.15)",
+              backgroundColor: "#ffffff",
             }}
             onMouseDown={(e) => {
               if (!isResizing) {
