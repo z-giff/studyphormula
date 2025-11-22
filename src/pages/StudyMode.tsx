@@ -196,7 +196,13 @@ const StudyMode = () => {
               }}
               onClick={handleFlip}
             >
-              <div className="p-12 w-full max-w-3xl mx-auto text-center space-y-6">
+              <div
+                className="p-12 w-full max-w-3xl mx-auto text-center space-y-6"
+                style={{
+                  transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+                  transformStyle: "preserve-3d",
+                }}
+              >
                 <p className="text-sm uppercase tracking-wide opacity-80">
                   {isFlipped ? "Definition" : "Term"}
                 </p>
