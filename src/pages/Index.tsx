@@ -71,8 +71,7 @@ const Index = () => {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <h1 className="text-5xl md:text-6xl font-bold leading-tight text-white">
-                Master Complex Material with{" "}
-                <span className="text-white drop-shadow-lg">Visual Flashcards</span>
+                Simplify memorization
               </h1>
               <p className="text-xl text-white/90">
                 A powerful flashcard platform designed for STEM students. Add images, organize with colors, and study smarter.
