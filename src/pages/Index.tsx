@@ -32,23 +32,24 @@ const Index = () => {
     title: "Smart Study Modes",
     description: "Flip, shuffle, and repeat your cards for effective learning sessions."
   }];
-  return <div className="min-h-screen bg-gradient-to-b from-primary via-[hsl(10_90%_60%)] to-accent">
+  return <div className="min-h-screen bg-gradient-to-b from-primary via-[hsl(10_90%_60%)] to-accent relative">
+      {/* Futuristic Bubbles Background - spans entire page */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(40)].map((_, i) => <div key={i} className="absolute rounded-full opacity-40 animate-float" style={{
+        width: `${Math.random() * 250 + 100}px`,
+        height: `${Math.random() * 250 + 100}px`,
+        left: `${Math.random() * 100}%`,
+        top: `${Math.random() * 150}%`,
+        background: `radial-gradient(circle, hsl(25 95% 60% / 0.6), hsl(330 60% 85% / 0.5))`,
+        animationDelay: `${Math.random() * 5}s`,
+        animationDuration: `${Math.random() * 10 + 15}s`,
+        filter: 'blur(40px)',
+        boxShadow: '0 0 60px hsl(25 95% 60% / 0.5)'
+      }} />)}
+      </div>
+      
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        {/* Futuristic Bubbles Background */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(30)].map((_, i) => <div key={i} className="absolute rounded-full opacity-40 animate-float" style={{
-          width: `${Math.random() * 250 + 100}px`,
-          height: `${Math.random() * 250 + 100}px`,
-          left: `${Math.random() * 100}%`,
-          top: `${Math.random() * 100}%`,
-          background: `radial-gradient(circle, hsl(25 95% 60% / 0.6), hsl(330 60% 85% / 0.5))`,
-          animationDelay: `${Math.random() * 5}s`,
-          animationDuration: `${Math.random() * 10 + 15}s`,
-          filter: 'blur(40px)',
-          boxShadow: '0 0 60px hsl(25 95% 60% / 0.5)'
-        }} />)}
-        </div>
         
         <nav className="relative container mx-auto px-4 py-6 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-white">
