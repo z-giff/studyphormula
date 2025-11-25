@@ -84,10 +84,6 @@ const Index = () => {
                 </Link>
               </div>
             </div>
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-white/10 blur-3xl" />
-              
-            </div>
           </div>
         </div>
       </section>
