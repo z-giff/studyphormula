@@ -68,7 +68,7 @@ const Index = () => {
         </nav>
 
         <div className="relative container mx-auto px-4 py-20 md:py-32">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="max-w-4xl mx-auto">
             <div className="space-y-6 text-center">
               <h1 className="text-5xl md:text-6xl font-bold leading-tight text-white">
                 Simplify memorization
@@ -83,10 +83,6 @@ const Index = () => {
                   </Button>
                 </Link>
               </div>
-            </div>
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-white/10 blur-3xl" />
-              
             </div>
           </div>
         </div>
