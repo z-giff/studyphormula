@@ -79,7 +79,7 @@ const Index = () => {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link to="/auth">
                   <Button size="lg" className="w-full sm:w-auto bg-white text-primary hover:bg-white/90">
-                    Start Learning Free
+                    Start Learning
                   </Button>
                 </Link>
               </div>
