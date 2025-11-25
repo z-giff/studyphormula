@@ -69,14 +69,14 @@ const Index = () => {
 
         <div className="relative container mx-auto px-4 py-20 md:py-32">
           <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6">
+            <div className="space-y-6 text-center">
               <h1 className="text-5xl md:text-6xl font-bold leading-tight text-white">
                 Simplify memorization
               </h1>
               <p className="text-xl text-white/90">
                 A powerful flashcard platform designed for STEM students. Add images, organize with colors, and study smarter. No paywalls, all free
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/auth">
                   <Button size="lg" className="w-full sm:w-auto bg-white text-primary hover:bg-white/90">
                     Start Learning
