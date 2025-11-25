@@ -17,7 +17,7 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 220 13% 13%;
 
-    --primary: 185 75% 45%;
+    --primary: 25 95% 53%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96.1%;
@@ -26,7 +26,7 @@ All colors MUST be HSL.
     --muted: 210 40% 96.1%;
     --muted-foreground: 220 9% 46%;
 
-    --accent: 185 75% 45%;
+    --accent: 330 81% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
@@ -34,7 +34,7 @@ All colors MUST be HSL.
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 185 75% 45%;
+    --ring: 25 95% 53%;
 
     --radius: 0.75rem;
 
@@ -47,7 +47,7 @@ All colors MUST be HSL.
     --deck-teal: 185 75% 45%;
     
     /* Gradient overlays */
-    --gradient-primary: linear-gradient(135deg, hsl(185 75% 45%) 0%, hsl(217 91% 60%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(25 95% 53%) 0%, hsl(330 81% 60%) 100%);
     --gradient-card: linear-gradient(to bottom, hsl(0 0% 100%) 0%, hsl(210 40% 98%) 100%);
     
     /* Animations */
@@ -66,7 +66,7 @@ All colors MUST be HSL.
     --popover: 220 15% 16%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 185 75% 45%;
+    --primary: 25 95% 53%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -75,7 +75,7 @@ All colors MUST be HSL.
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 185 75% 45%;
+    --accent: 330 81% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 50%;
@@ -83,7 +83,7 @@ All colors MUST be HSL.
 
     --border: 217.2 32.6% 20%;
     --input: 217.2 32.6% 20%;
-    --ring: 185 75% 45%;
+    --ring: 25 95% 53%;
     
     --shadow-card: 0 4px 6px -1px hsl(0 0% 0% / 0.3), 0 2px 4px -1px hsl(0 0% 0% / 0.2);
     --shadow-card-hover: 0 10px 15px -3px hsl(0 0% 0% / 0.3), 0 4px 6px -2px hsl(0 0% 0% / 0.2);
@@ -98,4 +98,23 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) translateX(0) scale(1);
+  }
+  25% {
+    transform: translateY(-30px) translateX(20px) scale(1.1);
+  }
+  50% {
+    transform: translateY(-60px) translateX(-20px) scale(0.9);
+  }
+  75% {
+    transform: translateY(-30px) translateX(-30px) scale(1.05);
+  }
+}
+
+.animate-float {
+  animation: float 15s ease-in-out infinite;
 }
