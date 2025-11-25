@@ -5,64 +5,50 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import heroImage from "@/assets/hero-image.jpg";
-
 const Index = () => {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const navigate = useNavigate();
-
   useEffect(() => {
     if (user) {
       navigate("/dashboard");
     }
   }, [user, navigate]);
-
-  const features = [
-    {
-      icon: Palette,
-      title: "Color-Coded Organization",
-      description: "Assign unique colors to each deck for better visual memory and quick identification.",
-    },
-    {
-      icon: ImageIcon,
-      title: "Visual Learning Support",
-      description: "Add images, diagrams, and annotations to your flashcards for complex topics.",
-    },
-    {
-      icon: BookmarkIcon,
-      title: "Section Bookmarks",
-      description: "Divide large decks into organized sections for easier navigation and focused studying.",
-    },
-    {
-      icon: Shuffle,
-      title: "Smart Study Modes",
-      description: "Flip, shuffle, and repeat your cards for effective learning sessions.",
-    },
-  ];
-
-  return (
-    <div className="min-h-screen bg-background">
+  const features = [{
+    icon: Palette,
+    title: "Color-Coded Organization",
+    description: "Assign unique colors to each deck for better visual memory and quick identification."
+  }, {
+    icon: ImageIcon,
+    title: "Visual Learning Support",
+    description: "Add images, diagrams, and annotations to your flashcards for complex topics."
+  }, {
+    icon: BookmarkIcon,
+    title: "Section Bookmarks",
+    description: "Divide large decks into organized sections for easier navigation and focused studying."
+  }, {
+    icon: Shuffle,
+    title: "Smart Study Modes",
+    description: "Flip, shuffle, and repeat your cards for effective learning sessions."
+  }];
+  return <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/5" />
         
         {/* Futuristic Bubbles Background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute rounded-full opacity-20 animate-float"
-              style={{
-                width: `${Math.random() * 150 + 50}px`,
-                height: `${Math.random() * 150 + 50}px`,
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                background: `linear-gradient(135deg, hsl(25 95% 53% / 0.3), hsl(330 81% 60% / 0.3))`,
-                animationDelay: `${Math.random() * 5}s`,
-                animationDuration: `${Math.random() * 10 + 10}s`,
-                filter: 'blur(2px)',
-              }}
-            />
-          ))}
+          {[...Array(20)].map((_, i) => <div key={i} className="absolute rounded-full opacity-20 animate-float" style={{
+          width: `${Math.random() * 150 + 50}px`,
+          height: `${Math.random() * 150 + 50}px`,
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+          background: `linear-gradient(135deg, hsl(25 95% 53% / 0.3), hsl(330 81% 60% / 0.3))`,
+          animationDelay: `${Math.random() * 5}s`,
+          animationDuration: `${Math.random() * 10 + 10}s`,
+          filter: 'blur(2px)'
+        }} />)}
         </div>
         
         <nav className="relative container mx-auto px-4 py-6 flex items-center justify-between">
@@ -101,11 +87,7 @@ const Index = () => {
             </div>
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-accent/20 blur-3xl" />
-              <img
-                src={heroImage}
-                alt="Flashcard learning illustration"
-                className="relative rounded-2xl shadow-2xl w-full"
-              />
+              
             </div>
           </div>
         </div>
@@ -122,18 +104,13 @@ const Index = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                className="bg-card rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
-              >
+            {features.map((feature, index) => <div key={index} className="bg-card rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
                 <div className="bg-primary/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
                   <feature.icon className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
                 <p className="text-muted-foreground">{feature.description}</p>
-              </div>
-            ))}
+              </div>)}
           </div>
         </div>
       </section>
@@ -161,8 +138,6 @@ const Index = () => {
           <p>© 2025 FlashLearn. All rights reserved.</p>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
