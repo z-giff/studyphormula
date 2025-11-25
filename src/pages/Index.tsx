@@ -45,6 +45,26 @@ const Index = () => {
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/5" />
         
+        {/* Futuristic Bubbles Background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full opacity-20 animate-float"
+              style={{
+                width: `${Math.random() * 150 + 50}px`,
+                height: `${Math.random() * 150 + 50}px`,
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                background: `linear-gradient(135deg, hsl(25 95% 53% / 0.3), hsl(330 81% 60% / 0.3))`,
+                animationDelay: `${Math.random() * 5}s`,
+                animationDuration: `${Math.random() * 10 + 10}s`,
+                filter: 'blur(2px)',
+              }}
+            />
+          ))}
+        </div>
+        
         <nav className="relative container mx-auto px-4 py-6 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
             <GraduationCap className="h-8 w-8" />
