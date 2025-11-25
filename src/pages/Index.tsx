@@ -51,7 +51,7 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         
-        <nav className="relative container mx-auto px-4 py-6 flex items-center justify-between">
+        <nav className="relative container mx-auto px-4 flex items-center justify-between py-[34px]">
           <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-white">
             <GraduationCap className="h-8 w-8" />
             <span>Phormula</span>
@@ -67,8 +67,8 @@ const Index = () => {
           </div>
         </nav>
 
-        <div className="relative container mx-auto px-4 py-20 md:py-32">
-          <div className="max-w-4xl mx-auto">
+        <div className="relative container mx-auto px-4 md:py-32 py-[178px]">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6 text-center">
               <h1 className="text-5xl md:text-6xl font-bold leading-tight text-white">
                 Simplify memorization
@@ -84,12 +84,16 @@ const Index = () => {
                 </Link>
               </div>
             </div>
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-white/10 blur-3xl" />
+              
+            </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="relative py-20">
+      <section className="relative py-[190px]">
         <div className="container mx-auto px-4">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="text-4xl font-bold mb-4 text-white">Everything You Need to Study Better</h2>
