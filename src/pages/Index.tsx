@@ -32,22 +32,21 @@ const Index = () => {
     title: "Smart Study Modes",
     description: "Flip, shuffle, and repeat your cards for effective learning sessions."
   }];
-  return <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-gradient-to-r from-primary via-[hsl(10_90%_60%)] to-accent">
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/5" />
-        
         {/* Futuristic Bubbles Background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(20)].map((_, i) => <div key={i} className="absolute rounded-full opacity-20 animate-float" style={{
-          width: `${Math.random() * 150 + 50}px`,
-          height: `${Math.random() * 150 + 50}px`,
+          {[...Array(30)].map((_, i) => <div key={i} className="absolute rounded-full opacity-40 animate-float" style={{
+          width: `${Math.random() * 250 + 100}px`,
+          height: `${Math.random() * 250 + 100}px`,
           left: `${Math.random() * 100}%`,
           top: `${Math.random() * 100}%`,
-          background: `linear-gradient(135deg, hsl(25 95% 53% / 0.3), hsl(330 81% 60% / 0.3))`,
+          background: `radial-gradient(circle, hsl(25 95% 60% / 0.6), hsl(330 81% 65% / 0.4))`,
           animationDelay: `${Math.random() * 5}s`,
-          animationDuration: `${Math.random() * 10 + 10}s`,
-          filter: 'blur(2px)'
+          animationDuration: `${Math.random() * 10 + 15}s`,
+          filter: 'blur(40px)',
+          boxShadow: '0 0 60px hsl(25 95% 60% / 0.5)'
         }} />)}
         </div>
         
@@ -94,8 +93,9 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-muted/50">
-        <div className="container mx-auto px-4">
+      <section className="relative py-20 bg-gradient-to-r from-primary via-[hsl(10_90%_60%)] to-accent">
+        <div className="absolute inset-0 bg-background/95" />
+        <div className="relative container mx-auto px-4">
           <div className="text-center max-w-2xl mx-auto mb-16">
             <h2 className="text-4xl font-bold mb-4">Everything You Need to Study Better</h2>
             <p className="text-xl text-muted-foreground">
@@ -103,7 +103,7 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="relative grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => <div key={index} className="bg-card rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow">
                 <div className="bg-primary/10 w-12 h-12 rounded-lg flex items-center justify-center mb-4">
                   <feature.icon className="h-6 w-6 text-primary" />
@@ -116,9 +116,21 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="bg-gradient-to-br from-primary to-accent rounded-2xl p-12 text-center text-white">
+      <section className="relative py-20 bg-gradient-to-r from-primary via-[hsl(10_90%_60%)] to-accent">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {[...Array(15)].map((_, i) => <div key={i} className="absolute rounded-full opacity-30 animate-float" style={{
+          width: `${Math.random() * 200 + 80}px`,
+          height: `${Math.random() * 200 + 80}px`,
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+          background: `radial-gradient(circle, hsl(25 95% 60% / 0.5), hsl(330 81% 65% / 0.3))`,
+          animationDelay: `${Math.random() * 5}s`,
+          animationDuration: `${Math.random() * 10 + 15}s`,
+          filter: 'blur(30px)'
+        }} />)}
+        </div>
+        <div className="relative container mx-auto px-4">
+          <div className="rounded-2xl p-12 text-center text-white backdrop-blur-sm bg-white/10">
             <h2 className="text-4xl font-bold mb-4">Ready to Transform Your Study Habits?</h2>
             <p className="text-xl mb-8 opacity-90">
               Join thousands of students already studying smarter with FlashLearn
@@ -133,8 +145,9 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t py-12">
-        <div className="container mx-auto px-4 text-center text-muted-foreground">
+      <footer className="relative border-t py-12 bg-gradient-to-r from-primary via-[hsl(10_90%_60%)] to-accent">
+        <div className="absolute inset-0 bg-background/95" />
+        <div className="relative container mx-auto px-4 text-center text-muted-foreground">
           <p>© 2025 FlashLearn. All rights reserved.</p>
         </div>
       </footer>
