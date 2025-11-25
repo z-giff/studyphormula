@@ -68,7 +68,7 @@ const Index = () => {
         </nav>
 
         <div className="relative container mx-auto px-4 md:py-32 py-[178px]">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="max-w-3xl mx-auto">
             <div className="space-y-6 text-center">
               <h1 className="text-5xl md:text-6xl font-bold leading-tight text-white">
                 Simplify memorization
