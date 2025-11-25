@@ -67,11 +67,11 @@ const Index = () => {
           </div>
         </nav>
 
-        <div className="relative container mx-auto px-4 md:py-32 py-[178px]">
+        <div className="relative container mx-auto px-4 md:py-32 py-[118px]">
           <div className="max-w-3xl mx-auto">
             <div className="space-y-6 text-center">
-              <h1 className="text-5xl md:text-6xl font-bold leading-tight text-white">
-                Simplify memorization
+              <h1 className="text-5xl font-bold leading-tight text-white font-mono md:text-8xl">
+                Simplify Memorization
               </h1>
               <p className="text-xl text-white/90">
                 A powerful flashcard platform designed for STEM students. Add images, organize with colors, and study smarter. No paywalls, all free
