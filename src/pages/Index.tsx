@@ -74,7 +74,7 @@ const Index = () => {
                 Simplify memorization
               </h1>
               <p className="text-xl text-white/90">
-                A powerful flashcard platform designed for STEM students. Add images, organize with colors, and study smarter.
+                A powerful flashcard platform designed for STEM students. Add images, organize with colors, and study smarter. No Paywalls, all Free
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link to="/auth">
