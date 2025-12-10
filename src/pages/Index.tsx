@@ -70,7 +70,7 @@ const Index = () => {
         <div className="relative container mx-auto px-4 md:py-32 py-[118px]">
           <div className="max-w-3xl mx-auto">
             <div className="space-y-6 text-center">
-              <h1 className="text-5xl font-bold leading-tight text-white font-cursive md:text-8xl">
+              <h1 className="text-5xl font-bold leading-tight text-white font-telegraf md:text-8xl">
                 Simplify Memorization
               </h1>
               <p className="text-xl text-white/90">
