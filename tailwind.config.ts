@@ -15,6 +15,7 @@ export default {
     extend: {
       fontFamily: {
         'cursive': ['Dancing Script', 'cursive'],
+        'telegraf': ['Space Grotesk', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
