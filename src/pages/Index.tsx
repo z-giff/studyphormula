@@ -32,7 +32,7 @@ const Index = () => {
     title: "Smart Study Modes",
     description: "Flip, shuffle, and repeat your cards for effective learning sessions."
   }];
-  return <div className="min-h-screen bg-gradient-to-b from-primary via-[hsl(10_90%_60%)] to-accent relative">
+  return <div className="min-h-screen bg-gradient-to-b from-primary via-[hsl(10_90%_60%)] via-50% to-accent relative">
       {/* Futuristic Bubbles Background - spans entire page */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(40)].map((_, i) => <div key={i} className="absolute rounded-full opacity-40 animate-float" style={{
