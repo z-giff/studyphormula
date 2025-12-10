@@ -15,7 +15,7 @@ export default {
     extend: {
       fontFamily: {
         'cursive': ['Dancing Script', 'cursive'],
-        'display': ['Bebas Neue', 'sans-serif'],
+        'display': ['Outfit', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
