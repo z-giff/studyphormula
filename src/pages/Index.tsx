@@ -34,12 +34,12 @@ const Index = () => {
     description: "Flip, shuffle, and repeat your cards for effective learning sessions."
   }];
   return <div className="min-h-screen bg-gradient-to-b from-orange-500 via-pink-400 to-white relative">
-      {/* Brain Background Image */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none flex items-center justify-center">
+      {/* Brain Background Image - positioned behind hero title */}
+      <div className="absolute top-20 left-1/2 -translate-x-1/2 overflow-hidden pointer-events-none">
         <img 
           src={brainBackground} 
           alt="" 
-          className="w-[800px] h-auto opacity-15 object-contain"
+          className="w-[600px] h-auto opacity-20 object-contain mix-blend-screen"
         />
       </div>
       
