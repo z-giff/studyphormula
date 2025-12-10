@@ -4,7 +4,8 @@ import { GraduationCap, Palette, ImageIcon, BookmarkIcon, Shuffle } from "lucide
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import heroImage from "@/assets/hero-image.jpg";
+import brainBackground from "@/assets/brain-background.png";
+
 const Index = () => {
   const {
     user
@@ -33,6 +34,15 @@ const Index = () => {
     description: "Flip, shuffle, and repeat your cards for effective learning sessions."
   }];
   return <div className="min-h-screen bg-gradient-to-b from-orange-500 via-pink-400 to-white relative">
+      {/* Brain Background Image */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none flex items-center justify-center">
+        <img 
+          src={brainBackground} 
+          alt="" 
+          className="w-[800px] h-auto opacity-15 object-contain"
+        />
+      </div>
+      
       {/* Futuristic Bubbles Background - spans entire page */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(40)].map((_, i) => <div key={i} className="absolute rounded-full opacity-40 animate-float" style={{
