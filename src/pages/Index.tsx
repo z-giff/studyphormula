@@ -42,7 +42,7 @@ const Index = () => {
         height: `${Math.random() * 250 + 100}px`,
         left: `${Math.random() * 100}%`,
         top: `${Math.random() * 150}%`,
-        background: `radial-gradient(circle, hsl(25 95% 60% / 0.6), hsl(330 60% 85% / 0.5))`,
+        background: `hsl(25 95% 60%)`,
         animationDelay: `${Math.random() * 5}s`,
         animationDuration: `${Math.random() * 10 + 15}s`,
         filter: 'blur(40px)',
