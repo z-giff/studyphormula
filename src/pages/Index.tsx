@@ -69,15 +69,19 @@ const Index = () => {
         </nav>
 
         <div className="relative container mx-auto px-4 md:py-32 py-[118px]">
-          <div className="max-w-3xl mx-auto">
-            <div className="space-y-6 text-center">
-              <h1 className="text-5xl font-bold leading-tight text-black font-display md:text-8xl">
-                Simplify Memorization
-              </h1>
-              <p className="text-xl text-black/80">
+          <div className="max-w-4xl mx-auto">
+            <div className="space-y-8 text-center">
+              {/* Centered Large Logo */}
+              <div className="flex justify-center">
+                <img src={phormulaLogo} alt="Phormula" className="h-40 md:h-56" />
+              </div>
+              <h2 className="text-3xl md:text-5xl font-bold text-black">
                 A powerful flashcard platform designed for STEM students. Add images, organize with colors, and study smarter. No paywalls, all free
+              </h2>
+              <p className="text-lg md:text-xl text-black/70">
+                Simplify Memorization
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
                 <Link to="/auth">
                   <Button size="lg" className="w-full sm:w-auto bg-black text-white hover:bg-black/90">
                     Start Learning
