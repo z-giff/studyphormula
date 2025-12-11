@@ -57,7 +57,7 @@ const Index = () => {
             <div className="text-center">
               {/* Centered Very Large Logo */}
               <div className="flex justify-center relative">
-                <img src={phormulaBackground} alt="" className="absolute h-64 md:h-96 lg:h-[500px] opacity-30 animate-[pulse_4s_ease-in-out_infinite]" />
+                <img src={phormulaBackground} alt="" className="absolute h-64 md:h-96 lg:h-[500px] opacity-30 -scale-x-100 animate-[pulse_4s_ease-in-out_infinite]" />
                 <img src={phormulaLogo} alt="Phormula" className="h-64 md:h-96 lg:h-[500px] relative z-10" />
               </div>
               <h1 className="text-3xl md:text-5xl font-normal text-black -mt-8 md:-mt-12">
