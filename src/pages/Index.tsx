@@ -72,9 +72,6 @@ const Index = () => {
               <div className="flex justify-center">
                 <img src={phormulaLogo} alt="Phormula" className="h-40 md:h-56" />
               </div>
-              <h2 className="text-3xl md:text-5xl font-bold text-black">
-                A powerful flashcard platform designed for STEM students. Add images, organize with colors, and study smarter. No paywalls, all free
-              </h2>
               <p className="text-lg md:text-xl text-black/70">
                 Simplify Memorization
               </p>
