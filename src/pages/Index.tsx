@@ -35,20 +35,6 @@ const Index = () => {
   }];
   return <div className="min-h-screen relative" style={{ backgroundColor: '#e9e9e9' }}>
       
-      {/* Futuristic Bubbles Background - spans entire page */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(40)].map((_, i) => <div key={i} className="absolute rounded-full opacity-40 animate-float" style={{
-        width: `${Math.random() * 250 + 100}px`,
-        height: `${Math.random() * 250 + 100}px`,
-        left: `${Math.random() * 100}%`,
-        top: `${Math.random() * 150}%`,
-        background: `hsl(25 95% 60%)`,
-        animationDelay: `${Math.random() * 5}s`,
-        animationDuration: `${Math.random() * 10 + 15}s`,
-        filter: 'blur(40px)',
-        boxShadow: '0 0 60px hsl(25 95% 60% / 0.5)'
-      }} />)}
-      </div>
       
       {/* Hero Section */}
       <section className="relative overflow-hidden">
