@@ -65,12 +65,12 @@ const Index = () => {
           </div>
         </nav>
 
-        <div className="relative container mx-auto px-4 md:py-32 py-[118px]">
-          <div className="max-w-4xl mx-auto">
+        <div className="relative container mx-auto px-4 md:py-20 py-16">
+          <div className="max-w-6xl mx-auto">
             <div className="space-y-8 text-center">
-              {/* Centered Large Logo */}
+              {/* Centered Very Large Logo */}
               <div className="flex justify-center">
-                <img src={phormulaLogo} alt="Phormula" className="h-40 md:h-56" />
+                <img src={phormulaLogo} alt="Phormula" className="h-64 md:h-96 lg:h-[500px]" />
               </div>
               <p className="text-lg md:text-xl text-black/70">
                 Simplify Memorization
