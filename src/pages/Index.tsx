@@ -72,9 +72,9 @@ const Index = () => {
               <div className="flex justify-center">
                 <img src={phormulaLogo} alt="Phormula" className="h-64 md:h-96 lg:h-[500px]" />
               </div>
-              <p className="text-lg md:text-xl text-black/70">
+              <h1 className="text-3xl md:text-5xl font-bold text-black">
                 Simplify Memorization
-              </p>
+              </h1>
               <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
                 <Link to="/auth">
                   <Button size="lg" className="w-full sm:w-auto bg-black text-white hover:bg-black/90">
