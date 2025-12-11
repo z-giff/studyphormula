@@ -59,7 +59,7 @@ const Index = () => {
                 <img src={phormulaLogo} alt="Phormula" className="h-64 md:h-96 lg:h-[500px]" />
               </div>
               <h1 className="text-3xl md:text-5xl font-normal text-black -mt-8 md:-mt-12">
-                Simplify Memorization
+                Simplify Memorization.
               </h1>
               <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
                 <Link to="/auth">
