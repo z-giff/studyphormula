@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import phormulaLogo from "@/assets/phormula-logo.png";
+import phormulaBackground from "@/assets/phormula-background.png";
 
 const Index = () => {
   const {
@@ -55,8 +56,9 @@ const Index = () => {
           <div className="max-w-6xl mx-auto">
             <div className="text-center">
               {/* Centered Very Large Logo */}
-              <div className="flex justify-center">
-                <img src={phormulaLogo} alt="Phormula" className="h-64 md:h-96 lg:h-[500px]" />
+              <div className="flex justify-center relative">
+                <img src={phormulaBackground} alt="" className="absolute h-64 md:h-96 lg:h-[500px] opacity-30" />
+                <img src={phormulaLogo} alt="Phormula" className="h-64 md:h-96 lg:h-[500px] relative z-10" />
               </div>
               <h1 className="text-3xl md:text-5xl font-normal text-black -mt-8 md:-mt-12">
                 Simplify Memorization.
