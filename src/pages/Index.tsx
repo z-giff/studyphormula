@@ -53,10 +53,7 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         
-        <nav className="relative container mx-auto px-4 flex items-center justify-between py-[34px]">
-          <Link to="/" className="flex items-center py-2">
-            <img src={phormulaLogo} alt="Phormula" className="h-20" />
-          </Link>
+        <nav className="relative container mx-auto px-4 flex items-center justify-end py-[34px]">
           <div className="flex items-center gap-4">
             <ThemeToggle />
             <Link to="/auth">
