@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
-import { GraduationCap, Palette, ImageIcon, BookmarkIcon, Shuffle } from "lucide-react";
+import { Palette, ImageIcon, BookmarkIcon, Shuffle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import phormulaLogo from "@/assets/phormula-logo.png";
 
 const Index = () => {
   const {
@@ -53,9 +54,8 @@ const Index = () => {
       <section className="relative overflow-hidden">
         
         <nav className="relative container mx-auto px-4 flex items-center justify-between py-[34px]">
-          <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-black">
-            <GraduationCap className="h-8 w-8" />
-            <span>Phormula</span>
+          <Link to="/" className="flex items-center">
+            <img src={phormulaLogo} alt="Phormula" className="h-10" />
           </Link>
           <div className="flex items-center gap-4">
             <ThemeToggle />
