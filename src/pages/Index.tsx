@@ -55,7 +55,7 @@ const Index = () => {
         
         <nav className="relative container mx-auto px-4 flex items-center justify-between py-[34px]">
           <Link to="/" className="flex items-center py-2">
-            <img src={phormulaLogo} alt="Phormula" className="h-14" />
+            <img src={phormulaLogo} alt="Phormula" className="h-20" />
           </Link>
           <div className="flex items-center gap-4">
             <ThemeToggle />
