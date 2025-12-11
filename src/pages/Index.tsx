@@ -67,15 +67,15 @@ const Index = () => {
 
         <div className="relative container mx-auto px-4 md:py-20 py-16">
           <div className="max-w-6xl mx-auto">
-            <div className="space-y-4 text-center">
+            <div className="text-center">
               {/* Centered Very Large Logo */}
               <div className="flex justify-center">
                 <img src={phormulaLogo} alt="Phormula" className="h-64 md:h-96 lg:h-[500px]" />
               </div>
-              <h1 className="text-3xl md:text-5xl font-bold text-black">
+              <h1 className="text-3xl md:text-5xl font-bold text-black -mt-2">
                 Simplify Memorization
               </h1>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
                 <Link to="/auth">
                   <Button size="lg" className="w-full sm:w-auto bg-black text-white hover:bg-black/90">
                     Start Learning
