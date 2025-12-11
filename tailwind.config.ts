@@ -16,6 +16,8 @@ export default {
       fontFamily: {
         'cursive': ['Dancing Script', 'cursive'],
         'display': ['Outfit', 'sans-serif'],
+        'sans': ['Elms Sans', 'sans-serif'],
+        'heading': ['Elms Sans', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
