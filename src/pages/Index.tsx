@@ -54,8 +54,8 @@ const Index = () => {
       <section className="relative overflow-hidden">
         
         <nav className="relative container mx-auto px-4 flex items-center justify-between py-[34px]">
-          <Link to="/" className="flex items-center">
-            <img src={phormulaLogo} alt="Phormula" className="h-10" />
+          <Link to="/" className="flex items-center py-2">
+            <img src={phormulaLogo} alt="Phormula" className="h-14" />
           </Link>
           <div className="flex items-center gap-4">
             <ThemeToggle />
