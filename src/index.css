@@ -17,7 +17,7 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 220 13% 13%;
 
-    --primary: 25 95% 53%;
+    --primary: 220 13% 30%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96.1%;
@@ -34,7 +34,7 @@ All colors MUST be HSL.
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 25 95% 53%;
+    --ring: 220 13% 30%;
 
     --radius: 0.75rem;
 
@@ -42,12 +42,12 @@ All colors MUST be HSL.
     --deck-blue: 217 91% 60%;
     --deck-green: 142 71% 45%;
     --deck-purple: 262 83% 58%;
-    --deck-orange: 25 95% 53%;
+    --deck-orange: 220 13% 30%;
     --deck-pink: 330 81% 60%;
     --deck-teal: 185 75% 45%;
     
     /* Gradient overlays */
-    --gradient-primary: linear-gradient(135deg, hsl(25 95% 53%) 0%, hsl(330 81% 60%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(220 13% 30%) 0%, hsl(220 13% 45%) 100%);
     --gradient-card: linear-gradient(to bottom, hsl(0 0% 100%) 0%, hsl(210 40% 98%) 100%);
     
     /* Animations */
@@ -66,7 +66,7 @@ All colors MUST be HSL.
     --popover: 220 15% 16%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 25 95% 53%;
+    --primary: 220 13% 45%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -83,7 +83,7 @@ All colors MUST be HSL.
 
     --border: 217.2 32.6% 20%;
     --input: 217.2 32.6% 20%;
-    --ring: 25 95% 53%;
+    --ring: 220 13% 45%;
     
     --shadow-card: 0 4px 6px -1px hsl(0 0% 0% / 0.3), 0 2px 4px -1px hsl(0 0% 0% / 0.2);
     --shadow-card-hover: 0 10px 15px -3px hsl(0 0% 0% / 0.3), 0 4px 6px -2px hsl(0 0% 0% / 0.2);
