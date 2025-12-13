@@ -77,7 +77,7 @@ const Dashboard = () => {
 
   if (loading || isLoading) {
     return (
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-[#1a1a2e] flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
           <p className="text-muted-foreground">Loading...</p>
@@ -87,15 +87,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 relative overflow-hidden">
-      {/* Pulsing background image */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <img 
-          src={phormulaBackground} 
-          alt="" 
-          className="w-full h-full object-cover opacity-20 animate-[pulse_4s_ease-in-out_infinite] -scale-x-100"
-        />
-      </div>
+    <div className="min-h-screen bg-[#1a1a2e] dark:bg-[#1a1a2e] relative overflow-hidden">
 
       <nav className="relative z-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-black/10 dark:border-white/10">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
