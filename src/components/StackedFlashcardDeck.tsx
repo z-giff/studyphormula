@@ -25,6 +25,20 @@ interface StackedFlashcardDeckProps {
   onCopy: (flashcardId: string) => void;
 }
 
+// Helper function to determine contrasting text color
+const getContrastColor = (hexColor: string): string => {
+  // Remove # if present
+  const hex = hexColor.replace('#', '');
+  // Convert to RGB
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  // Calculate luminance
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  // Return black or white based on luminance
+  return luminance > 0.5 ? '#000000' : '#ffffff';
+};
+
 export const StackedFlashcardDeck = ({
   flashcards,
   setColor,
@@ -138,7 +152,10 @@ export const StackedFlashcardDeck = ({
                 {/* Front of card */}
                 <Card
                   className="absolute inset-0 backface-hidden shadow-lg border-2"
-                  style={{ borderColor: setColor }}
+                  style={{ 
+                    borderColor: card.color || setColor,
+                    backgroundColor: card.color || setColor,
+                  }}
                 >
                   <CardContent className="flex flex-col items-center justify-center h-full p-6 text-center">
                     {card.image_url && (
@@ -148,9 +165,9 @@ export const StackedFlashcardDeck = ({
                         className="w-full max-h-32 object-contain rounded-lg mb-4"
                       />
                     )}
-                    <h3 className="text-2xl font-bold">{card.term}</h3>
+                    <h3 className="text-2xl font-bold" style={{ color: getContrastColor(card.color || setColor) }}>{card.term}</h3>
                     {isTop && (
-                      <p className="text-sm text-muted-foreground mt-4">
+                      <p className="text-sm mt-4" style={{ color: getContrastColor(card.color || setColor), opacity: 0.7 }}>
                         Click to flip
                       </p>
                     )}
@@ -160,12 +177,15 @@ export const StackedFlashcardDeck = ({
                 {/* Back of card */}
                 <Card
                   className="absolute inset-0 backface-hidden rotate-y-180 shadow-lg border-2"
-                  style={{ borderColor: setColor }}
+                  style={{ 
+                    borderColor: card.color || setColor,
+                    backgroundColor: card.color || setColor,
+                  }}
                 >
                   <CardContent className="flex flex-col items-center justify-center h-full p-6 text-center">
-                    <p className="text-lg">{card.definition}</p>
+                    <p className="text-lg" style={{ color: getContrastColor(card.color || setColor) }}>{card.definition}</p>
                     {isTop && (
-                      <p className="text-sm text-muted-foreground mt-4">
+                      <p className="text-sm mt-4" style={{ color: getContrastColor(card.color || setColor), opacity: 0.7 }}>
                         Click to flip back
                       </p>
                     )}
