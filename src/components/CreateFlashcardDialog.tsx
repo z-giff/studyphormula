@@ -12,21 +12,14 @@ import { InteractiveFlashcardEditor } from "./InteractiveFlashcardEditor";
 import { FlowchartCanvasEditor } from "./FlowchartCanvasEditor";
 
 const PRESET_COLORS = [
-  "#3B82F6", // Blue
-  "#10B981", // Green
-  "#F59E0B", // Amber
-  "#EF4444", // Red
-  "#8B5CF6", // Purple
-  "#EC4899", // Pink
-  "#F97316", // Bright Orange
-  "#84CC16", // Lime
-  "#06B6D4", // Cyan
-  "#6366F1", // Indigo
-  "#7C3AED", // Violet
-  "#D946EF", // Fuchsia
-  "#F43F5E", // Rose
-  "#64748B", // Slate
-  "#14B8A6", // Teal
+  "#000000", // Black
+  "#a6a6a6", // Grey
+  "#ffffff", // White
+  "#e2a9f1", // Lavender
+  "#38b6ff", // Sky Blue
+  "#ea3d57", // Coral Red
+  "#6db2a0", // Sage Green
+  "#ffde59", // Sunshine Yellow
 ];
 
 interface CreateFlashcardDialogProps {
