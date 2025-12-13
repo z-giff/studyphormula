@@ -276,7 +276,7 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
                   className="w-10 h-10 rounded-full border-2 transition-all hover:scale-110"
                   style={{
                     backgroundColor: color,
-                    borderColor: formData.color === color ? "#000" : "transparent",
+                    borderColor: formData.color === color ? "#000" : color === "#ffffff" ? "#d1d5db" : "transparent",
                     boxShadow: formData.color === color ? `0 0 0 2px ${color}` : "none",
                   }}
                   onClick={() => setFormData({ ...formData, color: formData.color === color ? null : color })}
