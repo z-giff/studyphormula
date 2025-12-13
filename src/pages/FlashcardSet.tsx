@@ -277,7 +277,10 @@ const FlashcardSetPage = () => {
           <StackedFlashcardDeck
             flashcards={flashcards}
             setColor={set.color}
-            onEdit={setEditingFlashcard}
+            onEdit={(card) => {
+              console.log("Edit clicked, card:", card);
+              setEditingFlashcard(card);
+            }}
             onDelete={handleDeleteFlashcard}
             onToggleBookmark={handleToggleBookmark}
             onCopy={(flashcardId) => setCopyingFlashcard({ id: flashcardId, setId: id! })}
