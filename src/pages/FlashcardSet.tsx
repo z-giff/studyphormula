@@ -12,7 +12,7 @@ import { CopyFlashcardDialog } from "@/components/CopyFlashcardDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { StackedFlashcardDeck } from "@/components/StackedFlashcardDeck";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import phormulaLogo from "@/assets/phormula-logo.png";
+import phormulaLogo from "@/assets/phormula-text-logo.png";
 
 const PRESET_COLORS = [
   "#000000", // Black
