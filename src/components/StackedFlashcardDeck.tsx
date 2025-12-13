@@ -153,8 +153,8 @@ export const StackedFlashcardDeck = ({
                 <Card
                   className="absolute inset-0 backface-hidden shadow-lg border-2"
                   style={{ 
-                    borderColor: card.color || setColor,
-                    backgroundColor: card.color || setColor,
+                    borderColor: setColor,
+                    backgroundColor: setColor,
                   }}
                 >
                   <CardContent className="flex flex-col items-center justify-center h-full p-6 text-center">
@@ -165,9 +165,9 @@ export const StackedFlashcardDeck = ({
                         className="w-full max-h-32 object-contain rounded-lg mb-4"
                       />
                     )}
-                    <h3 className="text-2xl font-bold" style={{ color: getContrastColor(card.color || setColor) }}>{card.term}</h3>
+                    <h3 className="text-2xl font-bold" style={{ color: getContrastColor(setColor) }}>{card.term}</h3>
                     {isTop && (
-                      <p className="text-sm mt-4" style={{ color: getContrastColor(card.color || setColor), opacity: 0.7 }}>
+                      <p className="text-sm mt-4" style={{ color: getContrastColor(setColor), opacity: 0.7 }}>
                         Click to flip
                       </p>
                     )}
@@ -178,14 +178,14 @@ export const StackedFlashcardDeck = ({
                 <Card
                   className="absolute inset-0 backface-hidden rotate-y-180 shadow-lg border-2"
                   style={{ 
-                    borderColor: card.color || setColor,
-                    backgroundColor: card.color || setColor,
+                    borderColor: setColor,
+                    backgroundColor: setColor,
                   }}
                 >
                   <CardContent className="flex flex-col items-center justify-center h-full p-6 text-center">
-                    <p className="text-lg" style={{ color: getContrastColor(card.color || setColor) }}>{card.definition}</p>
+                    <p className="text-lg" style={{ color: getContrastColor(setColor) }}>{card.definition}</p>
                     {isTop && (
-                      <p className="text-sm mt-4" style={{ color: getContrastColor(card.color || setColor), opacity: 0.7 }}>
+                      <p className="text-sm mt-4" style={{ color: getContrastColor(setColor), opacity: 0.7 }}>
                         Click to flip back
                       </p>
                     )}
