@@ -174,7 +174,7 @@ const FlashcardSetPage = () => {
             <img 
               src={phormulaLogo} 
               alt="Phormula" 
-              className="h-10 w-auto animate-[pulse_4s_ease-in-out_infinite]"
+              className="h-8 sm:h-10 w-auto animate-[pulse_4s_ease-in-out_infinite]"
             />
           </Link>
           <ThemeToggle />
