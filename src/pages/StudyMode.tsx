@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, Shuffle, RotateCcw } from "lucide-react";
-import phormulaLogo from "@/assets/phormula-logo.png";
+import phormulaLogo from "@/assets/phormula-text-logo.png";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { getContrastColor } from "@/lib/utils";
@@ -141,7 +141,7 @@ const StudyMode = () => {
             <img 
               src={phormulaLogo} 
               alt="Phormula" 
-              className="h-8 sm:h-10 w-auto animate-[pulse_4s_ease-in-out_infinite]"
+              className="h-6 sm:h-8 w-auto"
             />
           </Link>
           <ThemeToggle />
