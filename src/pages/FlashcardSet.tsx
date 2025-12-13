@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Plus, ArrowLeft, Play } from "lucide-react";
+import { GraduationCap, Plus, ArrowLeft, Play, Palette } from "lucide-react";
 import { toast } from "sonner";
 import { CreateFlashcardDialog } from "@/components/CreateFlashcardDialog";
 import { EditFlashcardDialog } from "@/components/EditFlashcardDialog";
@@ -11,6 +11,18 @@ import { ImportFlashcardsDialog } from "@/components/ImportFlashcardsDialog";
 import { CopyFlashcardDialog } from "@/components/CopyFlashcardDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { StackedFlashcardDeck } from "@/components/StackedFlashcardDeck";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+const PRESET_COLORS = [
+  "#000000", // Black
+  "#a6a6a6", // Grey
+  "#ffffff", // White
+  "#e2a9f1", // Lavender
+  "#38b6ff", // Sky Blue
+  "#ea3d57", // Coral Red
+  "#6db2a0", // Sage Green
+  "#ffde59", // Sunshine Yellow
+];
 
 interface Flashcard {
   id: string;
@@ -124,6 +136,22 @@ const FlashcardSetPage = () => {
     }
   };
 
+  const handleUpdateSetColor = async (newColor: string) => {
+    try {
+      const { error } = await supabase
+        .from("flashcard_sets")
+        .update({ color: newColor })
+        .eq("id", id);
+
+      if (error) throw error;
+
+      setSet((prev) => prev ? { ...prev, color: newColor } : prev);
+      toast.success("Set color updated");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update color");
+    }
+  };
+
   if (loading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -161,10 +189,50 @@ const FlashcardSetPage = () => {
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <div
-                  className="w-6 h-6 rounded-full"
-                  style={{ backgroundColor: set.color }}
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      className="w-6 h-6 rounded-full cursor-pointer hover:scale-110 transition-transform border"
+                      style={{ 
+                        backgroundColor: set.color,
+                        borderColor: set.color === "#ffffff" ? "#d1d5db" : "transparent",
+                      }}
+                      title="Change set color"
+                    />
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-3">
+                    <div className="flex flex-wrap gap-2 max-w-[200px]">
+                      {PRESET_COLORS.map((color) => (
+                        <button
+                          key={color}
+                          type="button"
+                          className="w-8 h-8 rounded-full border-2 transition-all hover:scale-110"
+                          style={{
+                            backgroundColor: color,
+                            borderColor: set.color === color ? "#000" : color === "#ffffff" ? "#d1d5db" : "transparent",
+                          }}
+                          onClick={() => handleUpdateSetColor(color)}
+                        />
+                      ))}
+                      <label
+                        className="w-8 h-8 rounded-full border-2 border-dashed border-muted-foreground/50 transition-all hover:scale-110 hover:border-muted-foreground cursor-pointer flex items-center justify-center"
+                        style={{
+                          backgroundColor: set.color && !PRESET_COLORS.includes(set.color) ? set.color : "transparent",
+                          borderStyle: set.color && !PRESET_COLORS.includes(set.color) ? "solid" : "dashed",
+                          borderColor: set.color && !PRESET_COLORS.includes(set.color) ? "#000" : undefined,
+                        }}
+                      >
+                        <Plus className="h-4 w-4 text-muted-foreground" style={{ display: set.color && !PRESET_COLORS.includes(set.color) ? "none" : "block" }} />
+                        <input
+                          type="color"
+                          className="sr-only"
+                          value={set.color || "#000000"}
+                          onChange={(e) => handleUpdateSetColor(e.target.value)}
+                        />
+                      </label>
+                    </div>
+                  </PopoverContent>
+                </Popover>
                 <h1 className="text-4xl font-bold">{set.title}</h1>
               </div>
               {set.description && (
