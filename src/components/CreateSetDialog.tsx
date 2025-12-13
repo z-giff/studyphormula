@@ -7,23 +7,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { Plus } from "lucide-react";
 
 const PRESET_COLORS = [
-  "#3B82F6", // Blue
-  "#10B981", // Green
-  "#8B5CF6", // Purple
-  "#F59E0B", // Orange
-  "#EC4899", // Pink
-  "#14B8A6", // Teal
-  "#EF4444", // Red
-  "#F97316", // Bright Orange
-  "#84CC16", // Lime
-  "#06B6D4", // Cyan
-  "#6366F1", // Indigo
-  "#A855F7", // Violet
-  "#D946EF", // Fuchsia
-  "#F43F5E", // Rose
-  "#64748B", // Slate
+  "#000000", // Black
+  "#a6a6a6", // Grey
+  "#ffffff", // White
+  "#e2a9f1", // Lavender
+  "#38b6ff", // Sky Blue
+  "#ea3d57", // Coral Red
+  "#6db2a0", // Sage Green
+  "#ffde59", // Sunshine Yellow
 ];
 
 interface CreateSetDialogProps {
@@ -118,16 +112,33 @@ export const CreateSetDialog = ({ open, onOpenChange, onSuccess }: CreateSetDial
                 <button
                   key={color}
                   type="button"
-                  className={`w-9 h-9 rounded-lg transition-all ${
-                    formData.color === color
-                      ? "ring-2 ring-offset-2 ring-primary scale-110"
-                      : "hover:scale-105"
-                  }`}
-                  style={{ backgroundColor: color }}
+                  className="w-10 h-10 rounded-full border-2 transition-all hover:scale-110"
+                  style={{
+                    backgroundColor: color,
+                    borderColor: formData.color === color ? "#000" : color === "#ffffff" ? "#d1d5db" : "transparent",
+                    boxShadow: formData.color === color ? `0 0 0 2px ${color}` : "none",
+                  }}
                   onClick={() => setFormData({ ...formData, color })}
                   disabled={isLoading}
                 />
               ))}
+              <label
+                className="w-10 h-10 rounded-full border-2 border-dashed border-muted-foreground/50 transition-all hover:scale-110 hover:border-muted-foreground cursor-pointer flex items-center justify-center"
+                style={{
+                  backgroundColor: formData.color && !PRESET_COLORS.includes(formData.color) ? formData.color : "transparent",
+                  borderStyle: formData.color && !PRESET_COLORS.includes(formData.color) ? "solid" : "dashed",
+                  borderColor: formData.color && !PRESET_COLORS.includes(formData.color) ? "#000" : undefined,
+                }}
+              >
+                <Plus className="h-5 w-5 text-muted-foreground" style={{ display: formData.color && !PRESET_COLORS.includes(formData.color) ? "none" : "block" }} />
+                <input
+                  type="color"
+                  className="sr-only"
+                  value={formData.color || "#000000"}
+                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                  disabled={isLoading}
+                />
+              </label>
             </div>
           </div>
 
