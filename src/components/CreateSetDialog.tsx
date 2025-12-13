@@ -9,11 +9,21 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
 const PRESET_COLORS = [
-  "#e2a9f1", // Lavender Pink
-  "#38b6ff", // Sky Blue
-  "#6db2a0", // Sage Teal
-  "#ffde59", // Sunny Yellow
-  "#ea3d57", // Coral Red
+  "#3B82F6", // Blue
+  "#10B981", // Green
+  "#8B5CF6", // Purple
+  "#F59E0B", // Orange
+  "#EC4899", // Pink
+  "#14B8A6", // Teal
+  "#EF4444", // Red
+  "#F97316", // Bright Orange
+  "#84CC16", // Lime
+  "#06B6D4", // Cyan
+  "#6366F1", // Indigo
+  "#A855F7", // Violet
+  "#D946EF", // Fuchsia
+  "#F43F5E", // Rose
+  "#64748B", // Slate
 ];
 
 interface CreateSetDialogProps {
