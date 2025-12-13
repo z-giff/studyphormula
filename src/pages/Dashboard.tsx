@@ -4,10 +4,12 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { GraduationCap, Plus, LogOut, BookOpen } from "lucide-react";
+import { Plus, LogOut, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { CreateSetDialog } from "@/components/CreateSetDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import phormulaLogo from "@/assets/phormula-logo.png";
+import phormulaBackground from "@/assets/phormula-background.png";
 
 interface FlashcardSet {
   id: string;
@@ -75,7 +77,7 @@ const Dashboard = () => {
 
   if (loading || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
           <p className="text-muted-foreground">Loading...</p>
@@ -85,16 +87,29 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <nav className="border-b">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 relative overflow-hidden">
+      {/* Pulsing background image */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <img 
+          src={phormulaBackground} 
+          alt="" 
+          className="w-full h-full object-cover opacity-20 animate-[pulse_4s_ease-in-out_infinite] -scale-x-100"
+        />
+      </div>
+
+      <nav className="relative z-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-black/10 dark:border-white/10">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2 text-2xl font-bold text-primary">
-            <GraduationCap className="h-8 w-8" />
-            <span>Phormula</span>
+          <Link to="/dashboard" className="flex items-center gap-3">
+            <img 
+              src={phormulaLogo} 
+              alt="Phormula" 
+              className="h-10 w-auto animate-[pulse_4s_ease-in-out_infinite]"
+            />
+            <span className="text-2xl font-bold text-foreground">Phormula</span>
           </Link>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Button variant="ghost" onClick={handleSignOut}>
+            <Button variant="ghost" onClick={handleSignOut} className="hover:bg-black/10 dark:hover:bg-white/10">
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out
             </Button>
@@ -102,23 +117,23 @@ const Dashboard = () => {
         </div>
       </nav>
 
-      <main className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-4 py-12 relative z-10">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">My Flashcard Sets</h1>
+          <h1 className="text-4xl font-bold mb-2 text-foreground">My Flashcard Sets</h1>
           <p className="text-muted-foreground">Create and manage your study materials</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Create New Set Card */}
           <Card
-            className="border-2 border-dashed cursor-pointer hover:border-primary hover:bg-primary/5 transition-all"
+            className="border-2 border-dashed border-black/20 dark:border-white/20 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all bg-white/80 dark:bg-gray-800/80 backdrop-blur-md"
             onClick={() => setIsCreateDialogOpen(true)}
           >
             <CardContent className="flex flex-col items-center justify-center h-48 text-center">
               <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mb-4">
                 <Plus className="h-8 w-8 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold">Create New Set</h3>
+              <h3 className="text-lg font-semibold text-foreground">Create New Set</h3>
               <p className="text-sm text-muted-foreground">Start a new flashcard collection</p>
             </CardContent>
           </Card>
@@ -127,14 +142,14 @@ const Dashboard = () => {
           {sets.map((set) => (
             <Link key={set.id} to={`/set/${set.id}`}>
               <Card
-                className="h-48 cursor-pointer hover:shadow-lg transition-all overflow-hidden group relative"
+                className="h-48 cursor-pointer hover:shadow-lg transition-all overflow-hidden group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-black/10 dark:border-white/10"
                 style={{
                   borderTop: `6px solid ${set.color}`,
-                  background: `linear-gradient(to bottom, ${set.color}08, transparent)`,
+                  background: `linear-gradient(to bottom, ${set.color}15, rgba(255,255,255,0.8))`,
                 }}
               >
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
+                  <CardTitle className="flex items-center justify-between text-foreground">
                     <span className="truncate">{set.title}</span>
                     <div
                       className="w-6 h-6 rounded-full flex-shrink-0 shadow-md"
@@ -158,10 +173,10 @@ const Dashboard = () => {
 
         {sets.length === 0 && (
           <div className="text-center py-16">
-            <div className="bg-muted/50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
               <BookOpen className="h-12 w-12 text-muted-foreground" />
             </div>
-            <h3 className="text-2xl font-semibold mb-2">No flashcard sets yet</h3>
+            <h3 className="text-2xl font-semibold mb-2 text-foreground">No flashcard sets yet</h3>
             <p className="text-muted-foreground mb-6">Create your first set to start studying</p>
             <Button onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
