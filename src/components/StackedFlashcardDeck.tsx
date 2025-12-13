@@ -117,7 +117,7 @@ export const StackedFlashcardDeck = ({
   return (
     <div className="flex flex-col items-center gap-8">
       {/* Stacked deck container */}
-      <div className="relative w-full max-w-md h-[400px] perspective-1000">
+      <div className="relative w-full max-w-2xl h-[280px] perspective-1000">
         {stackedCards.map((card) => {
           const isTop = card.stackPosition === 0;
           const isFlipped = flippedCards.has(card.originalIndex);
