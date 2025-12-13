@@ -149,48 +149,56 @@ export const StackedFlashcardDeck = ({
                 }`}
                 onClick={() => isTop && handleFlip(card.originalIndex)}
               >
-                {/* Front of card */}
-                <Card
-                  className="absolute inset-0 backface-hidden shadow-lg border-2"
-                  style={{ 
-                    borderColor: setColor,
-                    backgroundColor: setColor,
-                  }}
-                >
-                  <CardContent className="flex flex-col items-center justify-center h-full p-6 text-center">
-                    {card.image_url && (
-                      <img
-                        src={card.image_url}
-                        alt={card.term}
-                        className="w-full max-h-32 object-contain rounded-lg mb-4"
-                      />
-                    )}
-                    <h3 className="text-2xl font-bold" style={{ color: getContrastColor(setColor) }}>{card.term}</h3>
-                    {isTop && (
-                      <p className="text-sm mt-4" style={{ color: getContrastColor(setColor), opacity: 0.7 }}>
-                        Click to flip
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
+                {(() => {
+                  const cardColor = card.color || setColor;
+                  const textColor = getContrastColor(cardColor);
+                  return (
+                    <>
+                      {/* Front of card */}
+                      <Card
+                        className="absolute inset-0 backface-hidden shadow-lg border-2"
+                        style={{ 
+                          borderColor: cardColor,
+                          backgroundColor: cardColor,
+                        }}
+                      >
+                        <CardContent className="flex flex-col items-center justify-center h-full p-6 text-center">
+                          {card.image_url && (
+                            <img
+                              src={card.image_url}
+                              alt={card.term}
+                              className="w-full max-h-32 object-contain rounded-lg mb-4"
+                            />
+                          )}
+                          <h3 className="text-2xl font-bold" style={{ color: textColor }}>{card.term}</h3>
+                          {isTop && (
+                            <p className="text-sm mt-4" style={{ color: textColor, opacity: 0.7 }}>
+                              Click to flip
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
 
-                {/* Back of card */}
-                <Card
-                  className="absolute inset-0 backface-hidden rotate-y-180 shadow-lg border-2"
-                  style={{ 
-                    borderColor: setColor,
-                    backgroundColor: setColor,
-                  }}
-                >
-                  <CardContent className="flex flex-col items-center justify-center h-full p-6 text-center">
-                    <p className="text-lg" style={{ color: getContrastColor(setColor) }}>{card.definition}</p>
-                    {isTop && (
-                      <p className="text-sm mt-4" style={{ color: getContrastColor(setColor), opacity: 0.7 }}>
-                        Click to flip back
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
+                      {/* Back of card */}
+                      <Card
+                        className="absolute inset-0 backface-hidden rotate-y-180 shadow-lg border-2"
+                        style={{ 
+                          borderColor: cardColor,
+                          backgroundColor: cardColor,
+                        }}
+                      >
+                        <CardContent className="flex flex-col items-center justify-center h-full p-6 text-center">
+                          <p className="text-lg" style={{ color: textColor }}>{card.definition}</p>
+                          {isTop && (
+                            <p className="text-sm mt-4" style={{ color: textColor, opacity: 0.7 }}>
+                              Click to flip back
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </>
+                  );
+                })()}
               </div>
             </div>
           );
