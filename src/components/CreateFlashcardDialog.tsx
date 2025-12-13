@@ -208,7 +208,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
 
               <div className="space-y-2">
                 <Label>Flashcard Color (Optional)</Label>
-                <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2">
                   {PRESET_COLORS.map((color) => (
                     <button
                       key={color}
@@ -216,7 +216,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
                       className="w-10 h-10 rounded-full border-2 transition-all hover:scale-110"
                       style={{
                         backgroundColor: color,
-                        borderColor: formData.color === color ? "#000" : "transparent",
+                        borderColor: formData.color === color ? "#000" : color === "#ffffff" ? "#d1d5db" : "transparent",
                         boxShadow: formData.color === color ? `0 0 0 2px ${color}` : "none",
                       }}
                       onClick={() => setFormData({ ...formData, color: formData.color === color ? null : color })}
@@ -258,7 +258,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
 
               <div className="space-y-2">
                 <Label>Flashcard Color (Optional)</Label>
-                <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2">
                   {PRESET_COLORS.map((color) => (
                     <button
                       key={color}
@@ -266,7 +266,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
                       className="w-10 h-10 rounded-full border-2 transition-all hover:scale-110"
                       style={{
                         backgroundColor: color,
-                        borderColor: formData.color === color ? "#000" : "transparent",
+                        borderColor: formData.color === color ? "#000" : color === "#ffffff" ? "#d1d5db" : "transparent",
                         boxShadow: formData.color === color ? `0 0 0 2px ${color}` : "none",
                       }}
                       onClick={() => setFormData({ ...formData, color: formData.color === color ? null : color })}
@@ -303,7 +303,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
 
               <div className="space-y-2">
                 <Label>Flashcard Color (Optional)</Label>
-                <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2">
                   {PRESET_COLORS.map((color) => (
                     <button
                       key={color}
@@ -311,7 +311,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
                       className="w-10 h-10 rounded-full border-2 transition-all hover:scale-110"
                       style={{
                         backgroundColor: color,
-                        borderColor: formData.color === color ? "#000" : "transparent",
+                        borderColor: formData.color === color ? "#000" : color === "#ffffff" ? "#d1d5db" : "transparent",
                         boxShadow: formData.color === color ? `0 0 0 2px ${color}` : "none",
                       }}
                       onClick={() => setFormData({ ...formData, color: formData.color === color ? null : color })}
