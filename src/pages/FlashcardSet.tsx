@@ -3,14 +3,14 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { GraduationCap, Plus, ArrowLeft, Play, Pencil, Trash2, Bookmark, Copy } from "lucide-react";
+import { GraduationCap, Plus, ArrowLeft, Play } from "lucide-react";
 import { toast } from "sonner";
 import { CreateFlashcardDialog } from "@/components/CreateFlashcardDialog";
 import { EditFlashcardDialog } from "@/components/EditFlashcardDialog";
 import { ImportFlashcardsDialog } from "@/components/ImportFlashcardsDialog";
 import { CopyFlashcardDialog } from "@/components/CopyFlashcardDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { StackedFlashcardDeck } from "@/components/StackedFlashcardDeck";
 
 interface Flashcard {
   id: string;
@@ -206,63 +206,14 @@ const FlashcardSetPage = () => {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {flashcards.map((flashcard) => (
-              <Card key={flashcard.id} className="hover:shadow-lg transition-shadow">
-                <CardContent className="p-6">
-                  {flashcard.image_url && (
-                    <img
-                      src={flashcard.image_url}
-                      alt={flashcard.term}
-                      className="w-full h-48 object-cover rounded-lg mb-4"
-                    />
-                  )}
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-lg font-semibold flex-1">{flashcard.term}</h3>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="p-1 h-auto"
-                      onClick={() => handleToggleBookmark(flashcard.id, flashcard.is_bookmarked || false)}
-                    >
-                      <Bookmark
-                        className={`h-5 w-5 ${flashcard.is_bookmarked ? "fill-primary text-primary" : "text-muted-foreground"}`}
-                      />
-                    </Button>
-                  </div>
-                  <p className="text-muted-foreground line-clamp-3 mb-4">
-                    {flashcard.definition}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditingFlashcard(flashcard)}
-                    >
-                      <Pencil className="h-4 w-4 mr-1" />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCopyingFlashcard({ id: flashcard.id, setId: id! })}
-                    >
-                      <Copy className="h-4 w-4 mr-1" />
-                      Copy
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteFlashcard(flashcard.id)}
-                    >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Delete
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <StackedFlashcardDeck
+            flashcards={flashcards}
+            setColor={set.color}
+            onEdit={setEditingFlashcard}
+            onDelete={handleDeleteFlashcard}
+            onToggleBookmark={handleToggleBookmark}
+            onCopy={(flashcardId) => setCopyingFlashcard({ id: flashcardId, setId: id! })}
+          />
         )}
       </main>
 
