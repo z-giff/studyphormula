@@ -35,8 +35,11 @@ export const StackedFlashcardDeck = ({
 }: StackedFlashcardDeckProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flippedCards, setFlippedCards] = useState<Set<number>>(new Set());
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [animationDirection, setAnimationDirection] = useState<"next" | "prev" | null>(null);
 
   const handleFlip = (index: number) => {
+    if (isAnimating) return;
     setFlippedCards((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(index)) {
@@ -49,21 +52,37 @@ export const StackedFlashcardDeck = ({
   };
 
   const handleNext = () => {
-    setFlippedCards((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(currentIndex);
-      return newSet;
-    });
-    setCurrentIndex((prev) => (prev + 1) % flashcards.length);
+    if (isAnimating) return;
+    setAnimationDirection("next");
+    setIsAnimating(true);
+    
+    setTimeout(() => {
+      setFlippedCards((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(currentIndex);
+        return newSet;
+      });
+      setCurrentIndex((prev) => (prev + 1) % flashcards.length);
+      setAnimationDirection(null);
+      setIsAnimating(false);
+    }, 400);
   };
 
   const handlePrevious = () => {
-    setFlippedCards((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(currentIndex);
-      return newSet;
-    });
-    setCurrentIndex((prev) => (prev - 1 + flashcards.length) % flashcards.length);
+    if (isAnimating) return;
+    setAnimationDirection("prev");
+    setIsAnimating(true);
+    
+    setTimeout(() => {
+      setFlippedCards((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(currentIndex);
+        return newSet;
+      });
+      setCurrentIndex((prev) => (prev - 1 + flashcards.length) % flashcards.length);
+      setAnimationDirection(null);
+      setIsAnimating(false);
+    }, 400);
   };
 
   const getStackedCards = () => {
@@ -91,14 +110,23 @@ export const StackedFlashcardDeck = ({
           const offset = card.stackPosition * 8;
           const scale = 1 - card.stackPosition * 0.05;
           const zIndex = 10 - card.stackPosition;
+          
+          // Animation styles for the top card
+          const isAnimatingOut = isTop && animationDirection === "next";
+          const isAnimatingIn = isTop && animationDirection === "prev";
 
           return (
             <div
               key={`${card.id}-${card.stackPosition}`}
-              className="absolute inset-0 transition-all duration-300 ease-out preserve-3d"
+              className={`absolute inset-0 preserve-3d ${
+                isAnimatingOut ? "animate-whoosh-out" : ""
+              } ${isAnimatingIn ? "animate-whoosh-in" : ""}`}
               style={{
-                transform: `translateY(${offset}px) translateX(${offset}px) scale(${scale})`,
-                zIndex,
+                transform: isAnimatingOut 
+                  ? undefined 
+                  : `translateY(${offset}px) translateX(${offset}px) scale(${scale})`,
+                zIndex: isAnimatingOut ? 0 : zIndex,
+                transition: isAnimating ? "none" : "all 0.3s ease-out",
               }}
             >
               <div
@@ -194,7 +222,7 @@ export const StackedFlashcardDeck = ({
         </div>
       )}
 
-      {/* Custom CSS for 3D transforms */}
+      {/* Custom CSS for 3D transforms and animations */}
       <style>{`
         .perspective-1000 {
           perspective: 1000px;
@@ -207,6 +235,44 @@ export const StackedFlashcardDeck = ({
         }
         .rotate-y-180 {
           transform: rotateY(180deg);
+        }
+        
+        @keyframes whoosh-out {
+          0% {
+            transform: translateY(0) translateX(0) scale(1);
+            opacity: 1;
+          }
+          40% {
+            transform: translateY(-20px) translateX(80px) scale(1.05) rotateZ(8deg);
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(24px) translateX(24px) scale(0.9);
+            opacity: 0.7;
+          }
+        }
+        
+        @keyframes whoosh-in {
+          0% {
+            transform: translateY(24px) translateX(-50px) scale(0.9);
+            opacity: 0.7;
+          }
+          60% {
+            transform: translateY(-10px) translateX(-40px) scale(1.02) rotateZ(-5deg);
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(0) translateX(0) scale(1);
+            opacity: 1;
+          }
+        }
+        
+        .animate-whoosh-out {
+          animation: whoosh-out 0.4s ease-in-out forwards;
+        }
+        
+        .animate-whoosh-in {
+          animation: whoosh-in 0.4s ease-in-out forwards;
         }
       `}</style>
     </div>
