@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ImageIcon } from "lucide-react";
+import { ImageIcon, Plus } from "lucide-react";
 import { InteractiveFlashcardEditor } from "@/components/InteractiveFlashcardEditor";
 import { FlowchartCanvasEditor } from "@/components/FlowchartCanvasEditor";
 
@@ -283,6 +283,23 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
                   disabled={isLoading}
                 />
               ))}
+              <label
+                className="w-10 h-10 rounded-full border-2 border-dashed border-muted-foreground/50 transition-all hover:scale-110 hover:border-muted-foreground cursor-pointer flex items-center justify-center"
+                style={{
+                  backgroundColor: formData.color && !PRESET_COLORS.includes(formData.color) ? formData.color : "transparent",
+                  borderStyle: formData.color && !PRESET_COLORS.includes(formData.color) ? "solid" : "dashed",
+                  borderColor: formData.color && !PRESET_COLORS.includes(formData.color) ? "#000" : undefined,
+                }}
+              >
+                <Plus className="h-5 w-5 text-muted-foreground" style={{ display: formData.color && !PRESET_COLORS.includes(formData.color) ? "none" : "block" }} />
+                <input
+                  type="color"
+                  className="sr-only"
+                  value={formData.color || "#000000"}
+                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                  disabled={isLoading}
+                />
+              </label>
             </div>
             <p className="text-xs text-muted-foreground">
               Choose a custom color for this flashcard, or leave unselected to use the deck color
