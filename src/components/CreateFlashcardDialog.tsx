@@ -6,22 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ImageIcon, Plus } from "lucide-react";
+import { ImageIcon } from "lucide-react";
 import { useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InteractiveFlashcardEditor } from "./InteractiveFlashcardEditor";
 import { FlowchartCanvasEditor } from "./FlowchartCanvasEditor";
 
-const PRESET_COLORS = [
-  "#000000", // Black
-  "#a6a6a6", // Grey
-  "#ffffff", // White
-  "#e2a9f1", // Lavender
-  "#38b6ff", // Sky Blue
-  "#ea3d57", // Coral Red
-  "#6db2a0", // Sage Green
-  "#ffde59", // Sunshine Yellow
-];
 
 interface CreateFlashcardDialogProps {
   open: boolean;
@@ -37,7 +27,6 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
     term: "",
     definition: "",
     imageUrl: "",
-    color: null as string | null,
   });
   const [interactiveData, setInteractiveData] = useState<{
     imageUrl: string;
@@ -95,7 +84,6 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
 
       let insertData: any = {
         set_id: setId,
-        color: formData.color,
         position: maxPosition + 1,
         flashcard_type: flashcardType,
       };
@@ -129,7 +117,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
       if (error) throw error;
 
       toast.success("Flashcard created successfully!");
-      setFormData({ term: "", definition: "", imageUrl: "", color: null });
+      setFormData({ term: "", definition: "", imageUrl: "" });
       setInteractiveData({ imageUrl: "", textBoxes: [] });
       setFlowchartData({ nodes: [], edges: [] });
       setFlashcardType("standard");
@@ -207,45 +195,6 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
                 </p>
               </div>
 
-              <div className="space-y-2">
-                <Label>Flashcard Color (Optional)</Label>
-              <div className="flex flex-wrap gap-2">
-                  {PRESET_COLORS.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      className="w-10 h-10 rounded-full border-2 transition-all hover:scale-110"
-                      style={{
-                        backgroundColor: color,
-                        borderColor: formData.color === color ? "#000" : color === "#ffffff" ? "#d1d5db" : "transparent",
-                        boxShadow: formData.color === color ? `0 0 0 2px ${color}` : "none",
-                      }}
-                      onClick={() => setFormData({ ...formData, color: formData.color === color ? null : color })}
-                      disabled={isLoading}
-                    />
-                  ))}
-                  <label
-                    className="w-10 h-10 rounded-full border-2 border-dashed border-muted-foreground/50 transition-all hover:scale-110 hover:border-muted-foreground cursor-pointer flex items-center justify-center"
-                    style={{
-                      backgroundColor: formData.color && !PRESET_COLORS.includes(formData.color) ? formData.color : "transparent",
-                      borderStyle: formData.color && !PRESET_COLORS.includes(formData.color) ? "solid" : "dashed",
-                      borderColor: formData.color && !PRESET_COLORS.includes(formData.color) ? "#000" : undefined,
-                    }}
-                  >
-                    <Plus className="h-5 w-5 text-muted-foreground" style={{ display: formData.color && !PRESET_COLORS.includes(formData.color) ? "none" : "block" }} />
-                    <input
-                      type="color"
-                      className="sr-only"
-                      value={formData.color || "#000000"}
-                      onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                      disabled={isLoading}
-                    />
-                  </label>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Choose a custom color for this flashcard, or leave unselected to use the deck color
-                </p>
-              </div>
             </TabsContent>
 
             <TabsContent value="interactive" className="space-y-4 mt-4">
@@ -274,45 +223,6 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
                 />
               )}
 
-              <div className="space-y-2">
-                <Label>Flashcard Color (Optional)</Label>
-              <div className="flex flex-wrap gap-2">
-                  {PRESET_COLORS.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      className="w-10 h-10 rounded-full border-2 transition-all hover:scale-110"
-                      style={{
-                        backgroundColor: color,
-                        borderColor: formData.color === color ? "#000" : color === "#ffffff" ? "#d1d5db" : "transparent",
-                        boxShadow: formData.color === color ? `0 0 0 2px ${color}` : "none",
-                      }}
-                      onClick={() => setFormData({ ...formData, color: formData.color === color ? null : color })}
-                      disabled={isLoading}
-                    />
-                  ))}
-                  <label
-                    className="w-10 h-10 rounded-full border-2 border-dashed border-muted-foreground/50 transition-all hover:scale-110 hover:border-muted-foreground cursor-pointer flex items-center justify-center"
-                    style={{
-                      backgroundColor: formData.color && !PRESET_COLORS.includes(formData.color) ? formData.color : "transparent",
-                      borderStyle: formData.color && !PRESET_COLORS.includes(formData.color) ? "solid" : "dashed",
-                      borderColor: formData.color && !PRESET_COLORS.includes(formData.color) ? "#000" : undefined,
-                    }}
-                  >
-                    <Plus className="h-5 w-5 text-muted-foreground" style={{ display: formData.color && !PRESET_COLORS.includes(formData.color) ? "none" : "block" }} />
-                    <input
-                      type="color"
-                      className="sr-only"
-                      value={formData.color || "#000000"}
-                      onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                      disabled={isLoading}
-                    />
-                  </label>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Choose a custom color for this flashcard, or leave unselected to use the deck color
-                </p>
-              </div>
             </TabsContent>
 
             <TabsContent value="flowchart" className="space-y-4 mt-4">
@@ -336,45 +246,6 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
                 onChange={setFlowchartData}
               />
 
-              <div className="space-y-2">
-                <Label>Flashcard Color (Optional)</Label>
-              <div className="flex flex-wrap gap-2">
-                  {PRESET_COLORS.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      className="w-10 h-10 rounded-full border-2 transition-all hover:scale-110"
-                      style={{
-                        backgroundColor: color,
-                        borderColor: formData.color === color ? "#000" : color === "#ffffff" ? "#d1d5db" : "transparent",
-                        boxShadow: formData.color === color ? `0 0 0 2px ${color}` : "none",
-                      }}
-                      onClick={() => setFormData({ ...formData, color: formData.color === color ? null : color })}
-                      disabled={isLoading}
-                    />
-                  ))}
-                  <label
-                    className="w-10 h-10 rounded-full border-2 border-dashed border-muted-foreground/50 transition-all hover:scale-110 hover:border-muted-foreground cursor-pointer flex items-center justify-center"
-                    style={{
-                      backgroundColor: formData.color && !PRESET_COLORS.includes(formData.color) ? formData.color : "transparent",
-                      borderStyle: formData.color && !PRESET_COLORS.includes(formData.color) ? "solid" : "dashed",
-                      borderColor: formData.color && !PRESET_COLORS.includes(formData.color) ? "#000" : undefined,
-                    }}
-                  >
-                    <Plus className="h-5 w-5 text-muted-foreground" style={{ display: formData.color && !PRESET_COLORS.includes(formData.color) ? "none" : "block" }} />
-                    <input
-                      type="color"
-                      className="sr-only"
-                      value={formData.color || "#000000"}
-                      onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                      disabled={isLoading}
-                    />
-                  </label>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Choose a custom color for this flashcard, or leave unselected to use the deck color
-                </p>
-              </div>
             </TabsContent>
           </Tabs>
 
