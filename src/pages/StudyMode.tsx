@@ -4,7 +4,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { GraduationCap, ArrowLeft, Shuffle, RotateCcw } from "lucide-react";
+import { ArrowLeft, Shuffle, RotateCcw } from "lucide-react";
+import phormulaLogo from "@/assets/phormula-logo.png";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { getContrastColor } from "@/lib/utils";
@@ -136,9 +137,12 @@ const StudyMode = () => {
     <div className="min-h-screen bg-background">
       <nav className="border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2 text-2xl font-bold text-primary">
-            <GraduationCap className="h-8 w-8" />
-            <span>Phormula</span>
+          <Link to="/dashboard" className="flex items-center">
+            <img 
+              src={phormulaLogo} 
+              alt="Phormula" 
+              className="h-10 w-auto animate-[pulse_4s_ease-in-out_infinite]"
+            />
           </Link>
           <ThemeToggle />
         </div>
