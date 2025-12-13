@@ -59,10 +59,16 @@ const TEMPLATES = {
   },
 };
 
-const nodeTypes = {
-  default: ({ data }: { data: any }) => (
+const createNodeTypes = (onHandleDoubleClick: (nodeId: string, handleType: 'source' | 'target') => void) => ({
+  default: ({ id, data }: { id: string; data: any }) => (
     <>
-      <Handle type="target" position={Position.Top} style={{ background: "#555" }} />
+      <Handle 
+        type="target" 
+        position={Position.Top} 
+        style={{ background: "#555", cursor: "pointer" }} 
+        onDoubleClick={(e) => { e.stopPropagation(); onHandleDoubleClick(id, 'target'); }}
+        title="Double-click to disconnect"
+      />
       <div
         style={{
           padding: "10px 20px",
@@ -79,12 +85,24 @@ const nodeTypes = {
         )}
         <div style={{ fontWeight: 500 }}>{data.label}</div>
       </div>
-      <Handle type="source" position={Position.Bottom} style={{ background: "#555" }} />
+      <Handle 
+        type="source" 
+        position={Position.Bottom} 
+        style={{ background: "#555", cursor: "pointer" }} 
+        onDoubleClick={(e) => { e.stopPropagation(); onHandleDoubleClick(id, 'source'); }}
+        title="Double-click to disconnect"
+      />
     </>
   ),
-  circle: ({ data }: { data: any }) => (
+  circle: ({ id, data }: { id: string; data: any }) => (
     <>
-      <Handle type="target" position={Position.Top} style={{ background: "#555" }} />
+      <Handle 
+        type="target" 
+        position={Position.Top} 
+        style={{ background: "#555", cursor: "pointer" }} 
+        onDoubleClick={(e) => { e.stopPropagation(); onHandleDoubleClick(id, 'target'); }}
+        title="Double-click to disconnect"
+      />
       <div
         style={{
           padding: "20px",
@@ -106,12 +124,24 @@ const nodeTypes = {
         )}
         <div style={{ fontWeight: 500, fontSize: "12px", wordBreak: "break-word" }}>{data.label}</div>
       </div>
-      <Handle type="source" position={Position.Bottom} style={{ background: "#555" }} />
+      <Handle 
+        type="source" 
+        position={Position.Bottom} 
+        style={{ background: "#555", cursor: "pointer" }} 
+        onDoubleClick={(e) => { e.stopPropagation(); onHandleDoubleClick(id, 'source'); }}
+        title="Double-click to disconnect"
+      />
     </>
   ),
-  diamond: ({ data }: { data: any }) => (
+  diamond: ({ id, data }: { id: string; data: any }) => (
     <>
-      <Handle type="target" position={Position.Top} style={{ background: "#555", top: "-5px" }} />
+      <Handle 
+        type="target" 
+        position={Position.Top} 
+        style={{ background: "#555", top: "-5px", cursor: "pointer" }} 
+        onDoubleClick={(e) => { e.stopPropagation(); onHandleDoubleClick(id, 'target'); }}
+        title="Double-click to disconnect"
+      />
       <div
         style={{
           width: "120px",
@@ -138,10 +168,16 @@ const nodeTypes = {
           {data.label}
         </div>
       </div>
-      <Handle type="source" position={Position.Bottom} style={{ background: "#555", bottom: "-5px" }} />
+      <Handle 
+        type="source" 
+        position={Position.Bottom} 
+        style={{ background: "#555", bottom: "-5px", cursor: "pointer" }} 
+        onDoubleClick={(e) => { e.stopPropagation(); onHandleDoubleClick(id, 'source'); }}
+        title="Double-click to disconnect"
+      />
     </>
   ),
-};
+});
 
 export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanvasEditorProps) => {
   const { toast } = useToast();
@@ -151,6 +187,27 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
   const [nodeLabel, setNodeLabel] = useState("");
   const [nodeColor, setNodeColor] = useState("#3b82f6");
   const [nodeImage, setNodeImage] = useState("");
+  const [lastNodeId, setLastNodeId] = useState<string | null>(
+    flowchartData.nodes.length > 0 ? flowchartData.nodes[flowchartData.nodes.length - 1].id : null
+  );
+
+  const handleDisconnect = useCallback(
+    (nodeId: string, handleType: 'source' | 'target') => {
+      const newEdges = edges.filter((edge) => {
+        if (handleType === 'source') {
+          return edge.source !== nodeId;
+        } else {
+          return edge.target !== nodeId;
+        }
+      });
+      setEdges(newEdges);
+      onChange({ nodes, edges: newEdges });
+      toast({ title: "Connection removed" });
+    },
+    [edges, nodes, onChange, setEdges, toast]
+  );
+
+  const nodeTypes = createNodeTypes(handleDisconnect);
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -175,16 +232,38 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
   );
 
   const addNode = (shape: string = "default") => {
+    const newId = `${Date.now()}`;
+    const lastNode = nodes.length > 0 ? nodes[nodes.length - 1] : null;
+    
     const newNode: Node = {
-      id: `${nodes.length + 1}`,
+      id: newId,
       type: shape,
       data: { label: "New Node", color: shape === "diamond" ? "#f59e0b" : "#3b82f6" },
-      position: { x: Math.random() * 300, y: Math.random() * 300 },
+      position: { 
+        x: lastNode ? lastNode.position.x : 150, 
+        y: lastNode ? lastNode.position.y + 150 : 50 
+      },
     };
+    
     const newNodes = [...nodes, newNode];
+    let newEdges = edges;
+    
+    // Auto-connect to the last node if one exists
+    if (lastNodeId && nodes.length > 0) {
+      const autoEdge: Edge = {
+        id: `e${lastNodeId}-${newId}`,
+        source: lastNodeId,
+        target: newId,
+        animated: true,
+      };
+      newEdges = [...edges, autoEdge];
+      setEdges(newEdges);
+    }
+    
     setNodes(newNodes);
-    onChange({ nodes: newNodes, edges });
-    toast({ title: "Node added", description: "Drag to position, drag from handles to connect" });
+    setLastNodeId(newId);
+    onChange({ nodes: newNodes, edges: newEdges });
+    toast({ title: "Node added & connected", description: "Double-click handles to disconnect" });
   };
 
   const updateSelectedNode = () => {
