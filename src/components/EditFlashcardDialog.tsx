@@ -7,10 +7,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ImageIcon } from "lucide-react";
+import { ImageIcon, Pipette } from "lucide-react";
 import { InteractiveFlashcardEditor } from "@/components/InteractiveFlashcardEditor";
 import { FlowchartCanvasEditor } from "@/components/FlowchartCanvasEditor";
 
+const FLASHCARD_COLORS = [
+  "#000000",
+  "#a6a6a6",
+  "#ffffff",
+  "#e2a9f1",
+  "#38b6ff",
+  "#ea3d57",
+  "#6db2a0",
+  "#ffde59",
+];
 
 interface Flashcard {
   id: string;
@@ -31,6 +41,7 @@ interface EditFlashcardDialogProps {
 
 export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }: EditFlashcardDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedColor, setSelectedColor] = useState(flashcard.color || "#3B82F6");
   const [flashcardType, setFlashcardType] = useState<"standard" | "interactive" | "flowchart">(
     flashcard.flashcard_type === "interactive" ? "interactive" : 
     flashcard.flashcard_type === "flowchart" ? "flowchart" : 
@@ -71,7 +82,22 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
         ? flashcard.interactive_data
         : { nodes: [], edges: [] }
     );
+    setSelectedColor(flashcard.color || "#3B82F6");
   }, [flashcard]);
+
+  const handleEyeDropper = async () => {
+    if ('EyeDropper' in window) {
+      try {
+        const eyeDropper = new (window as any).EyeDropper();
+        const result = await eyeDropper.open();
+        setSelectedColor(result.sRGBHex);
+      } catch (e) {
+        // User cancelled
+      }
+    } else {
+      toast.error("Eyedropper not supported in this browser");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,6 +136,7 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
     try {
       const updateData: any = {
         flashcard_type: flashcardType,
+        color: selectedColor,
       };
 
       if (flashcardType === "standard") {
@@ -253,6 +280,33 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
             </TabsContent>
           </Tabs>
 
+          <div className="space-y-2">
+            <Label>Flashcard Color</Label>
+            <div className="flex items-center gap-2 flex-wrap">
+              {FLASHCARD_COLORS.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => setSelectedColor(color)}
+                  className={`w-8 h-8 rounded-full border-2 transition-all ${
+                    selectedColor === color 
+                      ? "ring-2 ring-offset-2 ring-primary scale-110" 
+                      : "hover:scale-105"
+                  } ${color === "#ffffff" ? "border-gray-300" : "border-transparent"}`}
+                  style={{ backgroundColor: color }}
+                  title={color}
+                />
+              ))}
+              <button
+                type="button"
+                onClick={handleEyeDropper}
+                className="w-8 h-8 rounded-full border-2 border-dashed border-muted-foreground flex items-center justify-center hover:bg-muted transition-colors"
+                title="Pick color from screen"
+              >
+                <Pipette className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </div>
+          </div>
 
           <div className="flex gap-3 justify-end">
             <Button
