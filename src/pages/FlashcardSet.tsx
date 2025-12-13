@@ -12,6 +12,7 @@ import { CopyFlashcardDialog } from "@/components/CopyFlashcardDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { StackedFlashcardDeck } from "@/components/StackedFlashcardDeck";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import phormulaLogo from "@/assets/phormula-logo.png";
 
 const PRESET_COLORS = [
   "#000000", // Black
@@ -169,9 +170,12 @@ const FlashcardSetPage = () => {
     <div className="min-h-screen bg-background">
       <nav className="border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2 text-2xl font-bold text-primary">
-            <GraduationCap className="h-8 w-8" />
-            <span>Phormula</span>
+          <Link to="/dashboard" className="flex items-center">
+            <img 
+              src={phormulaLogo} 
+              alt="Phormula" 
+              className="h-10 w-auto animate-[pulse_4s_ease-in-out_infinite]"
+            />
           </Link>
           <ThemeToggle />
         </div>
