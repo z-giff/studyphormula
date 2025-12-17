@@ -61,7 +61,7 @@ const TEMPLATES = {
 
 const createNodeTypes = (onHandleDoubleClick: (nodeId: string, handleType: 'source' | 'target') => void) => ({
   default: ({ id, data }: { id: string; data: any }) => (
-    <>
+    <div className="group">
       <Handle 
         type="target" 
         position={Position.Top} 
@@ -70,6 +70,7 @@ const createNodeTypes = (onHandleDoubleClick: (nodeId: string, handleType: 'sour
         title="Double-click to disconnect"
       />
       <div
+        className="transition-all duration-200 ease-out group-hover:scale-105 group-hover:-translate-y-1"
         style={{
           padding: "12px 24px",
           borderRadius: "12px",
@@ -92,10 +93,10 @@ const createNodeTypes = (onHandleDoubleClick: (nodeId: string, handleType: 'sour
         onDoubleClick={(e) => { e.stopPropagation(); onHandleDoubleClick(id, 'source'); }}
         title="Double-click to disconnect"
       />
-    </>
+    </div>
   ),
   circle: ({ id, data }: { id: string; data: any }) => (
-    <>
+    <div className="group">
       <Handle 
         type="target" 
         position={Position.Top} 
@@ -104,12 +105,12 @@ const createNodeTypes = (onHandleDoubleClick: (nodeId: string, handleType: 'sour
         title="Double-click to disconnect"
       />
       <div
+        className="transition-all duration-200 ease-out group-hover:scale-105 group-hover:-translate-y-1"
         style={{
           padding: "20px",
           borderRadius: "50%",
           background: data.color || "#3b82f6",
           color: "white",
-          border: "2px solid #1e293b",
           width: "120px",
           height: "120px",
           display: "flex",
@@ -117,6 +118,7 @@ const createNodeTypes = (onHandleDoubleClick: (nodeId: string, handleType: 'sour
           alignItems: "center",
           justifyContent: "center",
           textAlign: "center",
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
         }}
       >
         {data.image && (
@@ -131,7 +133,7 @@ const createNodeTypes = (onHandleDoubleClick: (nodeId: string, handleType: 'sour
         onDoubleClick={(e) => { e.stopPropagation(); onHandleDoubleClick(id, 'source'); }}
         title="Double-click to disconnect"
       />
-    </>
+    </div>
   ),
   diamond: ({ id, data }: { id: string; data: any }) => (
     <>
