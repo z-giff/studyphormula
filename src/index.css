@@ -118,3 +118,10 @@ All colors MUST be HSL.
 .animate-float {
   animation: float 15s ease-in-out infinite;
 }
+
+/* React Flow node styling - remove default white background */
+.react-flow__node {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
