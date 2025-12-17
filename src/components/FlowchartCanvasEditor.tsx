@@ -90,14 +90,18 @@ const FloatingColorPicker = ({ nodes, nodeId, currentColor, onColorChange, onDel
   // Transform node position to screen position accounting for viewport
   // Position picker to the right of the node, outside the shape
   const screenX = (node.position.x + nodeWidth) * viewport.zoom + viewport.x + 12;
-  const screenY = node.position.y * viewport.zoom + viewport.y + (nodeHeight * viewport.zoom) / 2 - 60;
+  const screenY = node.position.y * viewport.zoom + viewport.y + (nodeHeight * viewport.zoom) / 2 - (60 * viewport.zoom);
+
+  // Scale the picker proportionally with zoom (clamped for usability)
+  const pickerScale = Math.max(0.5, Math.min(1.2, viewport.zoom));
 
   return (
     <div
-      className="absolute z-50 flex flex-col items-center gap-1 bg-background/95 backdrop-blur-sm rounded-lg p-1.5 shadow-lg border animate-scale-in"
+      className="absolute z-50 flex flex-col items-center gap-1 bg-background/95 backdrop-blur-sm rounded-lg p-1.5 shadow-lg border animate-scale-in origin-left"
       style={{
         left: screenX,
         top: screenY,
+        transform: `scale(${pickerScale})`,
         pointerEvents: "auto",
       }}
     >
