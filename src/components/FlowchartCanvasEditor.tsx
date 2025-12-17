@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import {
   ReactFlow,
   Node,
@@ -19,7 +19,6 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -59,8 +58,40 @@ const TEMPLATES = {
   },
 };
 
-const createNodeTypes = (onHandleDoubleClick: (nodeId: string, handleType: 'source' | 'target') => void) => ({
-  default: ({ id, data }: { id: string; data: any }) => (
+interface EditableNodeProps {
+  id: string;
+  data: any;
+  isEditing: boolean;
+  onStartEdit: () => void;
+  onFinishEdit: (newLabel: string) => void;
+  onHandleDoubleClick: (nodeId: string, handleType: 'source' | 'target') => void;
+}
+
+const EditableBoxNode = ({ id, data, isEditing, onStartEdit, onFinishEdit, onHandleDoubleClick }: EditableNodeProps) => {
+  const [editValue, setEditValue] = useState(data.label);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  useEffect(() => {
+    setEditValue(data.label);
+  }, [data.label]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      onFinishEdit(editValue);
+    } else if (e.key === "Escape") {
+      setEditValue(data.label);
+      onFinishEdit(data.label);
+    }
+  };
+
+  return (
     <div className="group" style={{ background: "transparent" }}>
       <Handle 
         type="target" 
@@ -80,8 +111,29 @@ const createNodeTypes = (onHandleDoubleClick: (nodeId: string, handleType: 'sour
           textAlign: "center",
           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
         }}
+        onDoubleClick={(e) => { e.stopPropagation(); onStartEdit(); }}
       >
-        <div style={{ fontWeight: 500 }}>{data.label}</div>
+        {isEditing ? (
+          <input
+            ref={inputRef}
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onBlur={() => onFinishEdit(editValue)}
+            onKeyDown={handleKeyDown}
+            style={{
+              background: "transparent",
+              border: "none",
+              outline: "none",
+              color: "white",
+              fontWeight: 500,
+              textAlign: "center",
+              width: "100%",
+              minWidth: "80px",
+            }}
+          />
+        ) : (
+          <div style={{ fontWeight: 500, cursor: "text" }}>{data.label}</div>
+        )}
       </div>
       <Handle 
         type="source" 
@@ -91,8 +143,34 @@ const createNodeTypes = (onHandleDoubleClick: (nodeId: string, handleType: 'sour
         title="Double-click to disconnect"
       />
     </div>
-  ),
-  circle: ({ id, data }: { id: string; data: any }) => (
+  );
+};
+
+const EditableCircleNode = ({ id, data, isEditing, onStartEdit, onFinishEdit, onHandleDoubleClick }: EditableNodeProps) => {
+  const [editValue, setEditValue] = useState(data.label);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  useEffect(() => {
+    setEditValue(data.label);
+  }, [data.label]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      onFinishEdit(editValue);
+    } else if (e.key === "Escape") {
+      setEditValue(data.label);
+      onFinishEdit(data.label);
+    }
+  };
+
+  return (
     <div className="group" style={{ background: "transparent" }}>
       <Handle 
         type="target" 
@@ -117,8 +195,29 @@ const createNodeTypes = (onHandleDoubleClick: (nodeId: string, handleType: 'sour
           textAlign: "center",
           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
         }}
+        onDoubleClick={(e) => { e.stopPropagation(); onStartEdit(); }}
       >
-        <div style={{ fontWeight: 500, fontSize: "12px", wordBreak: "break-word" }}>{data.label}</div>
+        {isEditing ? (
+          <input
+            ref={inputRef}
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onBlur={() => onFinishEdit(editValue)}
+            onKeyDown={handleKeyDown}
+            style={{
+              background: "transparent",
+              border: "none",
+              outline: "none",
+              color: "white",
+              fontWeight: 500,
+              fontSize: "12px",
+              textAlign: "center",
+              width: "80px",
+            }}
+          />
+        ) : (
+          <div style={{ fontWeight: 500, fontSize: "12px", wordBreak: "break-word", cursor: "text" }}>{data.label}</div>
+        )}
       </div>
       <Handle 
         type="source" 
@@ -128,8 +227,34 @@ const createNodeTypes = (onHandleDoubleClick: (nodeId: string, handleType: 'sour
         title="Double-click to disconnect"
       />
     </div>
-  ),
-  diamond: ({ id, data }: { id: string; data: any }) => (
+  );
+};
+
+const EditableDiamondNode = ({ id, data, isEditing, onStartEdit, onFinishEdit, onHandleDoubleClick }: EditableNodeProps) => {
+  const [editValue, setEditValue] = useState(data.label);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isEditing]);
+
+  useEffect(() => {
+    setEditValue(data.label);
+  }, [data.label]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      onFinishEdit(editValue);
+    } else if (e.key === "Escape") {
+      setEditValue(data.label);
+      onFinishEdit(data.label);
+    }
+  };
+
+  return (
     <>
       <Handle 
         type="target" 
@@ -149,6 +274,7 @@ const createNodeTypes = (onHandleDoubleClick: (nodeId: string, handleType: 'sour
           alignItems: "center",
           justifyContent: "center",
         }}
+        onDoubleClick={(e) => { e.stopPropagation(); onStartEdit(); }}
       >
         <div
           style={{
@@ -161,7 +287,27 @@ const createNodeTypes = (onHandleDoubleClick: (nodeId: string, handleType: 'sour
             wordBreak: "break-word",
           }}
         >
-          {data.label}
+          {isEditing ? (
+            <input
+              ref={inputRef}
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onBlur={() => onFinishEdit(editValue)}
+              onKeyDown={handleKeyDown}
+              style={{
+                background: "transparent",
+                border: "none",
+                outline: "none",
+                color: "white",
+                fontWeight: 500,
+                fontSize: "12px",
+                textAlign: "center",
+                width: "60px",
+              }}
+            />
+          ) : (
+            <span style={{ cursor: "text" }}>{data.label}</span>
+          )}
         </div>
       </div>
       <Handle 
@@ -172,6 +318,44 @@ const createNodeTypes = (onHandleDoubleClick: (nodeId: string, handleType: 'sour
         title="Double-click to disconnect"
       />
     </>
+  );
+};
+
+const createNodeTypes = (
+  onHandleDoubleClick: (nodeId: string, handleType: 'source' | 'target') => void,
+  editingNodeId: string | null,
+  onStartEdit: (nodeId: string) => void,
+  onFinishEdit: (nodeId: string, newLabel: string) => void
+) => ({
+  default: ({ id, data }: { id: string; data: any }) => (
+    <EditableBoxNode
+      id={id}
+      data={data}
+      isEditing={editingNodeId === id}
+      onStartEdit={() => onStartEdit(id)}
+      onFinishEdit={(newLabel) => onFinishEdit(id, newLabel)}
+      onHandleDoubleClick={onHandleDoubleClick}
+    />
+  ),
+  circle: ({ id, data }: { id: string; data: any }) => (
+    <EditableCircleNode
+      id={id}
+      data={data}
+      isEditing={editingNodeId === id}
+      onStartEdit={() => onStartEdit(id)}
+      onFinishEdit={(newLabel) => onFinishEdit(id, newLabel)}
+      onHandleDoubleClick={onHandleDoubleClick}
+    />
+  ),
+  diamond: ({ id, data }: { id: string; data: any }) => (
+    <EditableDiamondNode
+      id={id}
+      data={data}
+      isEditing={editingNodeId === id}
+      onStartEdit={() => onStartEdit(id)}
+      onFinishEdit={(newLabel) => onFinishEdit(id, newLabel)}
+      onHandleDoubleClick={onHandleDoubleClick}
+    />
   ),
 });
 
@@ -180,8 +364,8 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
   const [nodes, setNodes, onNodesChange] = useNodesState(flowchartData.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(flowchartData.edges);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
-  const [nodeLabel, setNodeLabel] = useState("");
   const [nodeColor, setNodeColor] = useState("#3b82f6");
+  const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
   
   const [lastNodeId, setLastNodeId] = useState<string | null>(
     flowchartData.nodes.length > 0 ? flowchartData.nodes[flowchartData.nodes.length - 1].id : null
@@ -203,7 +387,22 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
     [edges, nodes, onChange, setEdges, toast]
   );
 
-  const nodeTypes = createNodeTypes(handleDisconnect);
+  const handleStartEdit = useCallback((nodeId: string) => {
+    setEditingNodeId(nodeId);
+  }, []);
+
+  const handleFinishEdit = useCallback((nodeId: string, newLabel: string) => {
+    setEditingNodeId(null);
+    const newNodes = nodes.map((node) =>
+      node.id === nodeId
+        ? { ...node, data: { ...node.data, label: newLabel } }
+        : node
+    );
+    setNodes(newNodes);
+    onChange({ nodes: newNodes, edges });
+  }, [nodes, edges, setNodes, onChange]);
+
+  const nodeTypes = createNodeTypes(handleDisconnect, editingNodeId, handleStartEdit, handleFinishEdit);
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -262,16 +461,15 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
     toast({ title: "Node added & connected", description: "Double-click handles to disconnect" });
   };
 
-  const updateSelectedNode = () => {
+  const updateSelectedNodeColor = (color: string) => {
     if (!selectedNode) return;
     const newNodes = nodes.map((node) =>
       node.id === selectedNode
-        ? { ...node, data: { ...node.data, label: nodeLabel, color: nodeColor } }
+        ? { ...node, data: { ...node.data, color } }
         : node
     );
     setNodes(newNodes);
     onChange({ nodes: newNodes, edges });
-    toast({ title: "Node updated" });
   };
 
   const deleteSelectedNode = () => {
@@ -295,7 +493,6 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
 
   const onNodeClick = useCallback((_: any, node: Node) => {
     setSelectedNode(node.id);
-    setNodeLabel(String(node.data.label || ""));
     setNodeColor(String(node.data.color || "#3b82f6"));
   }, []);
 
@@ -331,33 +528,25 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
       {selectedNode && (
         <div className="border rounded-lg p-4 space-y-3 bg-muted/50">
           <div className="flex items-center justify-between">
-            <Label className="text-base font-semibold">Edit Selected Node</Label>
+            <Label className="text-base font-semibold">Selected Node</Label>
             <Button type="button" variant="destructive" size="sm" onClick={deleteSelectedNode}>
               <Trash2 className="w-4 h-4" />
             </Button>
           </div>
-          <div>
-            <Label htmlFor="node-label">Text</Label>
-            <Textarea
-              id="node-label"
-              value={nodeLabel}
-              onChange={(e) => setNodeLabel(e.target.value)}
-              placeholder="Enter text"
-              rows={2}
-            />
-          </div>
-          <div>
+          <div className="flex items-center gap-3">
             <Label htmlFor="node-color">Color</Label>
             <Input
               id="node-color"
               type="color"
               value={nodeColor}
-              onChange={(e) => setNodeColor(e.target.value)}
+              onChange={(e) => {
+                setNodeColor(e.target.value);
+                updateSelectedNodeColor(e.target.value);
+              }}
+              className="w-16 h-8"
             />
           </div>
-          <Button type="button" onClick={updateSelectedNode} className="w-full">
-            Update Node
-          </Button>
+          <p className="text-xs text-muted-foreground">Double-click text to edit inline</p>
         </div>
       )}
 
@@ -377,7 +566,7 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
           <MiniMap />
           <Panel position="top-left">
             <div className="bg-background/90 backdrop-blur-sm p-2 rounded-lg text-xs text-muted-foreground">
-              Click nodes to edit • Drag from handles to connect • Scroll to zoom
+              Double-click text to edit • Drag handles to connect • Scroll to zoom
             </div>
           </Panel>
         </ReactFlow>
