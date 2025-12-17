@@ -322,15 +322,12 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
         </div>
         <div>
           <Label>Add Shape</Label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <Button type="button" variant="outline" size="sm" onClick={() => addNode("default")}>
               <Plus className="w-4 h-4 mr-1" /> Box
             </Button>
             <Button type="button" variant="outline" size="sm" onClick={() => addNode("circle")}>
               <Plus className="w-4 h-4 mr-1" /> Circle
-            </Button>
-            <Button type="button" variant="outline" size="sm" onClick={() => addNode("diamond")}>
-              <Plus className="w-4 h-4 mr-1" /> Diamond
             </Button>
           </div>
         </div>
