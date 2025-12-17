@@ -63,27 +63,40 @@ const TEMPLATES = {
 };
 
 interface FloatingColorPickerProps {
+  nodes: Node[];
   nodeId: string;
   currentColor: string;
   onColorChange: (color: string) => void;
   onDelete: () => void;
 }
 
-const FloatingColorPicker = ({ nodeId, currentColor, onColorChange, onDelete }: FloatingColorPickerProps) => {
-  const { getNode } = useReactFlow();
-  const node = getNode(nodeId);
+const FloatingColorPicker = ({ nodes, nodeId, currentColor, onColorChange, onDelete }: FloatingColorPickerProps) => {
+  const { getViewport } = useReactFlow();
+  const node = nodes.find(n => n.id === nodeId);
   const [customColor, setCustomColor] = useState(currentColor);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const viewport = getViewport();
+
+  useEffect(() => {
+    setCustomColor(currentColor);
+  }, [currentColor]);
 
   if (!node) return null;
 
+  // Calculate the node width based on type
+  const nodeWidth = node.type === "circle" ? 120 : node.type === "diamond" ? 120 : 140;
+  
+  // Transform node position to screen position accounting for viewport
+  const screenX = node.position.x * viewport.zoom + viewport.x + nodeWidth + 10;
+  const screenY = node.position.y * viewport.zoom + viewport.y + 30;
+
   return (
     <div
-      className="absolute z-50 flex items-center gap-1 bg-background/95 backdrop-blur-sm rounded-lg p-1.5 shadow-lg border"
+      className="absolute z-50 flex items-center gap-1 bg-background/95 backdrop-blur-sm rounded-lg p-1.5 shadow-lg border animate-scale-in"
       style={{
-        left: node.position.x + 160,
-        top: node.position.y,
-        transform: "translateY(-50%)",
+        left: screenX,
+        top: screenY,
+        pointerEvents: "auto",
       }}
     >
       {DEFAULT_COLORS.map((color) => (
@@ -632,6 +645,7 @@ const FlowchartCanvasEditorInner = ({ flowchartData, onChange }: FlowchartCanvas
           </Panel>
           {selectedNode && (
             <FloatingColorPicker
+              nodes={nodes}
               nodeId={selectedNode}
               currentColor={nodeColor}
               onColorChange={updateSelectedNodeColor}
