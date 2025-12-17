@@ -85,10 +85,12 @@ const FloatingColorPicker = ({ nodes, nodeId, currentColor, onColorChange, onDel
 
   // Calculate the node width based on type
   const nodeWidth = node.type === "circle" ? 120 : node.type === "diamond" ? 120 : 140;
+  const nodeHeight = node.type === "circle" ? 120 : node.type === "diamond" ? 80 : 60;
   
   // Transform node position to screen position accounting for viewport
-  const screenX = node.position.x * viewport.zoom + viewport.x + nodeWidth + 10;
-  const screenY = node.position.y * viewport.zoom + viewport.y + 30;
+  // Position picker to the right of the node, outside the shape
+  const screenX = (node.position.x + nodeWidth) * viewport.zoom + viewport.x + 12;
+  const screenY = node.position.y * viewport.zoom + viewport.y + (nodeHeight * viewport.zoom) / 2 - 60;
 
   return (
     <div
