@@ -71,13 +71,13 @@ const createNodeTypes = (onHandleDoubleClick: (nodeId: string, handleType: 'sour
       />
       <div
         style={{
-          padding: "10px 20px",
-          borderRadius: "8px",
+          padding: "12px 24px",
+          borderRadius: "12px",
           background: data.color || "#3b82f6",
           color: "white",
-          border: "2px solid #1e293b",
           minWidth: "120px",
           textAlign: "center",
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
         }}
       >
         {data.image && (
