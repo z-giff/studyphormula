@@ -92,7 +92,7 @@ const FloatingColorPicker = ({ nodes, nodeId, currentColor, onColorChange, onDel
 
   return (
     <div
-      className="absolute z-50 flex items-center gap-1 bg-background/95 backdrop-blur-sm rounded-lg p-1.5 shadow-lg border animate-scale-in"
+      className="absolute z-50 flex flex-col items-center gap-1 bg-background/95 backdrop-blur-sm rounded-lg p-1.5 shadow-lg border animate-scale-in"
       style={{
         left: screenX,
         top: screenY,
