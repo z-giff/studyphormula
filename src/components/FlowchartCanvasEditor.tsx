@@ -81,9 +81,6 @@ const createNodeTypes = (onHandleDoubleClick: (nodeId: string, handleType: 'sour
           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
         }}
       >
-        {data.image && (
-          <img src={data.image} alt="" style={{ width: "100%", maxHeight: "60px", objectFit: "cover", marginBottom: "8px", borderRadius: "4px" }} />
-        )}
         <div style={{ fontWeight: 500 }}>{data.label}</div>
       </div>
       <Handle 
@@ -121,9 +118,6 @@ const createNodeTypes = (onHandleDoubleClick: (nodeId: string, handleType: 'sour
           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
         }}
       >
-        {data.image && (
-          <img src={data.image} alt="" style={{ width: "60px", height: "60px", objectFit: "cover", marginBottom: "4px", borderRadius: "50%" }} />
-        )}
         <div style={{ fontWeight: 500, fontSize: "12px", wordBreak: "break-word" }}>{data.label}</div>
       </div>
       <Handle 
@@ -188,7 +182,7 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [nodeLabel, setNodeLabel] = useState("");
   const [nodeColor, setNodeColor] = useState("#3b82f6");
-  const [nodeImage, setNodeImage] = useState("");
+  
   const [lastNodeId, setLastNodeId] = useState<string | null>(
     flowchartData.nodes.length > 0 ? flowchartData.nodes[flowchartData.nodes.length - 1].id : null
   );
@@ -272,7 +266,7 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
     if (!selectedNode) return;
     const newNodes = nodes.map((node) =>
       node.id === selectedNode
-        ? { ...node, data: { ...node.data, label: nodeLabel, color: nodeColor, image: nodeImage } }
+        ? { ...node, data: { ...node.data, label: nodeLabel, color: nodeColor } }
         : node
     );
     setNodes(newNodes);
@@ -303,7 +297,6 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
     setSelectedNode(node.id);
     setNodeLabel(String(node.data.label || ""));
     setNodeColor(String(node.data.color || "#3b82f6"));
-    setNodeImage(String(node.data.image || ""));
   }, []);
 
   return (
@@ -360,16 +353,6 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
               type="color"
               value={nodeColor}
               onChange={(e) => setNodeColor(e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor="node-image">Image URL (optional)</Label>
-            <Input
-              id="node-image"
-              type="text"
-              value={nodeImage}
-              onChange={(e) => setNodeImage(e.target.value)}
-              placeholder="https://example.com/image.jpg"
             />
           </div>
           <Button type="button" onClick={updateSelectedNode} className="w-full">
