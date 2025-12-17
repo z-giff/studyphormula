@@ -601,29 +601,31 @@ const FlowchartCanvasEditorInner = ({ flowchartData, onChange }: FlowchartCanvas
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label>Template</Label>
-          <Select onValueChange={(value) => loadTemplate(value as keyof typeof TEMPLATES)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Choose template" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="blank">Blank Canvas</SelectItem>
-              <SelectItem value="basic">Basic Flow</SelectItem>
-              <SelectItem value="decision">Decision Tree</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label>Add Shape</Label>
-          <div className="grid grid-cols-2 gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={() => addNode("default")}>
-              <Plus className="w-4 h-4 mr-1" /> Box
-            </Button>
-            <Button type="button" variant="outline" size="sm" onClick={() => addNode("circle")}>
-              <Plus className="w-4 h-4 mr-1" /> Circle
-            </Button>
+      <div className="sticky top-0 z-10 bg-background pb-2">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Template</Label>
+            <Select onValueChange={(value) => loadTemplate(value as keyof typeof TEMPLATES)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Choose template" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="blank">Blank Canvas</SelectItem>
+                <SelectItem value="basic">Basic Flow</SelectItem>
+                <SelectItem value="decision">Decision Tree</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Add Shape</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => addNode("default")}>
+                <Plus className="w-4 h-4 mr-1" /> Box
+              </Button>
+              <Button type="button" variant="outline" size="sm" onClick={() => addNode("circle")}>
+                <Plus className="w-4 h-4 mr-1" /> Circle
+              </Button>
+            </div>
           </div>
         </div>
       </div>
