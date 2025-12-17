@@ -61,7 +61,7 @@ const TEMPLATES = {
 
 const createNodeTypes = (onHandleDoubleClick: (nodeId: string, handleType: 'source' | 'target') => void) => ({
   default: ({ id, data }: { id: string; data: any }) => (
-    <div className="group">
+    <div className="group" style={{ background: "transparent" }}>
       <Handle 
         type="target" 
         position={Position.Top} 
@@ -96,7 +96,7 @@ const createNodeTypes = (onHandleDoubleClick: (nodeId: string, handleType: 'sour
     </div>
   ),
   circle: ({ id, data }: { id: string; data: any }) => (
-    <div className="group">
+    <div className="group" style={{ background: "transparent" }}>
       <Handle 
         type="target" 
         position={Position.Top} 
