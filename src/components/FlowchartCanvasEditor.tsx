@@ -13,19 +13,23 @@ import {
   Panel,
   Handle,
   Position,
+  useReactFlow,
+  ReactFlowProvider,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Pipette } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface FlowchartCanvasEditorProps {
   flowchartData: { nodes: Node[]; edges: Edge[] };
   onChange: (data: { nodes: Node[]; edges: Edge[] }) => void;
 }
+
+const DEFAULT_COLORS = ["#3b82f6", "#22c55e", "#ef4444"];
 
 const TEMPLATES = {
   blank: { nodes: [], edges: [] },
@@ -56,6 +60,82 @@ const TEMPLATES = {
       { id: "e4-5", source: "4", target: "5" },
     ],
   },
+};
+
+interface FloatingColorPickerProps {
+  nodeId: string;
+  currentColor: string;
+  onColorChange: (color: string) => void;
+  onDelete: () => void;
+}
+
+const FloatingColorPicker = ({ nodeId, currentColor, onColorChange, onDelete }: FloatingColorPickerProps) => {
+  const { getNode } = useReactFlow();
+  const node = getNode(nodeId);
+  const [customColor, setCustomColor] = useState(currentColor);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+
+  if (!node) return null;
+
+  return (
+    <div
+      className="absolute z-50 flex items-center gap-1 bg-background/95 backdrop-blur-sm rounded-lg p-1.5 shadow-lg border"
+      style={{
+        left: node.position.x + 160,
+        top: node.position.y,
+        transform: "translateY(-50%)",
+      }}
+    >
+      {DEFAULT_COLORS.map((color) => (
+        <button
+          key={color}
+          onClick={() => onColorChange(color)}
+          className={`w-7 h-7 rounded-full border-2 transition-transform hover:scale-110 ${
+            currentColor === color ? "border-foreground ring-2 ring-foreground/20" : "border-transparent"
+          }`}
+          style={{ backgroundColor: color }}
+          title={`Select ${color}`}
+        />
+      ))}
+      <Popover open={isPickerOpen} onOpenChange={setIsPickerOpen}>
+        <PopoverTrigger asChild>
+          <button
+            className="w-7 h-7 rounded-full border-2 border-dashed border-muted-foreground/50 flex items-center justify-center hover:border-foreground hover:bg-muted/50 transition-all"
+            title="Custom color"
+          >
+            <Plus className="w-4 h-4 text-muted-foreground" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-3" side="right">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Pipette className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Custom Color</span>
+            </div>
+            <input
+              type="color"
+              value={customColor}
+              onChange={(e) => {
+                setCustomColor(e.target.value);
+                onColorChange(e.target.value);
+              }}
+              className="w-full h-10 rounded cursor-pointer border-0"
+              style={{ WebkitAppearance: "none" }}
+            />
+            <p className="text-xs text-muted-foreground">Click to open color picker</p>
+          </div>
+        </PopoverContent>
+      </Popover>
+      <div className="w-px h-5 bg-border mx-1" />
+      <button
+        onClick={onDelete}
+        className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-destructive/10 text-destructive transition-colors"
+        title="Delete node"
+      >
+        <Trash2 className="w-4 h-4" />
+      </button>
+    </div>
+  );
 };
 
 interface EditableNodeProps {
@@ -359,7 +439,7 @@ const createNodeTypes = (
   ),
 });
 
-export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanvasEditorProps) => {
+const FlowchartCanvasEditorInner = ({ flowchartData, onChange }: FlowchartCanvasEditorProps) => {
   const { toast } = useToast();
   const [nodes, setNodes, onNodesChange] = useNodesState(flowchartData.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(flowchartData.edges);
@@ -461,8 +541,9 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
     toast({ title: "Node added & connected", description: "Double-click handles to disconnect" });
   };
 
-  const updateSelectedNodeColor = (color: string) => {
+  const updateSelectedNodeColor = useCallback((color: string) => {
     if (!selectedNode) return;
+    setNodeColor(color);
     const newNodes = nodes.map((node) =>
       node.id === selectedNode
         ? { ...node, data: { ...node.data, color } }
@@ -470,9 +551,9 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
     );
     setNodes(newNodes);
     onChange({ nodes: newNodes, edges });
-  };
+  }, [selectedNode, nodes, edges, setNodes, onChange]);
 
-  const deleteSelectedNode = () => {
+  const deleteSelectedNode = useCallback(() => {
     if (!selectedNode) return;
     const newNodes = nodes.filter((node) => node.id !== selectedNode);
     const newEdges = edges.filter((edge) => edge.source !== selectedNode && edge.target !== selectedNode);
@@ -481,7 +562,7 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
     onChange({ nodes: newNodes, edges: newEdges });
     setSelectedNode(null);
     toast({ title: "Node deleted" });
-  };
+  }, [selectedNode, nodes, edges, setNodes, setEdges, onChange, toast]);
 
   const loadTemplate = (template: keyof typeof TEMPLATES) => {
     const templateData = TEMPLATES[template];
@@ -494,6 +575,10 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
   const onNodeClick = useCallback((_: any, node: Node) => {
     setSelectedNode(node.id);
     setNodeColor(String(node.data.color || "#3b82f6"));
+  }, []);
+
+  const onPaneClick = useCallback(() => {
+    setSelectedNode(null);
   }, []);
 
   return (
@@ -525,32 +610,7 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
         </div>
       </div>
 
-      {selectedNode && (
-        <div className="border rounded-lg p-4 space-y-3 bg-muted/50">
-          <div className="flex items-center justify-between">
-            <Label className="text-base font-semibold">Selected Node</Label>
-            <Button type="button" variant="destructive" size="sm" onClick={deleteSelectedNode}>
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </div>
-          <div className="flex items-center gap-3">
-            <Label htmlFor="node-color">Color</Label>
-            <Input
-              id="node-color"
-              type="color"
-              value={nodeColor}
-              onChange={(e) => {
-                setNodeColor(e.target.value);
-                updateSelectedNodeColor(e.target.value);
-              }}
-              className="w-16 h-8"
-            />
-          </div>
-          <p className="text-xs text-muted-foreground">Double-click text to edit inline</p>
-        </div>
-      )}
-
-      <div className="border rounded-lg bg-background" style={{ height: "500px" }}>
+      <div className="border rounded-lg bg-background relative" style={{ height: "500px" }}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -558,6 +618,7 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onNodeClick={onNodeClick}
+          onPaneClick={onPaneClick}
           nodeTypes={nodeTypes}
           fitView
         >
@@ -569,8 +630,24 @@ export const FlowchartCanvasEditor = ({ flowchartData, onChange }: FlowchartCanv
               Double-click text to edit • Drag handles to connect • Scroll to zoom
             </div>
           </Panel>
+          {selectedNode && (
+            <FloatingColorPicker
+              nodeId={selectedNode}
+              currentColor={nodeColor}
+              onColorChange={updateSelectedNodeColor}
+              onDelete={deleteSelectedNode}
+            />
+          )}
         </ReactFlow>
       </div>
     </div>
+  );
+};
+
+export const FlowchartCanvasEditor = (props: FlowchartCanvasEditorProps) => {
+  return (
+    <ReactFlowProvider>
+      <FlowchartCanvasEditorInner {...props} />
+    </ReactFlowProvider>
   );
 };
