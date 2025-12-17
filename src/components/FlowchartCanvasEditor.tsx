@@ -9,7 +9,6 @@ import {
   useEdgesState,
   Controls,
   Background,
-  MiniMap,
   Panel,
   Handle,
   Position,
@@ -629,7 +628,19 @@ const FlowchartCanvasEditorInner = ({ flowchartData, onChange }: FlowchartCanvas
         </div>
       </div>
 
-      <div className="border rounded-lg bg-background relative" style={{ height: "500px" }}>
+      <div className="border rounded-lg bg-background relative flowchart-editor" style={{ height: "500px" }}>
+        <style>{`
+          .flowchart-editor .react-flow__node {
+            padding: 0 !important;
+          }
+          .flowchart-editor .react-flow__node.selected {
+            outline: none !important;
+            box-shadow: none !important;
+          }
+          .flowchart-editor .react-flow__node:focus {
+            outline: none !important;
+          }
+        `}</style>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -640,10 +651,11 @@ const FlowchartCanvasEditorInner = ({ flowchartData, onChange }: FlowchartCanvas
           onPaneClick={onPaneClick}
           nodeTypes={nodeTypes}
           fitView
+          nodesDraggable
+          selectNodesOnDrag={false}
         >
           <Background />
           <Controls />
-          <MiniMap />
           <Panel position="top-left">
             <div className="bg-background/90 backdrop-blur-sm p-2 rounded-lg text-xs text-muted-foreground">
               Double-click text to edit • Drag handles to connect • Scroll to zoom
