@@ -18,6 +18,7 @@ interface FlashcardSet {
   color: string;
   created_at: string;
   _count?: { flashcards: number };
+  displayColor: string;
 }
 
 const Dashboard = () => {
@@ -48,7 +49,7 @@ const Dashboard = () => {
 
       if (error) throw error;
 
-      // Fetch flashcard counts for each set
+      // Fetch flashcard counts and first flashcard color for each set
       const setsWithCounts = await Promise.all(
         (data || []).map(async (set) => {
           const { count } = await supabase
@@ -56,9 +57,19 @@ const Dashboard = () => {
             .select("*", { count: "exact", head: true })
             .eq("set_id", set.id);
 
+          // Get the first flashcard's color
+          const { data: firstFlashcard } = await supabase
+            .from("flashcards")
+            .select("color")
+            .eq("set_id", set.id)
+            .order("position", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+
           return {
             ...set,
             _count: { flashcards: count || 0 },
+            displayColor: firstFlashcard?.color || set.color,
           };
         })
       );
@@ -135,8 +146,8 @@ const Dashboard = () => {
               <Card
                 className="h-48 cursor-pointer hover:shadow-lg transition-all overflow-hidden group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-black/10 dark:border-white/10"
                 style={{
-                  borderTop: `6px solid ${set.color}`,
-                  background: `linear-gradient(to bottom, ${set.color}15, rgba(255,255,255,0.8))`,
+                  borderTop: `6px solid ${set.displayColor}`,
+                  background: `linear-gradient(to bottom, ${set.displayColor}15, rgba(255,255,255,0.8))`,
                 }}
               >
                 <CardHeader>
@@ -144,7 +155,7 @@ const Dashboard = () => {
                     <span className="truncate">{set.title}</span>
                     <div
                       className="w-6 h-6 rounded-full flex-shrink-0 shadow-md"
-                      style={{ backgroundColor: set.color }}
+                      style={{ backgroundColor: set.displayColor }}
                     />
                   </CardTitle>
                   <CardDescription className="line-clamp-2">
