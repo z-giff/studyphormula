@@ -193,50 +193,55 @@ const FlashcardSetPage = () => {
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button
-                      className="w-6 h-6 rounded-full cursor-pointer hover:scale-110 transition-transform border"
-                      style={{ 
-                        backgroundColor: set.color,
-                        borderColor: set.color === "#ffffff" ? "#d1d5db" : "transparent",
-                      }}
-                      title="Change set color"
-                    />
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-3">
-                    <div className="flex flex-wrap gap-2 max-w-[200px]">
-                      {PRESET_COLORS.map((color) => (
+                {(() => {
+                  const displayColor = flashcards[0]?.color || set.color;
+                  return (
+                    <Popover>
+                      <PopoverTrigger asChild>
                         <button
-                          key={color}
-                          type="button"
-                          className="w-8 h-8 rounded-full border-2 transition-all hover:scale-110"
-                          style={{
-                            backgroundColor: color,
-                            borderColor: set.color === color ? "#000" : color === "#ffffff" ? "#d1d5db" : "transparent",
+                          className="w-6 h-6 rounded-full cursor-pointer hover:scale-110 transition-transform border"
+                          style={{ 
+                            backgroundColor: displayColor,
+                            borderColor: displayColor === "#ffffff" ? "#d1d5db" : "transparent",
                           }}
-                          onClick={() => handleUpdateSetColor(color)}
+                          title="Change set color"
                         />
-                      ))}
-                      <label
-                        className="w-8 h-8 rounded-full border-2 border-dashed border-muted-foreground/50 transition-all hover:scale-110 hover:border-muted-foreground cursor-pointer flex items-center justify-center"
-                        style={{
-                          backgroundColor: set.color && !PRESET_COLORS.includes(set.color) ? set.color : "transparent",
-                          borderStyle: set.color && !PRESET_COLORS.includes(set.color) ? "solid" : "dashed",
-                          borderColor: set.color && !PRESET_COLORS.includes(set.color) ? "#000" : undefined,
-                        }}
-                      >
-                        <Plus className="h-4 w-4 text-muted-foreground" style={{ display: set.color && !PRESET_COLORS.includes(set.color) ? "none" : "block" }} />
-                        <input
-                          type="color"
-                          className="sr-only"
-                          value={set.color || "#000000"}
-                          onChange={(e) => handleUpdateSetColor(e.target.value)}
-                        />
-                      </label>
-                    </div>
-                  </PopoverContent>
-                </Popover>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-3">
+                        <div className="flex flex-wrap gap-2 max-w-[200px]">
+                          {PRESET_COLORS.map((color) => (
+                            <button
+                              key={color}
+                              type="button"
+                              className="w-8 h-8 rounded-full border-2 transition-all hover:scale-110"
+                              style={{
+                                backgroundColor: color,
+                                borderColor: displayColor === color ? "#000" : color === "#ffffff" ? "#d1d5db" : "transparent",
+                              }}
+                              onClick={() => handleUpdateSetColor(color)}
+                            />
+                          ))}
+                          <label
+                            className="w-8 h-8 rounded-full border-2 border-dashed border-muted-foreground/50 transition-all hover:scale-110 hover:border-muted-foreground cursor-pointer flex items-center justify-center"
+                            style={{
+                              backgroundColor: displayColor && !PRESET_COLORS.includes(displayColor) ? displayColor : "transparent",
+                              borderStyle: displayColor && !PRESET_COLORS.includes(displayColor) ? "solid" : "dashed",
+                              borderColor: displayColor && !PRESET_COLORS.includes(displayColor) ? "#000" : undefined,
+                            }}
+                          >
+                            <Plus className="h-4 w-4 text-muted-foreground" style={{ display: displayColor && !PRESET_COLORS.includes(displayColor) ? "none" : "block" }} />
+                            <input
+                              type="color"
+                              className="sr-only"
+                              value={displayColor || "#000000"}
+                              onChange={(e) => handleUpdateSetColor(e.target.value)}
+                            />
+                          </label>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  );
+                })()}
                 <h1 className="text-4xl font-bold">{set.title}</h1>
               </div>
               {set.description && (
