@@ -127,14 +127,12 @@ export const FlowchartCanvasDisplay = ({ flowchartData }: FlowchartCanvasDisplay
     const normalized: any = {
       ...edge,
       animated: false,
-      type: "straight",
       sourceHandle: edge.sourceHandle == null || edge.sourceHandle === "null" ? undefined : edge.sourceHandle,
       targetHandle: edge.targetHandle == null || edge.targetHandle === "null" ? undefined : edge.targetHandle,
       style: {
         ...(edge.style || {}),
         stroke: "hsl(var(--foreground) / 0.65)",
         strokeWidth: 2,
-        strokeDasharray: "0",
       },
     };
 
