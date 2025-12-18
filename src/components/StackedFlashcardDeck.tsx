@@ -122,7 +122,6 @@ export const StackedFlashcardDeck = ({
           const isTop = card.stackPosition === 0;
           const isFlipped = flippedCards.has(card.originalIndex);
           const offset = card.stackPosition * 8;
-          const scale = 1 - card.stackPosition * 0.05;
           const zIndex = 10 - card.stackPosition;
           
           // Animation styles for the top card
@@ -138,7 +137,7 @@ export const StackedFlashcardDeck = ({
               style={{
                 transform: isAnimatingOut 
                   ? undefined 
-                  : `translateY(${offset}px) translateX(${offset}px) scale(${scale})`,
+                  : `translateY(${offset}px) translateX(${offset}px)`,
                 zIndex: isAnimatingOut ? 0 : zIndex,
                 transition: isAnimating ? "none" : "all 0.3s ease-out",
               }}
@@ -267,30 +266,30 @@ export const StackedFlashcardDeck = ({
         
         @keyframes whoosh-out {
           0% {
-            transform: translateY(0) translateX(0) scale(1);
+            transform: translateY(0) translateX(0);
             opacity: 1;
           }
           40% {
-            transform: translateY(-20px) translateX(80px) scale(1.05) rotateZ(8deg);
+            transform: translateY(-20px) translateX(80px) rotateZ(8deg);
             opacity: 1;
           }
           100% {
-            transform: translateY(24px) translateX(24px) scale(0.9);
+            transform: translateY(24px) translateX(24px);
             opacity: 0.7;
           }
         }
         
         @keyframes whoosh-in {
           0% {
-            transform: translateY(24px) translateX(-50px) scale(0.9);
+            transform: translateY(24px) translateX(-50px);
             opacity: 0.7;
           }
           60% {
-            transform: translateY(-10px) translateX(-40px) scale(1.02) rotateZ(-5deg);
+            transform: translateY(-10px) translateX(-40px) rotateZ(-5deg);
             opacity: 1;
           }
           100% {
-            transform: translateY(0) translateX(0) scale(1);
+            transform: translateY(0) translateX(0);
             opacity: 1;
           }
         }
