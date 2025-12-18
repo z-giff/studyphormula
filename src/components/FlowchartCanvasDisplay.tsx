@@ -13,7 +13,6 @@ const nodeTypes = {
         borderRadius: "8px",
         background: data.color || "#3b82f6",
         color: "white",
-        border: "2px solid #1e293b",
         minWidth: "120px",
         textAlign: "center",
       }}
@@ -31,7 +30,6 @@ const nodeTypes = {
         borderRadius: "50%",
         background: data.color || "#3b82f6",
         color: "white",
-        border: "2px solid #1e293b",
         width: "120px",
         height: "120px",
         display: "flex",
@@ -53,7 +51,6 @@ const nodeTypes = {
         width: "120px",
         height: "120px",
         background: data.color || "#f59e0b",
-        border: "2px solid #1e293b",
         transform: "rotate(45deg)",
         display: "flex",
         alignItems: "center",
@@ -78,11 +75,28 @@ const nodeTypes = {
 };
 
 export const FlowchartCanvasDisplay = ({ flowchartData }: FlowchartCanvasDisplayProps) => {
+  // Convert edges to solid static lines
+  const solidEdges = flowchartData.edges.map(edge => ({
+    ...edge,
+    animated: false,
+    style: { stroke: '#64748b', strokeWidth: 2 },
+  }));
+
   return (
-    <div className="border rounded-lg bg-background" style={{ height: "500px" }}>
+    <div className="border rounded-lg bg-background flowchart-display" style={{ height: "500px" }}>
+      <style>{`
+        .flowchart-display .react-flow__node {
+          padding: 0 !important;
+        }
+        .flowchart-display .react-flow__node.selected,
+        .flowchart-display .react-flow__node:focus {
+          outline: none !important;
+          box-shadow: none !important;
+        }
+      `}</style>
       <ReactFlow
         nodes={flowchartData.nodes}
-        edges={flowchartData.edges}
+        edges={solidEdges}
         nodeTypes={nodeTypes}
         nodesDraggable={false}
         nodesConnectable={false}
