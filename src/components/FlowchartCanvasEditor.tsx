@@ -651,6 +651,13 @@ const FlowchartCanvasEditorInner = ({ flowchartData, onChange }: FlowchartCanvas
           onConnect={onConnect}
           onNodeClick={onNodeClick}
           onPaneClick={onPaneClick}
+          onEdgeDoubleClick={(_, edge) => {
+            setEdges((eds) => eds.filter((e) => e.id !== edge.id));
+            toast({
+              title: "Connection removed",
+              description: "The connection has been deleted.",
+            });
+          }}
           nodeTypes={nodeTypes}
           fitView
           nodesDraggable
@@ -660,7 +667,7 @@ const FlowchartCanvasEditorInner = ({ flowchartData, onChange }: FlowchartCanvas
           <Controls />
           <Panel position="top-left">
             <div className="bg-background/90 backdrop-blur-sm p-2 rounded-lg text-xs text-muted-foreground">
-              Double-click text to edit • Drag handles to connect • Scroll to zoom
+              Double-click text to edit • Drag handles to connect • Double-click line to remove • Scroll to zoom
             </div>
           </Panel>
           {selectedNode && (
