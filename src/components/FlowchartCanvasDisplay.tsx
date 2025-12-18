@@ -122,12 +122,24 @@ const nodeTypes = {
 };
 
 export const FlowchartCanvasDisplay = ({ flowchartData }: FlowchartCanvasDisplayProps) => {
-  // Convert edges to solid static lines
-  const solidEdges = flowchartData.edges.map(edge => ({
-    ...edge,
-    animated: false,
-    style: { stroke: '#64748b', strokeWidth: 2 },
-  }));
+  // Convert edges to solid static lines and normalize legacy handle ids (null can prevent rendering)
+  const solidEdges = flowchartData.edges.map((edge) => {
+    const normalized: any = {
+      ...edge,
+      animated: false,
+      type: "straight",
+      sourceHandle: edge.sourceHandle == null || edge.sourceHandle === "null" ? undefined : edge.sourceHandle,
+      targetHandle: edge.targetHandle == null || edge.targetHandle === "null" ? undefined : edge.targetHandle,
+      style: {
+        ...(edge.style || {}),
+        stroke: "hsl(var(--foreground) / 0.65)",
+        strokeWidth: 2,
+        strokeDasharray: "0",
+      },
+    };
+
+    return normalized as Edge;
+  });
 
   return (
     <div className="border rounded-lg bg-background flowchart-display" style={{ height: "500px" }}>
