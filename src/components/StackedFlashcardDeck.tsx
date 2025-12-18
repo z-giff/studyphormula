@@ -149,7 +149,9 @@ export const StackedFlashcardDeck = ({
                 onClick={() => isTop && handleFlip(card.originalIndex)}
               >
                 {(() => {
-                  const cardColor = card.color || setColor;
+                  // Use first card's color for all cards
+                  const firstCardColor = flashcards[0]?.color || setColor;
+                  const cardColor = firstCardColor;
                   const textColor = getContrastColor(cardColor);
                   return (
                     <>
