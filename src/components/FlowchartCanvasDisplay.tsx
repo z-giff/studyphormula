@@ -15,8 +15,49 @@ const nodeTypes = {
         color: "white",
         minWidth: "120px",
         textAlign: "center",
+        position: "relative",
       }}
     >
+      <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
+      {data.image && (
+        <img src={data.image} alt="" style={{ width: "100%", maxHeight: "60px", objectFit: "cover", marginBottom: "8px", borderRadius: "4px" }} />
+      )}
+      <div style={{ fontWeight: 500 }}>{data.label}</div>
+      <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
+    </div>
+  ),
+  input: ({ data }: { data: any }) => (
+    <div
+      style={{
+        padding: "10px 20px",
+        borderRadius: "8px",
+        background: data.color || "#22c55e",
+        color: "white",
+        minWidth: "120px",
+        textAlign: "center",
+        position: "relative",
+      }}
+    >
+      {data.image && (
+        <img src={data.image} alt="" style={{ width: "100%", maxHeight: "60px", objectFit: "cover", marginBottom: "8px", borderRadius: "4px" }} />
+      )}
+      <div style={{ fontWeight: 500 }}>{data.label}</div>
+      <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
+    </div>
+  ),
+  output: ({ data }: { data: any }) => (
+    <div
+      style={{
+        padding: "10px 20px",
+        borderRadius: "8px",
+        background: data.color || "#ef4444",
+        color: "white",
+        minWidth: "120px",
+        textAlign: "center",
+        position: "relative",
+      }}
+    >
+      <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
       {data.image && (
         <img src={data.image} alt="" style={{ width: "100%", maxHeight: "60px", objectFit: "cover", marginBottom: "8px", borderRadius: "4px" }} />
       )}
@@ -37,12 +78,15 @@ const nodeTypes = {
         alignItems: "center",
         justifyContent: "center",
         textAlign: "center",
+        position: "relative",
       }}
     >
+      <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
       {data.image && (
         <img src={data.image} alt="" style={{ width: "60px", height: "60px", objectFit: "cover", marginBottom: "4px", borderRadius: "50%" }} />
       )}
       <div style={{ fontWeight: 500, fontSize: "12px", wordBreak: "break-word" }}>{data.label}</div>
+      <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
     </div>
   ),
   diamond: ({ data }: { data: any }) => (
@@ -55,8 +99,10 @@ const nodeTypes = {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        position: "relative",
       }}
     >
+      <Handle type="target" position={Position.Top} style={{ opacity: 0, transform: "rotate(-45deg)" }} />
       <div
         style={{
           transform: "rotate(-45deg)",
@@ -70,6 +116,7 @@ const nodeTypes = {
       >
         {data.label}
       </div>
+      <Handle type="source" position={Position.Bottom} style={{ opacity: 0, transform: "rotate(-45deg)" }} />
     </div>
   ),
 };
