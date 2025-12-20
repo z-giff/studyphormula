@@ -102,7 +102,7 @@ const Dashboard = () => {
 
       <nav className="relative z-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-black/10 dark:border-white/10">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center">
+          <Link to="/" className="flex items-center">
             <img 
               src={phormulaLogo} 
               alt="Phormula" 
