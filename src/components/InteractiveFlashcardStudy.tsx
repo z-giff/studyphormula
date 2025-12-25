@@ -44,7 +44,7 @@ export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: In
     }));
   };
 
-  const handleGiveUp = () => {
+  const handleRevealAnswers = () => {
     setShowAnswers(true);
     const answers: Record<string, string> = {};
     textBoxes.forEach(box => {
@@ -57,6 +57,12 @@ export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: In
       validation[box.id] = "correct";
     });
     setValidationState(validation);
+  };
+
+  const handleHideAnswers = () => {
+    setShowAnswers(false);
+    setUserAnswers({});
+    setValidationState({});
   };
 
   const getBoxBorderColor = (id: string) => {
@@ -73,14 +79,23 @@ export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: In
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleGiveUp}
-          disabled={showAnswers}
-        >
-          Reveal Answer
-        </Button>
+        {showAnswers ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleHideAnswers}
+          >
+            Hide Answers
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRevealAnswers}
+          >
+            Reveal Answer
+          </Button>
+        )}
       </div>
 
       <div className="relative border rounded-lg overflow-hidden">
