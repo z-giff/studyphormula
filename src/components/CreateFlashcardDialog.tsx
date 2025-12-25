@@ -7,10 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ImageIcon } from "lucide-react";
-import { useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InteractiveFlashcardEditor } from "./InteractiveFlashcardEditor";
 import { FlowchartCanvasEditor } from "./FlowchartCanvasEditor";
+import { ImageUploader } from "./ImageUploader";
 
 
 interface CreateFlashcardDialogProps {
@@ -30,9 +30,11 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
   });
   const [interactiveData, setInteractiveData] = useState<{
     imageUrl: string;
+    term: string;
     textBoxes: Array<{ id: string; x: number; y: number; width: number; height: number; answer: string }>;
   }>({
     imageUrl: "",
+    term: "",
     textBoxes: [],
   });
   const [flowchartData, setFlowchartData] = useState({ nodes: [], edges: [] });
@@ -46,8 +48,12 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
         return;
       }
     } else if (flashcardType === "interactive") {
+      if (!interactiveData.term.trim()) {
+        toast.error("Please provide a term/question for the flashcard");
+        return;
+      }
       if (!interactiveData.imageUrl.trim()) {
-        toast.error("Please provide an image URL");
+        toast.error("Please provide an image");
         return;
       }
       if (interactiveData.textBoxes.length === 0) {
@@ -98,7 +104,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
       } else if (flashcardType === "interactive") {
         insertData = {
           ...insertData,
-          term: "Interactive Flashcard",
+          term: interactiveData.term.trim(),
           definition: "Fill in the blanks",
           image_url: interactiveData.imageUrl.trim(),
           interactive_data: { textBoxes: interactiveData.textBoxes },
@@ -118,7 +124,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
 
       toast.success("Flashcard created successfully!");
       setFormData({ term: "", definition: "", imageUrl: "" });
-      setInteractiveData({ imageUrl: "", textBoxes: [] });
+      setInteractiveData({ imageUrl: "", term: "", textBoxes: [] });
       setFlowchartData({ nodes: [], edges: [] });
       setFlashcardType("standard");
       onOpenChange(false);
@@ -199,20 +205,25 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
 
             <TabsContent value="interactive" className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label htmlFor="interactiveImageUrl">Image URL *</Label>
+                <Label htmlFor="interactive-term">Term / Question *</Label>
                 <Input
-                  id="interactiveImageUrl"
-                  type="url"
-                  placeholder="https://example.com/diagram.jpg"
-                  value={interactiveData.imageUrl}
-                  onChange={(e) => setInteractiveData({ ...interactiveData, imageUrl: e.target.value })}
+                  id="interactive-term"
+                  placeholder="e.g., Label the parts of the cell"
+                  value={interactiveData.term}
+                  onChange={(e) => setInteractiveData({ ...interactiveData, term: e.target.value })}
                   disabled={isLoading}
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  Upload or paste an image URL for the interactive flashcard
+                  This will be shown as the flashcard title
                 </p>
               </div>
+
+              <ImageUploader
+                imageUrl={interactiveData.imageUrl}
+                onImageChange={(imageUrl) => setInteractiveData({ ...interactiveData, imageUrl })}
+                disabled={isLoading}
+              />
 
               {interactiveData.imageUrl && (
                 <InteractiveFlashcardEditor

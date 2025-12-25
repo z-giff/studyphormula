@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { X, Upload, Wand2 } from "lucide-react";
+import { X, Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -30,7 +30,6 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
   const [selectedBox, setSelectedBox] = useState<string | null>(null);
   const [editingBox, setEditingBox] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const inlineInputRef = useRef<HTMLInputElement>(null);
   const [isAddingBox, setIsAddingBox] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -119,32 +118,6 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
   const handleDeleteBox = (id: string) => {
     onChange(textBoxes.filter(box => box.id !== id));
     setSelectedBox(null);
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      // Convert file to data URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const dataUrl = reader.result as string;
-        onImageChange(dataUrl);
-        toast({
-          title: "Image uploaded",
-          description: "Click 'Auto-detect text' to automatically create text boxes",
-        });
-      };
-      reader.readAsDataURL(file);
-    } catch (error) {
-      console.error('Error uploading file:', error);
-      toast({
-        title: "Upload failed",
-        description: "Failed to upload image",
-        variant: "destructive",
-      });
-    }
   };
 
   const handleAutoDetect = async () => {
@@ -275,22 +248,6 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleFileUpload}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <Upload className="h-4 w-4 mr-2" />
-          Upload Image
-        </Button>
         <Button
           type="button"
           variant="outline"

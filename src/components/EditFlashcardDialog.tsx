@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { ImageIcon, Pipette } from "lucide-react";
 import { InteractiveFlashcardEditor } from "@/components/InteractiveFlashcardEditor";
 import { FlowchartCanvasEditor } from "@/components/FlowchartCanvasEditor";
+import { ImageUploader } from "@/components/ImageUploader";
 
 const FLASHCARD_COLORS = [
   "#000000",
@@ -108,8 +109,12 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
         return;
       }
     } else if (flashcardType === "interactive") {
+      if (!formData.term.trim()) {
+        toast.error("Please provide a term/question for the flashcard");
+        return;
+      }
       if (!formData.imageUrl.trim()) {
-        toast.error("Please provide an image URL for interactive flashcards");
+        toast.error("Please provide an image for interactive flashcards");
         return;
       }
       if (interactiveData.textBoxes.length === 0) {
@@ -238,17 +243,25 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
 
             <TabsContent value="interactive" className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label htmlFor="interactive-imageUrl">Image URL *</Label>
+                <Label htmlFor="interactive-edit-term">Term / Question *</Label>
                 <Input
-                  id="interactive-imageUrl"
-                  type="url"
-                  placeholder="https://example.com/image.jpg"
-                  value={formData.imageUrl}
-                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                  id="interactive-edit-term"
+                  placeholder="e.g., Label the parts of the cell"
+                  value={formData.term}
+                  onChange={(e) => setFormData({ ...formData, term: e.target.value })}
                   disabled={isLoading}
                   required={flashcardType === "interactive"}
                 />
+                <p className="text-xs text-muted-foreground">
+                  This will be shown as the flashcard title
+                </p>
               </div>
+
+              <ImageUploader
+                imageUrl={formData.imageUrl}
+                onImageChange={(imageUrl) => setFormData({ ...formData, imageUrl })}
+                disabled={isLoading}
+              />
 
               {formData.imageUrl && (
                 <InteractiveFlashcardEditor
