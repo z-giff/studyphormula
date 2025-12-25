@@ -101,7 +101,13 @@ export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: In
               height: `${box.height}%`,
             }}
           >
-            <div className="relative w-full h-full">
+            <div 
+              className="relative w-full h-full cursor-text"
+              onClick={(e) => {
+                const input = e.currentTarget.querySelector('input');
+                if (input) input.focus();
+              }}
+            >
               <Input
                 value={userAnswers[box.id] || ""}
                 onChange={(e) => handleAnswerChange(box.id, e.target.value)}
@@ -111,7 +117,7 @@ export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: In
                     handleCheckAnswer(box.id);
                   }
                 }}
-                className="h-full px-1 text-center"
+                className="h-full px-1 text-center cursor-text"
                 style={{
                   borderColor: getBoxBorderColor(box.id),
                   borderWidth: "2px",
