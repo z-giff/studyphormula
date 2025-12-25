@@ -41,7 +41,7 @@ interface EditFlashcardDialogProps {
 
 export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }: EditFlashcardDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedColor, setSelectedColor] = useState(flashcard.color || "#3B82F6");
+  const [selectedColor, setSelectedColor] = useState(flashcard.color || "#38b6ff");
   const [flashcardType, setFlashcardType] = useState<"standard" | "interactive" | "flowchart">(
     flashcard.flashcard_type === "interactive" ? "interactive" : 
     flashcard.flashcard_type === "flowchart" ? "flowchart" : 
@@ -82,7 +82,7 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
         ? flashcard.interactive_data
         : { nodes: [], edges: [] }
     );
-    setSelectedColor(flashcard.color || "#3B82F6");
+    setSelectedColor(flashcard.color || "#38b6ff");
   }, [flashcard]);
 
   const handleEyeDropper = async () => {
