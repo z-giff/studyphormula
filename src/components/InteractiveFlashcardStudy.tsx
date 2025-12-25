@@ -79,7 +79,7 @@ export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: In
           onClick={handleGiveUp}
           disabled={showAnswers}
         >
-          Give Up
+          Reveal Answer
         </Button>
       </div>
 
