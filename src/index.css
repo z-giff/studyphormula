@@ -38,11 +38,12 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
 
-    /* Deck colors for flashcard sets */
-    --deck-blue: 217 91% 60%;
-    --deck-green: 142 71% 45%;
-    --deck-purple: 262 83% 58%;
-    --deck-orange: 220 13% 30%;
+    /* Deck colors for flashcard sets - matching edit section palette */
+    --deck-blue: 200 100% 61%;
+    --deck-red: 352 80% 58%;
+    --deck-green: 164 29% 56%;
+    --deck-purple: 290 70% 80%;
+    --deck-yellow: 49 100% 68%;
     --deck-pink: 330 81% 60%;
     --deck-teal: 185 75% 45%;
     

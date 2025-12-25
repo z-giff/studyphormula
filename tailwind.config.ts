@@ -55,9 +55,10 @@ export default {
         },
         deck: {
           blue: "hsl(var(--deck-blue))",
+          red: "hsl(var(--deck-red))",
           green: "hsl(var(--deck-green))",
           purple: "hsl(var(--deck-purple))",
-          orange: "hsl(var(--deck-orange))",
+          yellow: "hsl(var(--deck-yellow))",
           pink: "hsl(var(--deck-pink))",
           teal: "hsl(var(--deck-teal))",
         },
