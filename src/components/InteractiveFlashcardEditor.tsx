@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,14 +28,24 @@ interface InteractiveFlashcardEditorProps {
 export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onImageChange }: InteractiveFlashcardEditorProps) => {
   const { toast } = useToast();
   const [selectedBox, setSelectedBox] = useState<string | null>(null);
+  const [editingBox, setEditingBox] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const inlineInputRef = useRef<HTMLInputElement>(null);
   const [isAddingBox, setIsAddingBox] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isDetecting, setIsDetecting] = useState(false);
   const resizeStartRef = useRef<{ x: number; y: number; width: number; height: number; handle: string } | null>(null);
   const dragStartRef = useRef<{ x: number; y: number; boxX: number; boxY: number } | null>(null);
+
+  // Auto-focus the inline input when editing starts
+  useEffect(() => {
+    if (editingBox && inlineInputRef.current) {
+      inlineInputRef.current.focus();
+      inlineInputRef.current.select();
+    }
+  }, [editingBox]);
 
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isAddingBox || !containerRef.current) return;
@@ -329,19 +339,42 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
             onClick={(e) => {
               e.stopPropagation();
               setSelectedBox(box.id);
+              setEditingBox(box.id);
             }}
           >
-            {box.answer && (
-              <div 
-                className="absolute inset-0 flex items-center justify-center pointer-events-none"
+            {editingBox === box.id ? (
+              <input
+                ref={inlineInputRef}
+                type="text"
+                value={box.answer}
+                onChange={(e) => handleAnswerChange(box.id, e.target.value)}
+                onBlur={() => setEditingBox(null)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === "Escape") {
+                    setEditingBox(null);
+                  }
+                }}
+                className="absolute inset-0 w-full h-full bg-transparent border-none outline-none text-center"
                 style={{ 
                   fontSize: `${box.fontSize || 14}px`,
                   fontWeight: box.fontWeight || "normal",
                   color: box.fontColor || "#000000",
                 }}
-              >
-                {box.answer}
-              </div>
+                placeholder="Enter answer..."
+              />
+            ) : (
+              box.answer && (
+                <div 
+                  className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                  style={{ 
+                    fontSize: `${box.fontSize || 14}px`,
+                    fontWeight: box.fontWeight || "normal",
+                    color: box.fontColor || "#000000",
+                  }}
+                >
+                  {box.answer}
+                </div>
+              )
             )}
             {selectedBox === box.id && !isResizing && !isDragging && (
               <>
