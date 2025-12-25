@@ -46,17 +46,6 @@ export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: In
 
   const handleRevealAnswers = () => {
     setShowAnswers(true);
-    const answers: Record<string, string> = {};
-    textBoxes.forEach(box => {
-      answers[box.id] = box.answer;
-    });
-    setUserAnswers(answers);
-    
-    const validation: Record<string, "correct" | null> = {};
-    textBoxes.forEach(box => {
-      validation[box.id] = "correct";
-    });
-    setValidationState(validation);
   };
 
   const handleHideAnswers = () => {
@@ -101,7 +90,7 @@ export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: In
       <div className="relative border rounded-lg overflow-hidden">
         <img src={imageUrl} alt="Flashcard" className="w-full h-auto" />
         
-        {textBoxes.map((box) => (
+        {!showAnswers && textBoxes.map((box) => (
           <div
             key={box.id}
             className="absolute"
@@ -116,13 +105,12 @@ export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: In
               <Input
                 value={userAnswers[box.id] || ""}
                 onChange={(e) => handleAnswerChange(box.id, e.target.value)}
-                onBlur={() => !showAnswers && handleCheckAnswer(box.id)}
+                onBlur={() => handleCheckAnswer(box.id)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && !showAnswers) {
+                  if (e.key === "Enter") {
                     handleCheckAnswer(box.id);
                   }
                 }}
-                disabled={showAnswers}
                 className="h-full px-1 text-center"
                 style={{
                   borderColor: getBoxBorderColor(box.id),
