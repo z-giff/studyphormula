@@ -422,46 +422,6 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
               placeholder="Enter the correct answer"
             />
           </div>
-          
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <Label htmlFor="fontSize">Font Size</Label>
-              <Input
-                id="fontSize"
-                type="number"
-                min="8"
-                max="48"
-                value={textBoxes.find(b => b.id === selectedBox)?.fontSize || 14}
-                onChange={(e) => handleFontChange(selectedBox, "fontSize", parseInt(e.target.value))}
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="fontWeight">Font Weight</Label>
-              <select
-                id="fontWeight"
-                className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
-                value={textBoxes.find(b => b.id === selectedBox)?.fontWeight || "normal"}
-                onChange={(e) => handleFontChange(selectedBox, "fontWeight", e.target.value)}
-              >
-                <option value="normal">Normal</option>
-                <option value="bold">Bold</option>
-                <option value="600">Semi-Bold</option>
-                <option value="300">Light</option>
-              </select>
-            </div>
-            
-            <div>
-              <Label htmlFor="fontColor">Font Color</Label>
-              <Input
-                id="fontColor"
-                type="color"
-                value={textBoxes.find(b => b.id === selectedBox)?.fontColor || "#000000"}
-                onChange={(e) => handleFontChange(selectedBox, "fontColor", e.target.value)}
-                className="h-9"
-              />
-            </div>
-          </div>
         </div>
       )}
 
