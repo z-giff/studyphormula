@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ImageIcon, Pipette } from "lucide-react";
+import { Pipette } from "lucide-react";
 import { InteractiveFlashcardEditor } from "@/components/InteractiveFlashcardEditor";
 import { FlowchartCanvasEditor } from "@/components/FlowchartCanvasEditor";
 import { ImageUploader } from "@/components/ImageUploader";
@@ -221,24 +221,13 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="edit-imageUrl">Image URL (Optional)</Label>
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <Input
-                      id="edit-imageUrl"
-                      type="url"
-                      placeholder="https://example.com/image.jpg"
-                      value={formData.imageUrl}
-                      onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <Button type="button" variant="outline" disabled>
-                    <ImageIcon className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+              <ImageUploader
+                imageUrl={formData.imageUrl}
+                onImageChange={(imageUrl) => setFormData({ ...formData, imageUrl })}
+                disabled={isLoading}
+                required={false}
+                label="Image"
+              />
             </TabsContent>
 
             <TabsContent value="interactive" className="space-y-4 mt-4">
