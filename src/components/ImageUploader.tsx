@@ -10,9 +10,17 @@ interface ImageUploaderProps {
   imageUrl: string;
   onImageChange: (url: string) => void;
   disabled?: boolean;
+  required?: boolean;
+  label?: string;
 }
 
-export const ImageUploader = ({ imageUrl, onImageChange, disabled }: ImageUploaderProps) => {
+export const ImageUploader = ({ 
+  imageUrl, 
+  onImageChange, 
+  disabled, 
+  required = true,
+  label = "Image"
+}: ImageUploaderProps) => {
   const { toast } = useToast();
   const [urlInput, setUrlInput] = useState(imageUrl);
   const [activeTab, setActiveTab] = useState<"url" | "upload" | "paste">("url");
@@ -153,7 +161,7 @@ export const ImageUploader = ({ imageUrl, onImageChange, disabled }: ImageUpload
 
   return (
     <div className="space-y-3">
-      <Label>Image *</Label>
+      <Label>{label} {required && "*"}{!required && "(Optional)"}</Label>
       
       {imageUrl ? (
         <div className="relative">
