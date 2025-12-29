@@ -45,47 +45,29 @@ type FlashcardScreenProps = {
 const FlashcardScreen = ({ isVisible, isExiting, children, cardColor }: FlashcardScreenProps) => {
   return (
     <div
-      className={`absolute inset-0 flex items-center justify-center p-4 sm:p-8 md:p-12 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+      className={`absolute inset-0 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
         isVisible && !isExiting
           ? "opacity-100 translate-x-0 rotate-0 scale-100"
           : isExiting
-          ? "opacity-0 -translate-x-[120%] -rotate-12 scale-90"
-          : "opacity-0 translate-x-[120%] rotate-12 scale-90"
+          ? "opacity-0 -translate-x-[120%] -rotate-6 scale-95"
+          : "opacity-0 translate-x-[120%] rotate-6 scale-95"
       }`}
-      style={{ perspective: "1000px" }}
+      style={{ 
+        perspective: "1000px",
+        backgroundColor: cardColor,
+      }}
     >
-      {/* The flashcard itself */}
+      {/* Card texture overlay */}
       <div 
-        className="relative w-full h-full max-w-6xl max-h-[85vh] rounded-3xl shadow-2xl overflow-hidden"
-        style={{ 
-          backgroundColor: cardColor,
-          boxShadow: `
-            0 25px 50px -12px rgba(0, 0, 0, 0.25),
-            0 0 0 1px rgba(255, 255, 255, 0.1) inset,
-            0 -4px 0 0 rgba(0, 0, 0, 0.1) inset
-          `
+        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
         }}
-      >
-        {/* Card texture overlay */}
-        <div 
-          className="absolute inset-0 pointer-events-none opacity-[0.03]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-          }}
-        />
-        
-        {/* Card content */}
-        <div className="relative z-10 w-full h-full flex items-center justify-center">
-          {children}
-        </div>
-        
-        {/* Subtle corner fold effect */}
-        <div 
-          className="absolute top-0 right-0 w-16 h-16 pointer-events-none"
-          style={{
-            background: `linear-gradient(135deg, transparent 50%, rgba(0,0,0,0.05) 50%)`,
-          }}
-        />
+      />
+      
+      {/* Card content */}
+      <div className="relative z-10 w-full h-full flex items-center justify-center">
+        {children}
       </div>
     </div>
   );
