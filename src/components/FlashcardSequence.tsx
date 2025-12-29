@@ -56,7 +56,6 @@ const FlashcardScreen = ({ isVisible, isExiting, children, cardColor }: Flashcar
         perspective: "1000px",
         backgroundColor: cardColor,
         boxShadow: `
-          inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
           inset 0 -1px 0 0 rgba(0, 0, 0, 0.1),
           0 0 60px -10px rgba(0, 0, 0, 0.3),
           0 0 100px -20px rgba(0, 0, 0, 0.2)
