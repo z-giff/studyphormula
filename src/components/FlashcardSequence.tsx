@@ -55,8 +55,25 @@ const FlashcardScreen = ({ isVisible, isExiting, children, cardColor }: Flashcar
       style={{ 
         perspective: "1000px",
         backgroundColor: cardColor,
+        boxShadow: `
+          inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
+          inset 0 -1px 0 0 rgba(0, 0, 0, 0.1),
+          0 0 60px -10px rgba(0, 0, 0, 0.3),
+          0 0 100px -20px rgba(0, 0, 0, 0.2)
+        `,
       }}
     >
+      {/* Subtle edge vignette for depth */}
+      <div 
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          boxShadow: `
+            inset 0 0 120px 40px rgba(0, 0, 0, 0.08),
+            inset 0 0 40px 10px rgba(0, 0, 0, 0.05)
+          `,
+        }}
+      />
+      
       {/* Card texture overlay */}
       <div 
         className="absolute inset-0 pointer-events-none opacity-[0.03]"
