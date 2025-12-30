@@ -2,14 +2,11 @@ import { useEffect, useState, useRef } from "react";
 import { Palette, ImageIcon, BookmarkIcon, Shuffle } from "lucide-react";
 import phormulaTextLogo from "@/assets/phormula-text-logo.png";
 
-const RAINBOW_COLORS = [
-  "hsl(0, 85%, 65%)",    // red
-  "hsl(30, 90%, 60%)",   // orange
-  "hsl(50, 95%, 60%)",   // yellow
-  "hsl(145, 60%, 50%)",  // green
-  "hsl(200, 100%, 61%)", // blue
-  "hsl(260, 70%, 60%)",  // indigo
-  "hsl(280, 75%, 65%)",  // violet
+// Card color palette - cream/white aesthetic
+const CARD_COLORS = [
+  "hsl(40, 33%, 96%)",   // warm white/cream for hero
+  "hsl(40, 33%, 96%)",   // warm white for features
+  "hsl(40, 33%, 96%)",   // warm white for about
 ];
 
 const features = [
@@ -45,7 +42,7 @@ type FlashcardScreenProps = {
 const FlashcardScreen = ({ isVisible, isExiting, children, cardColor }: FlashcardScreenProps) => {
   return (
     <div
-      className={`absolute inset-0 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+      className={`absolute inset-4 sm:inset-6 md:inset-8 lg:inset-12 rounded-2xl transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
         isVisible && !isExiting
           ? "opacity-100 translate-x-0 rotate-0 scale-100"
           : isExiting
@@ -55,32 +52,13 @@ const FlashcardScreen = ({ isVisible, isExiting, children, cardColor }: Flashcar
       style={{ 
         perspective: "1000px",
         backgroundColor: cardColor,
+        border: "1px solid hsl(220, 13%, 75%)",
         boxShadow: `
-          inset 0 -1px 0 0 rgba(0, 0, 0, 0.1),
-          0 0 60px -10px rgba(0, 0, 0, 0.3),
-          0 0 100px -20px rgba(0, 0, 0, 0.2)
+          0 4px 20px -4px rgba(0, 0, 0, 0.08),
+          0 8px 40px -8px rgba(0, 0, 0, 0.05)
         `,
       }}
     >
-      {/* Subtle edge vignette for depth */}
-      <div 
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          boxShadow: `
-            inset 0 0 120px 40px rgba(0, 0, 0, 0.08),
-            inset 0 0 40px 10px rgba(0, 0, 0, 0.05)
-          `,
-        }}
-      />
-      
-      {/* Card texture overlay */}
-      <div 
-        className="absolute inset-0 pointer-events-none opacity-[0.03]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-        }}
-      />
-      
       {/* Card content */}
       <div className="relative z-10 w-full h-full flex items-center justify-center">
         {children}
@@ -189,24 +167,31 @@ const FlashcardSequence = () => {
         <FlashcardScreen 
           isVisible={currentScreen === 0} 
           isExiting={exitingScreen === 0}
-          cardColor={RAINBOW_COLORS[0]}
+          cardColor={CARD_COLORS[0]}
         >
           <div className="flex flex-col items-center justify-center text-center px-4">
-            {/* Logo with pulse */}
+            {/* Logo with pulse and brush stroke highlight */}
             <div
-              className="transition-transform duration-300"
+              className="transition-transform duration-300 relative"
               style={{ transform: `scale(${pulseScale})` }}
             >
-              <img 
-                src={phormulaTextLogo} 
-                alt="Phormula" 
-                className="h-16 sm:h-20 md:h-24 mb-6 drop-shadow-lg"
+              {/* Lavender brush stroke behind text */}
+              <div 
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[80%] -z-10"
+                style={{
+                  background: "hsl(280, 60%, 88%)",
+                  borderRadius: "4px 40px 4px 40px",
+                  transform: "translateX(-50%) translateY(-50%) rotate(-1deg) scaleX(1.1)",
+                }}
               />
+              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-[0.15em] text-foreground uppercase">
+                PHORMULA
+              </h1>
             </div>
             
             {/* Slogan */}
-            <p className="text-xl sm:text-2xl md:text-3xl text-white/90 font-handwriting tracking-wide drop-shadow-md">
-              simplify memorization.
+            <p className="text-xl sm:text-2xl md:text-3xl text-foreground/80 italic font-serif tracking-wide mt-4">
+              simplify studying.
             </p>
           </div>
         </FlashcardScreen>
@@ -215,10 +200,10 @@ const FlashcardSequence = () => {
         <FlashcardScreen 
           isVisible={currentScreen === 1} 
           isExiting={exitingScreen === 1}
-          cardColor={RAINBOW_COLORS[4]}
+          cardColor={CARD_COLORS[1]}
         >
           <div className="flex flex-col items-center justify-center text-center px-4 sm:px-8 max-w-5xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-8 sm:mb-12 text-white drop-shadow-md">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-8 sm:mb-12 text-foreground">
               Everything You Need to Study Smarter.
             </h2>
             
@@ -226,17 +211,17 @@ const FlashcardSequence = () => {
               {features.map((feature, index) => (
                 <div 
                   key={index}
-                  className="group bg-white/20 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-white/30 hover:bg-white/30 transition-all duration-300 hover:shadow-lg"
+                  className="group bg-foreground/5 rounded-2xl p-4 sm:p-6 border border-foreground/10 hover:bg-foreground/10 transition-all duration-300 hover:shadow-lg"
                 >
                   <div 
-                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-3 sm:mb-4 bg-white/30"
+                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-3 sm:mb-4 bg-foreground/10"
                   >
-                    <feature.icon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                    <feature.icon className="h-5 w-5 sm:h-6 sm:w-6 text-foreground" />
                   </div>
-                  <h3 className="text-base sm:text-lg font-semibold mb-2 text-white">
+                  <h3 className="text-base sm:text-lg font-semibold mb-2 text-foreground">
                     {feature.title}
                   </h3>
-                  <p className="text-white/80 text-xs sm:text-sm">
+                  <p className="text-foreground/70 text-xs sm:text-sm">
                     {feature.description}
                   </p>
                 </div>
@@ -249,10 +234,10 @@ const FlashcardSequence = () => {
         <FlashcardScreen 
           isVisible={currentScreen === 2} 
           isExiting={exitingScreen === 2}
-          cardColor={RAINBOW_COLORS[3]}
+          cardColor={CARD_COLORS[2]}
         >
           <div className="flex flex-col items-center justify-center text-center px-4">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white drop-shadow-md">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground">
               About
             </h2>
           </div>
