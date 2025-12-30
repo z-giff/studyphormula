@@ -170,20 +170,11 @@ const FlashcardSequence = () => {
           cardColor={CARD_COLORS[0]}
         >
           <div className="flex flex-col items-center justify-center text-center px-4">
-            {/* Logo with pulse and brush stroke highlight */}
+            {/* Logo with pulse */}
             <div
-              className="transition-transform duration-300 relative"
+              className="transition-transform duration-300"
               style={{ transform: `scale(${pulseScale})` }}
             >
-              {/* Lavender brush stroke behind text */}
-              <div 
-                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[80%] -z-10"
-                style={{
-                  background: "hsl(280, 60%, 88%)",
-                  borderRadius: "4px 40px 4px 40px",
-                  transform: "translateX(-50%) translateY(-50%) rotate(-1deg) scaleX(1.1)",
-                }}
-              />
               <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-[0.15em] text-foreground uppercase">
                 PHORMULA
               </h1>
