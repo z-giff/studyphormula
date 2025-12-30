@@ -175,9 +175,11 @@ const FlashcardSequence = () => {
               className="transition-transform duration-300"
               style={{ transform: `scale(${pulseScale})` }}
             >
-              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-[0.15em] text-foreground uppercase">
-                PHORMULA
-              </h1>
+              <img 
+                src={phormulaTextLogo} 
+                alt="Phormula" 
+                className="h-16 sm:h-20 md:h-24 lg:h-32 w-auto"
+              />
             </div>
             
             {/* Slogan */}
