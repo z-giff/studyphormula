@@ -244,16 +244,22 @@ const FlashcardSequence = () => {
           cardColor={CARD_COLORS[0]}
         >
           <div className="flex flex-col items-center justify-center text-center px-4">
-            {/* Logo with pulse */}
+            {/* Logo with pulse and gradient */}
             <div
               className="transition-transform duration-300"
               style={{ transform: `scale(${pulseScale})` }}
             >
-              <img 
-                src={phormulaTextLogo} 
-                alt="Phormula" 
-                className="h-16 sm:h-20 md:h-24 lg:h-32 w-auto"
-              />
+              <h1 
+                className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight"
+                style={{
+                  background: "linear-gradient(135deg, hsl(350, 80%, 65%) 0%, hsl(280, 70%, 60%) 50%, hsl(210, 80%, 60%) 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                Phormula
+              </h1>
             </div>
             
             {/* Slogan */}
