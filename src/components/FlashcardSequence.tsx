@@ -107,13 +107,33 @@ const FlashcardSequence = () => {
     };
   }, [currentScreen]);
 
-  // Scroll handling for manual navigation
+  // Scroll handling for manual navigation with snap behavior
   useEffect(() => {
-    let lastScrollY = window.scrollY;
-    let scrollTimeout: NodeJS.Timeout | null = null;
+    let isSnapping = false;
+    let snapTimeout: NodeJS.Timeout | null = null;
+    let lastScrollTime = Date.now();
+
+    const snapToScreen = (targetScreen: number) => {
+      if (!containerRef.current || isSnapping) return;
+      
+      isSnapping = true;
+      const viewportHeight = window.innerHeight;
+      const containerTop = containerRef.current.offsetTop;
+      const targetScrollY = containerTop + (targetScreen * viewportHeight);
+      
+      window.scrollTo({
+        top: targetScrollY,
+        behavior: "smooth"
+      });
+      
+      // Reset snapping flag after animation
+      setTimeout(() => {
+        isSnapping = false;
+      }, 600);
+    };
 
     const handleScroll = () => {
-      if (!containerRef.current) return;
+      if (!containerRef.current || isSnapping) return;
       
       const scrollY = window.scrollY;
       const containerTop = containerRef.current.offsetTop;
@@ -137,11 +157,22 @@ const FlashcardSequence = () => {
         goToScreen(targetScreen);
       }
       
-      lastScrollY = scrollY;
+      // Debounced snap after scroll stops
+      lastScrollTime = Date.now();
+      if (snapTimeout) clearTimeout(snapTimeout);
+      snapTimeout = setTimeout(() => {
+        // Only snap if user stopped scrolling
+        if (Date.now() - lastScrollTime >= 150) {
+          snapToScreen(targetScreen);
+        }
+      }, 150);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (snapTimeout) clearTimeout(snapTimeout);
+    };
   }, [currentScreen, exitingScreen]);
 
   const goToScreen = (targetScreen: number) => {
