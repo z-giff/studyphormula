@@ -196,42 +196,42 @@ const FlashcardSequence = () => {
       <div className="sticky top-0 h-screen overflow-hidden bg-background">
         {/* Gradient bubbles background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {/* Top-left bubble - soft pink/coral */}
+          {/* Top-left bubble - vibrant pink/coral */}
           <div 
-            className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-40 blur-3xl animate-float-1"
+            className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-60 blur-3xl animate-float-1"
             style={{
-              background: "radial-gradient(circle, hsl(350, 80%, 75%) 0%, transparent 70%)",
+              background: "radial-gradient(circle, hsl(340, 95%, 65%) 0%, transparent 70%)",
             }}
           />
-          {/* Top-right bubble - soft blue */}
+          {/* Top-right bubble - vibrant blue */}
           <div 
-            className="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-35 blur-3xl animate-float-2"
+            className="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-55 blur-3xl animate-float-2"
             style={{
-              background: "radial-gradient(circle, hsl(210, 70%, 75%) 0%, transparent 70%)",
+              background: "radial-gradient(circle, hsl(210, 90%, 65%) 0%, transparent 70%)",
               animationDelay: "2s",
             }}
           />
-          {/* Bottom-left bubble - soft green/teal */}
+          {/* Bottom-left bubble - vibrant green/teal */}
           <div 
-            className="absolute -bottom-40 -left-20 w-72 h-72 rounded-full opacity-30 blur-3xl animate-float-3"
+            className="absolute -bottom-40 -left-20 w-72 h-72 rounded-full opacity-50 blur-3xl animate-float-3"
             style={{
-              background: "radial-gradient(circle, hsl(170, 60%, 70%) 0%, transparent 70%)",
+              background: "radial-gradient(circle, hsl(170, 85%, 55%) 0%, transparent 70%)",
               animationDelay: "4s",
             }}
           />
-          {/* Bottom-right bubble - soft purple */}
+          {/* Bottom-right bubble - vibrant purple */}
           <div 
-            className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full opacity-35 blur-3xl animate-float-1"
+            className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full opacity-55 blur-3xl animate-float-1"
             style={{
-              background: "radial-gradient(circle, hsl(280, 60%, 75%) 0%, transparent 70%)",
+              background: "radial-gradient(circle, hsl(280, 85%, 65%) 0%, transparent 70%)",
               animationDelay: "1s",
             }}
           />
-          {/* Center accent bubble - soft yellow/orange */}
+          {/* Center accent bubble - vibrant yellow/orange */}
           <div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full opacity-20 blur-3xl animate-float-2"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full opacity-35 blur-3xl animate-float-2"
             style={{
-              background: "radial-gradient(circle, hsl(40, 80%, 75%) 0%, transparent 70%)",
+              background: "radial-gradient(circle, hsl(35, 95%, 60%) 0%, transparent 70%)",
               animationDelay: "3s",
             }}
           />
