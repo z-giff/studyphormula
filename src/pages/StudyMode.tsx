@@ -136,14 +136,7 @@ const StudyMode = () => {
   return (
     <div className="min-h-screen bg-background">
       <nav className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center">
-            <img 
-              src={phormulaLogo} 
-              alt="Phormula" 
-              className="h-6 sm:h-8 w-auto"
-            />
-          </Link>
+        <div className="container mx-auto px-4 py-4 flex items-center justify-end">
           <ThemeToggle />
         </div>
       </nav>
