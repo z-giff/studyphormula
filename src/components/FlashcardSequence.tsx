@@ -95,18 +95,7 @@ const FlashcardSequence = () => {
     return () => clearInterval(interval);
   }, [prefersReducedMotion]);
 
-  // Auto-advance from screen 0 to 1 after 6 seconds
-  useEffect(() => {
-    if (currentScreen === 0 && !hasAutoAdvanced.current) {
-      autoAdvanceRef.current = setTimeout(() => {
-        goToScreen(1);
-        hasAutoAdvanced.current = true;
-      }, 6000);
-    }
-    return () => {
-      if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current);
-    };
-  }, [currentScreen]);
+  // Removed auto-advance - user controls navigation via scroll
 
   // Scroll handling for manual navigation with snap behavior
   useEffect(() => {
