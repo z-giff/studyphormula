@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import phormulaLogo from "@/assets/phormula-logo.png";
+import LogoOrb from "@/components/LogoOrb";
 import FlashcardSequence from "@/components/FlashcardSequence";
 
 const Index = () => {
@@ -21,10 +21,7 @@ const Index = () => {
       {/* Fixed Navigation - Always visible */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="container mx-auto px-4 flex items-center justify-between py-4">
-          <Link to="/" className="flex items-center gap-2">
-            <img src={phormulaLogo} alt="Phormula" className="h-10 w-10" />
-            <span className="font-heading font-bold text-xl text-foreground">Phormula</span>
-          </Link>
+          <LogoOrb size="md" showWordmark={true} linkTo="/" />
           <div className="flex items-center gap-3">
             <ThemeToggle />
             <Link to="/auth">
@@ -48,10 +45,7 @@ const Index = () => {
       <footer className="border-t border-border/50 py-12 bg-background">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <img src={phormulaLogo} alt="Phormula" className="h-8 w-8" />
-              <span className="font-heading font-semibold text-foreground">Phormula</span>
-            </div>
+            <LogoOrb size="sm" showWordmark={true} linkTo="/" />
             <p className="text-muted-foreground text-sm">
               © 2025 Phormula. All rights reserved.
             </p>

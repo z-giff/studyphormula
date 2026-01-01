@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, Shuffle, RotateCcw } from "lucide-react";
+import LogoOrb from "@/components/LogoOrb";
 import phormulaLogo from "@/assets/phormula-text-logo.png";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -136,7 +137,8 @@ const StudyMode = () => {
   return (
     <div className="min-h-screen bg-background">
       <nav className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-end">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <LogoOrb size="md" showWordmark={true} linkTo="/" />
           <ThemeToggle />
         </div>
       </nav>

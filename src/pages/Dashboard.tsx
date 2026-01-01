@@ -8,7 +8,7 @@ import { Plus, LogOut, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { CreateSetDialog } from "@/components/CreateSetDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import phormulaLogo from "@/assets/phormula-logo.png";
+import LogoOrb from "@/components/LogoOrb";
 import phormulaBackground from "@/assets/phormula-background.png";
 
 interface FlashcardSet {
@@ -101,7 +101,8 @@ const Dashboard = () => {
     <div className="min-h-screen bg-[#e8eef4] dark:bg-[#2d3748] relative overflow-hidden">
 
       <nav className="relative z-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-black/10 dark:border-white/10">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-end">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <LogoOrb size="md" showWordmark={true} linkTo="/" />
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <Button variant="ghost" onClick={handleSignOut} className="hover:bg-black/10 dark:hover:bg-white/10">

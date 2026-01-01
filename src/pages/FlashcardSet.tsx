@@ -12,6 +12,7 @@ import { CopyFlashcardDialog } from "@/components/CopyFlashcardDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { StackedFlashcardDeck } from "@/components/StackedFlashcardDeck";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import LogoOrb from "@/components/LogoOrb";
 import phormulaLogo from "@/assets/phormula-text-logo.png";
 
 const PRESET_COLORS = [
@@ -169,7 +170,8 @@ const FlashcardSetPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <nav className="border-b">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-end">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <LogoOrb size="md" showWordmark={true} linkTo="/" />
           <ThemeToggle />
         </div>
       </nav>
