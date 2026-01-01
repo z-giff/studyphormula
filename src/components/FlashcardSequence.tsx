@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Palette, ImageIcon, BookmarkIcon, Shuffle } from "lucide-react";
 import phormulaTextLogo from "@/assets/phormula-text-logo.png";
+import GlowSphere from "./GlowSphere";
 
 // Card color palette - cream/white aesthetic
 const CARD_COLORS = [
@@ -233,10 +234,13 @@ const FlashcardSequence = () => {
 
         {/* Screen 0: Hero / Intro */}
         <FlashcardScreen isVisible={currentScreen === 0} isExiting={exitingScreen === 0} cardColor={CARD_COLORS[0]}>
-          <div className="flex flex-col items-center justify-center text-center px-4">
+          <div className="flex flex-col items-center justify-center text-center px-4 relative">
+            {/* Glow sphere behind title */}
+            <GlowSphere />
+            
             {/* Logo with gradient */}
             <h1
-              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight"
+              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight relative z-10"
               style={{
                 background:
                   "linear-gradient(135deg, hsl(175, 70%, 45%) 0%, hsl(210, 80%, 55%) 50%, hsl(250, 70%, 50%) 100%)",
@@ -249,7 +253,7 @@ const FlashcardSequence = () => {
             </h1>
 
             {/* Slogan */}
-            <p className="text-xl sm:text-2xl md:text-3xl text-foreground/80 italic font-serif tracking-wide mt-4">
+            <p className="text-xl sm:text-2xl md:text-3xl text-foreground/80 italic font-serif tracking-wide mt-4 relative z-10">
               simplify memorization.
             </p>
           </div>
