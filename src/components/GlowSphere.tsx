@@ -43,8 +43,8 @@ const GlowSphere = () => {
           style={{
             background: `radial-gradient(
               ellipse 100% 100% at 40% 35%,
-              hsla(210, 85%, 70%, 0.15) 0%,
-              hsla(250, 70%, 60%, 0.08) 40%,
+              hsla(0, 0%, 70%, 0.18) 0%,
+              hsla(0, 0%, 50%, 0.1) 40%,
               transparent 70%
             )`,
             filter: "blur(60px)",
@@ -59,10 +59,10 @@ const GlowSphere = () => {
             background: `
               radial-gradient(
                 ellipse 120% 120% at 30% 25%,
-                hsla(175, 75%, 65%, 0.5) 0%,
-                hsla(200, 80%, 55%, 0.35) 20%,
-                hsla(230, 75%, 50%, 0.2) 45%,
-                hsla(270, 60%, 45%, 0.1) 65%,
+                hsla(0, 0%, 85%, 0.55) 0%,
+                hsla(0, 0%, 70%, 0.4) 20%,
+                hsla(0, 0%, 55%, 0.25) 45%,
+                hsla(0, 0%, 40%, 0.12) 65%,
                 transparent 85%
               )
             `,
@@ -77,8 +77,8 @@ const GlowSphere = () => {
             background: `
               radial-gradient(
                 ellipse 100% 100% at 75% 80%,
-                hsla(260, 50%, 25%, 0.25) 0%,
-                hsla(240, 40%, 30%, 0.15) 30%,
+                hsla(0, 0%, 15%, 0.3) 0%,
+                hsla(0, 0%, 25%, 0.18) 30%,
                 transparent 60%
               )
             `,
@@ -93,13 +93,13 @@ const GlowSphere = () => {
             background: `
               conic-gradient(
                 from ${colorShift}deg at 45% 40%,
-                hsla(175, 80%, 55%, 0.4) 0%,
-                hsla(195, 85%, 60%, 0.45) 15%,
-                hsla(220, 80%, 55%, 0.4) 30%,
-                hsla(250, 70%, 50%, 0.35) 50%,
-                hsla(280, 65%, 55%, 0.3) 65%,
-                hsla(200, 80%, 60%, 0.35) 80%,
-                hsla(175, 80%, 55%, 0.4) 100%
+                hsla(0, 0%, 80%, 0.45) 0%,
+                hsla(0, 0%, 65%, 0.5) 15%,
+                hsla(0, 0%, 50%, 0.45) 30%,
+                hsla(0, 0%, 40%, 0.4) 50%,
+                hsla(0, 0%, 55%, 0.35) 65%,
+                hsla(0, 0%, 70%, 0.4) 80%,
+                hsla(0, 0%, 80%, 0.45) 100%
               )
             `,
             filter: "blur(20px)",
@@ -114,11 +114,11 @@ const GlowSphere = () => {
             background: `
               conic-gradient(
                 from ${-colorShift * 0.6 + 120}deg at 55% 50%,
-                hsla(210, 90%, 65%, 0.5) 0%,
-                hsla(240, 75%, 60%, 0.45) 25%,
-                hsla(175, 80%, 50%, 0.4) 50%,
-                hsla(195, 85%, 55%, 0.45) 75%,
-                hsla(210, 90%, 65%, 0.5) 100%
+                hsla(0, 0%, 75%, 0.55) 0%,
+                hsla(0, 0%, 55%, 0.5) 25%,
+                hsla(0, 0%, 45%, 0.45) 50%,
+                hsla(0, 0%, 60%, 0.5) 75%,
+                hsla(0, 0%, 75%, 0.55) 100%
               )
             `,
             filter: "blur(15px)",
@@ -137,8 +137,8 @@ const GlowSphere = () => {
             background: `
               radial-gradient(
                 ellipse 100% 80% at 50% 60%,
-                hsla(190, 90%, 80%, 0.6) 0%,
-                hsla(200, 85%, 70%, 0.3) 40%,
+                hsla(0, 0%, 95%, 0.7) 0%,
+                hsla(0, 0%, 85%, 0.4) 40%,
                 transparent 80%
               )
             `,
@@ -158,8 +158,8 @@ const GlowSphere = () => {
             background: `
               radial-gradient(
                 ellipse at 50% 50%,
-                hsla(180, 95%, 85%, 0.7) 0%,
-                hsla(195, 90%, 75%, 0.4) 50%,
+                hsla(0, 0%, 100%, 0.8) 0%,
+                hsla(0, 0%, 90%, 0.5) 50%,
                 transparent 100%
               )
             `,
@@ -178,9 +178,9 @@ const GlowSphere = () => {
             background: `
               radial-gradient(
                 ellipse 90% 90% at 45% 45%,
-                hsla(200, 85%, 75%, 0.5) 0%,
-                hsla(220, 80%, 65%, 0.35) 30%,
-                hsla(240, 70%, 55%, 0.2) 55%,
+                hsla(0, 0%, 90%, 0.55) 0%,
+                hsla(0, 0%, 75%, 0.4) 30%,
+                hsla(0, 0%, 55%, 0.25) 55%,
                 transparent 80%
               )
             `,
@@ -200,9 +200,9 @@ const GlowSphere = () => {
             background: `
               radial-gradient(
                 ellipse at 40% 40%,
-                hsla(195, 90%, 80%, 0.55) 0%,
-                hsla(210, 85%, 70%, 0.35) 35%,
-                hsla(230, 75%, 60%, 0.15) 60%,
+                hsla(0, 0%, 98%, 0.6) 0%,
+                hsla(0, 0%, 85%, 0.4) 35%,
+                hsla(0, 0%, 70%, 0.2) 60%,
                 transparent 85%
               )
             `,
@@ -218,9 +218,9 @@ const GlowSphere = () => {
               radial-gradient(
                 circle at 50% 50%,
                 transparent 55%,
-                hsla(210, 80%, 65%, 0.12) 65%,
-                hsla(240, 70%, 55%, 0.08) 75%,
-                hsla(270, 60%, 50%, 0.04) 85%,
+                hsla(0, 0%, 70%, 0.15) 65%,
+                hsla(0, 0%, 55%, 0.1) 75%,
+                hsla(0, 0%, 45%, 0.05) 85%,
                 transparent 95%
               )
             `,
@@ -239,8 +239,8 @@ const GlowSphere = () => {
             background: `
               radial-gradient(
                 ellipse at 50% 30%,
-                hsla(175, 85%, 70%, 0.25) 0%,
-                hsla(190, 80%, 65%, 0.15) 50%,
+                hsla(0, 0%, 80%, 0.3) 0%,
+                hsla(0, 0%, 70%, 0.18) 50%,
                 transparent 100%
               )
             `,
