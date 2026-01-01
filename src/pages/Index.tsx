@@ -25,12 +25,12 @@ const Index = () => {
           <div className="flex items-center gap-3">
             <ThemeToggle />
             <Link to="/auth">
-              <Button variant="ghost" className="text-foreground/80 hover:text-foreground hover:bg-foreground/5">
+              <Button variant="ghost" className="text-foreground/80 hover:text-foreground hover:bg-foreground/5 font-light tracking-wide text-sm">
                 Sign In
               </Button>
             </Link>
             <Link to="/auth">
-              <Button className="bg-foreground text-background hover:bg-foreground/90 rounded-lg">
+              <Button className="bg-foreground text-background hover:bg-foreground/90 rounded-lg font-light tracking-wide text-sm">
                 Get Started
               </Button>
             </Link>
