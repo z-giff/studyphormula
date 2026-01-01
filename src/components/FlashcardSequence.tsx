@@ -255,7 +255,7 @@ const FlashcardSequence = () => {
             {/* CTA Buttons */}
             <div className="flex items-center gap-3 mt-8 relative z-10">
               <Link to="/auth">
-                <Button variant="ghost" className="text-foreground/80 hover:text-foreground hover:bg-foreground/5 font-light tracking-wide text-sm">
+                <Button variant="outline" className="bg-foreground/10 border-foreground/20 text-foreground hover:bg-foreground/20 font-light tracking-wide text-sm">
                   Sign In
                 </Button>
               </Link>
