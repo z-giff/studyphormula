@@ -4,31 +4,31 @@ import phormulaTextLogo from "@/assets/phormula-text-logo.png";
 
 // Card color palette - cream/white aesthetic
 const CARD_COLORS = [
-  "hsl(40, 33%, 96%)",   // warm white/cream for hero
-  "hsl(40, 33%, 96%)",   // warm white for features
-  "hsl(40, 33%, 96%)",   // warm white for about
+  "hsl(40, 33%, 96%)", // warm white/cream for hero
+  "hsl(40, 33%, 96%)", // warm white for features
+  "hsl(40, 33%, 96%)", // warm white for about
 ];
 
 const features = [
   {
     icon: Palette,
     title: "Rainbow Organization",
-    description: "Color-code your decks for visual memory and instant recognition."
+    description: "Color-code your decks for visual memory and instant recognition.",
   },
   {
     icon: ImageIcon,
     title: "Visual Learning",
-    description: "Add images, diagrams, and annotations for complex topics."
+    description: "Add images, diagrams, and annotations for complex topics.",
   },
   {
     icon: BookmarkIcon,
     title: "Smart Sections",
-    description: "Organize large decks into focused study segments."
+    description: "Organize large decks into focused study segments.",
   },
   {
     icon: Shuffle,
     title: "Study Modes",
-    description: "Flip, shuffle, and repeat for effective learning."
+    description: "Flip, shuffle, and repeat for effective learning.",
   },
 ];
 
@@ -46,10 +46,10 @@ const FlashcardScreen = ({ isVisible, isExiting, children, cardColor }: Flashcar
         isVisible && !isExiting
           ? "opacity-100 translate-x-0 rotate-0 scale-100"
           : isExiting
-          ? "opacity-0 -translate-x-[120%] -rotate-6 scale-95"
-          : "opacity-0 translate-x-[120%] rotate-6 scale-95"
+            ? "opacity-0 -translate-x-[120%] -rotate-6 scale-95"
+            : "opacity-0 translate-x-[120%] rotate-6 scale-95"
       }`}
-      style={{ 
+      style={{
         perspective: "1000px",
         backgroundColor: cardColor,
         border: "1px solid hsl(220, 13%, 75%)",
@@ -60,9 +60,7 @@ const FlashcardScreen = ({ isVisible, isExiting, children, cardColor }: Flashcar
       }}
     >
       {/* Card content */}
-      <div className="relative z-10 w-full h-full flex items-center justify-center">
-        {children}
-      </div>
+      <div className="relative z-10 w-full h-full flex items-center justify-center">{children}</div>
     </div>
   );
 };
@@ -115,17 +113,17 @@ const FlashcardSequence = () => {
 
     const snapToScreen = (targetScreen: number) => {
       if (!containerRef.current || isSnapping) return;
-      
+
       isSnapping = true;
       const viewportHeight = window.innerHeight;
       const containerTop = containerRef.current.offsetTop;
-      const targetScrollY = containerTop + (targetScreen * viewportHeight);
-      
+      const targetScrollY = containerTop + targetScreen * viewportHeight;
+
       window.scrollTo({
         top: targetScrollY,
-        behavior: "smooth"
+        behavior: "smooth",
       });
-      
+
       // Reset snapping flag after animation
       setTimeout(() => {
         isSnapping = false;
@@ -134,29 +132,29 @@ const FlashcardSequence = () => {
 
     const handleScroll = () => {
       if (!containerRef.current || isSnapping) return;
-      
+
       const scrollY = window.scrollY;
       const containerTop = containerRef.current.offsetTop;
       const containerHeight = containerRef.current.offsetHeight;
       const viewportHeight = window.innerHeight;
-      
+
       // Calculate scroll progress within the flashcard sequence area
       const scrollInContainer = scrollY - containerTop;
       const maxScroll = containerHeight - viewportHeight;
-      
+
       if (scrollInContainer < 0) return;
-      
+
       const progress = Math.max(0, Math.min(1, scrollInContainer / maxScroll));
-      
+
       // Determine target screen based on progress
       const targetScreen = progress < 0.33 ? 0 : progress < 0.66 ? 1 : 2;
-      
+
       if (targetScreen !== currentScreen && exitingScreen === null) {
         if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current);
         hasAutoAdvanced.current = true;
         goToScreen(targetScreen);
       }
-      
+
       // Debounced snap after scroll stops
       lastScrollTime = Date.now();
       if (snapTimeout) clearTimeout(snapTimeout);
@@ -177,7 +175,7 @@ const FlashcardSequence = () => {
 
   const goToScreen = (targetScreen: number) => {
     if (targetScreen === currentScreen || exitingScreen !== null) return;
-    
+
     setExitingScreen(currentScreen);
     setTimeout(() => {
       setCurrentScreen(targetScreen);
@@ -188,68 +186,60 @@ const FlashcardSequence = () => {
   const pulseScale = prefersReducedMotion ? 1 : 1 + Math.sin(pulsePhase * 0.1) * 0.02;
 
   return (
-    <div 
-      ref={containerRef}
-      className="relative"
-      style={{ height: "300vh" }}
-    >
+    <div ref={containerRef} className="relative" style={{ height: "300vh" }}>
       <div className="sticky top-0 h-screen overflow-hidden bg-background">
         {/* Gradient bubbles background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {/* Top-left bubble - vibrant pink/coral */}
-          <div 
-            className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-60 blur-3xl"
+          <div
+            className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-60 blur-3xl animate-float-1"
             style={{
               background: "radial-gradient(circle, hsl(340, 95%, 65%) 0%, transparent 70%)",
-              animation: "float-1 20s ease-in-out infinite",
             }}
           />
           {/* Top-right bubble - vibrant blue */}
-          <div 
-            className="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-55 blur-3xl"
+          <div
+            className="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-55 blur-3xl animate-float-2"
             style={{
               background: "radial-gradient(circle, hsl(210, 90%, 65%) 0%, transparent 70%)",
-              animation: "float-2 25s ease-in-out infinite 2s",
+              animationDelay: "2s",
             }}
           />
           {/* Bottom-left bubble - vibrant green/teal */}
-          <div 
-            className="absolute -bottom-40 -left-20 w-72 h-72 rounded-full opacity-50 blur-3xl"
+          <div
+            className="absolute -bottom-40 -left-20 w-72 h-72 rounded-full opacity-50 blur-3xl animate-float-3"
             style={{
               background: "radial-gradient(circle, hsl(170, 85%, 55%) 0%, transparent 70%)",
-              animation: "float-3 18s ease-in-out infinite 4s",
+              animationDelay: "4s",
             }}
           />
           {/* Bottom-right bubble - vibrant purple */}
-          <div 
-            className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full opacity-55 blur-3xl"
+          <div
+            className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full opacity-55 blur-3xl animate-float-1"
             style={{
               background: "radial-gradient(circle, hsl(280, 85%, 65%) 0%, transparent 70%)",
-              animation: "float-1 20s ease-in-out infinite 1s",
+              animationDelay: "1s",
             }}
           />
           {/* Center accent bubble - vibrant yellow/orange */}
-          <div 
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full opacity-35 blur-3xl"
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full opacity-35 blur-3xl animate-float-2"
             style={{
               background: "radial-gradient(circle, hsl(35, 95%, 60%) 0%, transparent 70%)",
-              animation: "float-2 25s ease-in-out infinite 3s",
+              animationDelay: "3s",
             }}
           />
         </div>
 
         {/* Screen 0: Hero / Intro */}
-        <FlashcardScreen 
-          isVisible={currentScreen === 0} 
-          isExiting={exitingScreen === 0}
-          cardColor={CARD_COLORS[0]}
-        >
+        <FlashcardScreen isVisible={currentScreen === 0} isExiting={exitingScreen === 0} cardColor={CARD_COLORS[0]}>
           <div className="flex flex-col items-center justify-center text-center px-4">
             {/* Logo with gradient */}
-            <h1 
+            <h1
               className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight"
               style={{
-                background: "linear-gradient(135deg, hsl(175, 70%, 45%) 0%, hsl(210, 80%, 55%) 50%, hsl(250, 70%, 50%) 100%)",
+                background:
+                  "linear-gradient(135deg, hsl(175, 70%, 45%) 0%, hsl(210, 80%, 55%) 50%, hsl(250, 70%, 50%) 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -257,42 +247,32 @@ const FlashcardSequence = () => {
             >
               Phormula
             </h1>
-            
+
             {/* Slogan */}
             <p className="text-xl sm:text-2xl md:text-3xl text-foreground/80 italic font-serif tracking-wide mt-4">
-              simplify studying.
+              simplify memorization.
             </p>
           </div>
         </FlashcardScreen>
 
         {/* Screen 1: Features Overview */}
-        <FlashcardScreen 
-          isVisible={currentScreen === 1} 
-          isExiting={exitingScreen === 1}
-          cardColor={CARD_COLORS[1]}
-        >
+        <FlashcardScreen isVisible={currentScreen === 1} isExiting={exitingScreen === 1} cardColor={CARD_COLORS[1]}>
           <div className="flex flex-col items-center justify-center text-center px-4 sm:px-8 max-w-5xl mx-auto">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-8 sm:mb-12 text-foreground">
               Everything You Need to Study Smarter.
             </h2>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 w-full">
               {features.map((feature, index) => (
-                <div 
+                <div
                   key={index}
                   className="group bg-foreground/5 rounded-2xl p-4 sm:p-6 border border-foreground/10 hover:bg-foreground/10 transition-all duration-300 hover:shadow-lg"
                 >
-                  <div 
-                    className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-3 sm:mb-4 bg-foreground/10"
-                  >
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-3 sm:mb-4 bg-foreground/10">
                     <feature.icon className="h-5 w-5 sm:h-6 sm:w-6 text-foreground" />
                   </div>
-                  <h3 className="text-base sm:text-lg font-semibold mb-2 text-foreground">
-                    {feature.title}
-                  </h3>
-                  <p className="text-foreground/70 text-xs sm:text-sm">
-                    {feature.description}
-                  </p>
+                  <h3 className="text-base sm:text-lg font-semibold mb-2 text-foreground">{feature.title}</h3>
+                  <p className="text-foreground/70 text-xs sm:text-sm">{feature.description}</p>
                 </div>
               ))}
             </div>
@@ -300,15 +280,9 @@ const FlashcardSequence = () => {
         </FlashcardScreen>
 
         {/* Screen 2: About (placeholder) */}
-        <FlashcardScreen 
-          isVisible={currentScreen === 2} 
-          isExiting={exitingScreen === 2}
-          cardColor={CARD_COLORS[2]}
-        >
+        <FlashcardScreen isVisible={currentScreen === 2} isExiting={exitingScreen === 2} cardColor={CARD_COLORS[2]}>
           <div className="flex flex-col items-center justify-center text-center px-4">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground">
-              About
-            </h2>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground">About</h2>
           </div>
         </FlashcardScreen>
 
@@ -319,9 +293,7 @@ const FlashcardSequence = () => {
               key={index}
               onClick={() => goToScreen(index)}
               className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                currentScreen === index 
-                  ? "bg-foreground scale-125" 
-                  : "bg-foreground/30 hover:bg-foreground/50"
+                currentScreen === index ? "bg-foreground scale-125" : "bg-foreground/30 hover:bg-foreground/50"
               }`}
               aria-label={`Go to screen ${index + 1}`}
             />
