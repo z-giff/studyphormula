@@ -248,7 +248,7 @@ const FlashcardSequence = () => {
             <h1 
               className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight"
               style={{
-                background: "linear-gradient(135deg, hsl(350, 80%, 65%) 0%, hsl(280, 70%, 60%) 50%, hsl(210, 80%, 60%) 100%)",
+                background: "linear-gradient(135deg, hsl(175, 70%, 45%) 0%, hsl(210, 80%, 55%) 50%, hsl(250, 70%, 50%) 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
