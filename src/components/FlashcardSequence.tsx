@@ -1,5 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { Palette, ImageIcon, BookmarkIcon, Shuffle } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import phormulaTextLogo from "@/assets/phormula-text-logo.png";
 import GlowSphere from "./GlowSphere";
 
@@ -249,6 +251,20 @@ const FlashcardSequence = () => {
             <p className="text-xl sm:text-2xl md:text-3xl text-foreground/60 font-light tracking-widest mt-4 relative z-10">
               simplify memorization.
             </p>
+
+            {/* CTA Buttons */}
+            <div className="flex items-center gap-3 mt-8 relative z-10">
+              <Link to="/auth">
+                <Button variant="ghost" className="text-foreground/80 hover:text-foreground hover:bg-foreground/5 font-light tracking-wide text-sm">
+                  Sign In
+                </Button>
+              </Link>
+              <Link to="/auth">
+                <Button className="bg-foreground text-background hover:bg-foreground/90 rounded-lg font-light tracking-wide text-sm">
+                  Get Started
+                </Button>
+              </Link>
+            </div>
           </div>
         </FlashcardScreen>
 
