@@ -8,8 +8,8 @@ import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import phormulaLogo from "@/assets/phormula-logo.png";
-import phormulaBackground from "@/assets/phormula-background.png";
+import LogoOrb from "@/components/LogoOrb";
+import GlowSphere from "@/components/GlowSphere";
 
 const Auth = () => {
   const { signIn, signUp } = useAuth();
@@ -74,51 +74,58 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: '#e9e9e9' }}>
-      {/* Theme Toggle */}
-      <div className="absolute top-4 right-4 z-20">
-        <ThemeToggle />
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
+        <div className="container mx-auto px-4 flex items-center justify-between py-4">
+          <LogoOrb size="md" showWordmark={true} linkTo="/" />
+          <ThemeToggle />
+        </div>
+      </nav>
+
+      {/* Background Glow Sphere */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-30">
+        <GlowSphere />
       </div>
 
-      {/* Animated Background */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <img 
-          src={phormulaBackground} 
-          alt="" 
-          className="absolute h-[600px] md:h-[800px] opacity-20 -scale-x-100 animate-[pulse_4s_ease-in-out_infinite]" 
-        />
-      </div>
-
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4">
+      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4 pt-24">
         <div className="w-full max-w-md space-y-6">
-          {/* Logo */}
-          <div className="text-center">
-            <Link to="/" className="inline-block">
-              <img 
-                src={phormulaLogo} 
-                alt="Phormula" 
-                className="h-32 md:h-40 mx-auto animate-[pulse_4s_ease-in-out_infinite]" 
-              />
-            </Link>
-            <p className="text-black/70 mt-2">Master any subject with visual flashcards</p>
+          {/* Header */}
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-light tracking-wide text-foreground">Welcome</h1>
+            <p className="text-muted-foreground font-light tracking-wide text-sm">
+              Master any subject with visual flashcards
+            </p>
           </div>
 
-          <Card className="bg-white/80 backdrop-blur-md border-black/10 shadow-xl">
-            <CardHeader className="text-center">
-              <CardTitle className="text-black">Welcome</CardTitle>
-              <CardDescription className="text-black/60">Sign in to your account or create a new one</CardDescription>
+          <Card className="bg-background/60 backdrop-blur-xl border-border/50 shadow-2xl">
+            <CardHeader className="text-center pb-4">
+              <CardTitle className="text-foreground font-light tracking-wide text-xl">Get Started</CardTitle>
+              <CardDescription className="text-muted-foreground font-light">
+                Sign in to your account or create a new one
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="login" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 bg-black/10">
-                  <TabsTrigger value="login" className="data-[state=active]:bg-black data-[state=active]:text-white">Login</TabsTrigger>
-                  <TabsTrigger value="signup" className="data-[state=active]:bg-black data-[state=active]:text-white">Sign Up</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 bg-muted/50">
+                  <TabsTrigger 
+                    value="login" 
+                    className="font-light tracking-wide text-sm data-[state=active]:bg-foreground data-[state=active]:text-background"
+                  >
+                    Login
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="signup" 
+                    className="font-light tracking-wide text-sm data-[state=active]:bg-foreground data-[state=active]:text-background"
+                  >
+                    Sign Up
+                  </TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="login">
                   <form onSubmit={handleLogin} className="space-y-4 mt-4">
                     <div className="space-y-2">
-                      <Label htmlFor="login-email" className="text-black">Email</Label>
+                      <Label htmlFor="login-email" className="text-foreground font-light tracking-wide text-sm">Email</Label>
                       <Input
                         id="login-email"
                         type="email"
@@ -127,11 +134,11 @@ const Auth = () => {
                         onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                         disabled={isLoading}
                         required
-                        className="bg-white/50 border-black/20 text-black placeholder:text-black/40"
+                        className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground font-light"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="login-password" className="text-black">Password</Label>
+                      <Label htmlFor="login-password" className="text-foreground font-light tracking-wide text-sm">Password</Label>
                       <Input
                         id="login-password"
                         type="password"
@@ -140,10 +147,14 @@ const Auth = () => {
                         onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                         disabled={isLoading}
                         required
-                        className="bg-white/50 border-black/20 text-black placeholder:text-black/40"
+                        className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground font-light"
                       />
                     </div>
-                    <Button type="submit" className="w-full bg-black text-white hover:bg-black/90" disabled={isLoading}>
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-foreground text-background hover:bg-foreground/90 font-light tracking-wide" 
+                      disabled={isLoading}
+                    >
                       {isLoading ? "Signing in..." : "Sign In"}
                     </Button>
                   </form>
@@ -152,7 +163,7 @@ const Auth = () => {
                 <TabsContent value="signup">
                   <form onSubmit={handleSignup} className="space-y-4 mt-4">
                     <div className="space-y-2">
-                      <Label htmlFor="signup-name" className="text-black">Full Name</Label>
+                      <Label htmlFor="signup-name" className="text-foreground font-light tracking-wide text-sm">Full Name</Label>
                       <Input
                         id="signup-name"
                         type="text"
@@ -161,11 +172,11 @@ const Auth = () => {
                         onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
                         disabled={isLoading}
                         required
-                        className="bg-white/50 border-black/20 text-black placeholder:text-black/40"
+                        className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground font-light"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="signup-email" className="text-black">Email</Label>
+                      <Label htmlFor="signup-email" className="text-foreground font-light tracking-wide text-sm">Email</Label>
                       <Input
                         id="signup-email"
                         type="email"
@@ -174,11 +185,11 @@ const Auth = () => {
                         onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
                         disabled={isLoading}
                         required
-                        className="bg-white/50 border-black/20 text-black placeholder:text-black/40"
+                        className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground font-light"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="signup-password" className="text-black">Password</Label>
+                      <Label htmlFor="signup-password" className="text-foreground font-light tracking-wide text-sm">Password</Label>
                       <Input
                         id="signup-password"
                         type="password"
@@ -187,11 +198,11 @@ const Auth = () => {
                         onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
                         disabled={isLoading}
                         required
-                        className="bg-white/50 border-black/20 text-black placeholder:text-black/40"
+                        className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground font-light"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="signup-confirm" className="text-black">Confirm Password</Label>
+                      <Label htmlFor="signup-confirm" className="text-foreground font-light tracking-wide text-sm">Confirm Password</Label>
                       <Input
                         id="signup-confirm"
                         type="password"
@@ -200,10 +211,14 @@ const Auth = () => {
                         onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
                         disabled={isLoading}
                         required
-                        className="bg-white/50 border-black/20 text-black placeholder:text-black/40"
+                        className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground font-light"
                       />
                     </div>
-                    <Button type="submit" className="w-full bg-black text-white hover:bg-black/90" disabled={isLoading}>
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-foreground text-background hover:bg-foreground/90 font-light tracking-wide" 
+                      disabled={isLoading}
+                    >
                       {isLoading ? "Creating account..." : "Create Account"}
                     </Button>
                   </form>
@@ -212,8 +227,11 @@ const Auth = () => {
             </CardContent>
           </Card>
 
-          <div className="text-center text-sm text-black/60">
-            <Link to="/" className="hover:text-black transition-colors">
+          <div className="text-center">
+            <Link 
+              to="/" 
+              className="text-muted-foreground hover:text-foreground transition-colors font-light tracking-wide text-sm"
+            >
               ← Back to home
             </Link>
           </div>
