@@ -240,14 +240,7 @@ const FlashcardSequence = () => {
             
             {/* Logo with gradient */}
             <h1
-              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight relative z-10"
-              style={{
-                background:
-                  "linear-gradient(135deg, hsl(175, 70%, 45%) 0%, hsl(210, 80%, 55%) 50%, hsl(250, 70%, 50%) 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
+              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight relative z-10 text-foreground"
             >
               Phormula
             </h1>
