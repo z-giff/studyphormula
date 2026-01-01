@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 const GlowSphere = () => {
-  const [rotation, setRotation] = useState(0);
+  const [time, setTime] = useState(0);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   useEffect(() => {
@@ -15,141 +15,159 @@ const GlowSphere = () => {
   useEffect(() => {
     if (prefersReducedMotion) return;
     
-    let animationFrame: number;
-    let startTime: number | null = null;
-    
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const elapsed = timestamp - startTime;
-      // 12 second loop
-      setRotation((elapsed / 12000) * 360 % 360);
-      animationFrame = requestAnimationFrame(animate);
+    const animate = () => {
+      setTime((prev) => prev + 0.008);
     };
     
-    animationFrame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationFrame);
+    const interval = setInterval(animate, 16);
+    return () => clearInterval(interval);
   }, [prefersReducedMotion]);
 
-  const slowRotation = rotation;
-  const counterRotation = -rotation * 0.6;
-  const microRotation = rotation * 0.3;
+  // Slow oscillating values for organic movement
+  const breathe = Math.sin(time * 0.5) * 0.08;
+  const drift = Math.cos(time * 0.3) * 8;
+  const colorShift = time * 15;
 
   return (
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-      {/* Ambient glow - soft outer halo */}
       <div
-        className="absolute w-64 h-64 sm:w-80 sm:h-80 md:w-[26rem] md:h-[26rem] lg:w-[32rem] lg:h-[32rem] rounded-full"
+        className="relative w-56 h-56 sm:w-72 sm:h-72 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem]"
         style={{
-          background: `radial-gradient(
-            circle at 50% 50%,
-            hsla(210, 80%, 70%, 0.15) 0%,
-            hsla(230, 70%, 60%, 0.08) 40%,
-            hsla(250, 60%, 50%, 0.03) 60%,
-            transparent 75%
-          )`,
-          filter: "blur(30px)",
-        }}
-      />
-
-      {/* Main orb container */}
-      <div
-        className="relative w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full"
-        style={{
-          transformStyle: "preserve-3d",
+          transform: `scale(${1 + breathe})`,
+          transition: "transform 0.1s ease-out",
         }}
       >
-        {/* Base sphere with 3D shading - dark side (lower-right) */}
+        {/* Outer ambient glow - soft edge diffusion */}
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{
+            background: `radial-gradient(
+              ellipse 100% 100% at 40% 35%,
+              hsla(210, 85%, 70%, 0.15) 0%,
+              hsla(250, 70%, 60%, 0.08) 40%,
+              transparent 70%
+            )`,
+            filter: "blur(60px)",
+            transform: `translate(${drift * 0.3}px, ${drift * 0.2}px)`,
+          }}
+        />
+
+        {/* Base sphere with directional lighting - highlight top-left */}
         <div
           className="absolute inset-0 rounded-full"
           style={{
             background: `
               radial-gradient(
-                ellipse 130% 130% at 70% 75%,
-                hsla(250, 40%, 20%, 0.4) 0%,
-                hsla(240, 35%, 25%, 0.25) 25%,
-                hsla(230, 30%, 30%, 0.1) 50%,
-                transparent 70%
+                ellipse 120% 120% at 30% 25%,
+                hsla(175, 75%, 65%, 0.5) 0%,
+                hsla(200, 80%, 55%, 0.35) 20%,
+                hsla(230, 75%, 50%, 0.2) 45%,
+                hsla(270, 60%, 45%, 0.1) 65%,
+                transparent 85%
               )
             `,
+            filter: "blur(25px)",
           }}
         />
 
-        {/* Lit side (upper-left) - directional light */}
+        {/* Shadow falloff - bottom-right darker region */}
         <div
           className="absolute inset-0 rounded-full"
           style={{
             background: `
               radial-gradient(
-                ellipse 100% 100% at 30% 25%,
-                hsla(190, 85%, 75%, 0.45) 0%,
-                hsla(200, 80%, 65%, 0.3) 20%,
-                hsla(215, 75%, 55%, 0.15) 40%,
-                transparent 65%
+                ellipse 100% 100% at 75% 80%,
+                hsla(260, 50%, 25%, 0.25) 0%,
+                hsla(240, 40%, 30%, 0.15) 30%,
+                transparent 60%
               )
             `,
+            filter: "blur(30px)",
           }}
         />
 
-        {/* Internal flowing gradient layer 1 - primary rotation */}
+        {/* Internal color flow layer 1 - wrapping gradient */}
         <div
-          className="absolute inset-2 rounded-full overflow-hidden"
+          className="absolute inset-4 rounded-full"
           style={{
             background: `
               conic-gradient(
-                from ${slowRotation}deg at 45% 40%,
-                hsla(175, 75%, 50%, 0.35) 0%,
-                hsla(195, 80%, 55%, 0.4) 12%,
-                hsla(215, 85%, 55%, 0.38) 25%,
-                hsla(240, 75%, 50%, 0.32) 40%,
-                hsla(270, 65%, 50%, 0.28) 55%,
-                hsla(220, 80%, 55%, 0.35) 70%,
-                hsla(190, 75%, 50%, 0.38) 85%,
-                hsla(175, 75%, 50%, 0.35) 100%
+                from ${colorShift}deg at 45% 40%,
+                hsla(175, 80%, 55%, 0.4) 0%,
+                hsla(195, 85%, 60%, 0.45) 15%,
+                hsla(220, 80%, 55%, 0.4) 30%,
+                hsla(250, 70%, 50%, 0.35) 50%,
+                hsla(280, 65%, 55%, 0.3) 65%,
+                hsla(200, 80%, 60%, 0.35) 80%,
+                hsla(175, 80%, 55%, 0.4) 100%
               )
             `,
-            filter: "blur(12px)",
-          }}
-        />
-
-        {/* Internal flowing gradient layer 2 - counter rotation for depth */}
-        <div
-          className="absolute inset-6 rounded-full overflow-hidden"
-          style={{
-            background: `
-              conic-gradient(
-                from ${counterRotation + 60}deg at 55% 50%,
-                hsla(200, 90%, 60%, 0.4) 0%,
-                hsla(230, 80%, 55%, 0.35) 20%,
-                hsla(260, 70%, 50%, 0.3) 40%,
-                hsla(180, 85%, 50%, 0.35) 60%,
-                hsla(195, 90%, 55%, 0.4) 80%,
-                hsla(200, 90%, 60%, 0.4) 100%
-              )
-            `,
-            filter: "blur(8px)",
+            filter: "blur(20px)",
             opacity: 0.7,
           }}
         />
 
-        {/* Internal flowing gradient layer 3 - slow micro movement */}
+        {/* Internal color flow layer 2 - counter rotation for depth */}
         <div
-          className="absolute inset-10 rounded-full overflow-hidden"
+          className="absolute inset-8 rounded-full"
           style={{
             background: `
               conic-gradient(
-                from ${microRotation + 180}deg at 48% 48%,
-                hsla(210, 95%, 70%, 0.45) 0%,
-                hsla(240, 85%, 65%, 0.4) 30%,
-                hsla(190, 90%, 60%, 0.42) 60%,
-                hsla(210, 95%, 70%, 0.45) 100%
+                from ${-colorShift * 0.6 + 120}deg at 55% 50%,
+                hsla(210, 90%, 65%, 0.5) 0%,
+                hsla(240, 75%, 60%, 0.45) 25%,
+                hsla(175, 80%, 50%, 0.4) 50%,
+                hsla(195, 85%, 55%, 0.45) 75%,
+                hsla(210, 90%, 65%, 0.5) 100%
               )
             `,
-            filter: "blur(6px)",
+            filter: "blur(15px)",
             opacity: 0.6,
           }}
         />
 
-        {/* Core brightness - denser center */}
+        {/* Highlight rim - top-left specular */}
+        <div
+          className="absolute rounded-full"
+          style={{
+            top: "8%",
+            left: "12%",
+            width: "35%",
+            height: "25%",
+            background: `
+              radial-gradient(
+                ellipse 100% 80% at 50% 60%,
+                hsla(190, 90%, 80%, 0.6) 0%,
+                hsla(200, 85%, 70%, 0.3) 40%,
+                transparent 80%
+              )
+            `,
+            filter: "blur(12px)",
+            transform: `translate(${drift * 0.2}px, ${-drift * 0.15}px)`,
+          }}
+        />
+
+        {/* Secondary highlight - smaller, brighter */}
+        <div
+          className="absolute rounded-full"
+          style={{
+            top: "15%",
+            left: "20%",
+            width: "18%",
+            height: "12%",
+            background: `
+              radial-gradient(
+                ellipse at 50% 50%,
+                hsla(180, 95%, 85%, 0.7) 0%,
+                hsla(195, 90%, 75%, 0.4) 50%,
+                transparent 100%
+              )
+            `,
+            filter: "blur(8px)",
+          }}
+        />
+
+        {/* Dense luminous core */}
         <div
           className="absolute rounded-full"
           style={{
@@ -159,105 +177,76 @@ const GlowSphere = () => {
             height: "50%",
             background: `
               radial-gradient(
-                ellipse 90% 85% at 45% 45%,
-                hsla(200, 90%, 80%, 0.4) 0%,
-                hsla(215, 85%, 70%, 0.25) 35%,
-                hsla(230, 75%, 60%, 0.1) 60%,
+                ellipse 90% 90% at 45% 45%,
+                hsla(200, 85%, 75%, 0.5) 0%,
+                hsla(220, 80%, 65%, 0.35) 30%,
+                hsla(240, 70%, 55%, 0.2) 55%,
+                transparent 80%
+              )
+            `,
+            filter: "blur(18px)",
+            transform: `scale(${1 + Math.sin(time * 0.7) * 0.05})`,
+          }}
+        />
+
+        {/* Inner core glow - brightest point */}
+        <div
+          className="absolute rounded-full"
+          style={{
+            top: "32%",
+            left: "32%",
+            width: "36%",
+            height: "36%",
+            background: `
+              radial-gradient(
+                ellipse at 40% 40%,
+                hsla(195, 90%, 80%, 0.55) 0%,
+                hsla(210, 85%, 70%, 0.35) 35%,
+                hsla(230, 75%, 60%, 0.15) 60%,
                 transparent 85%
               )
             `,
-            filter: "blur(10px)",
+            filter: "blur(12px)",
           }}
         />
 
-        {/* Specular highlight - primary (upper-left sheen) */}
-        <div
-          className="absolute rounded-full"
-          style={{
-            top: "6%",
-            left: "10%",
-            width: "40%",
-            height: "28%",
-            background: `
-              radial-gradient(
-                ellipse 100% 70% at 50% 70%,
-                hsla(195, 100%, 90%, 0.7) 0%,
-                hsla(200, 95%, 85%, 0.4) 30%,
-                hsla(210, 90%, 80%, 0.15) 60%,
-                transparent 100%
-              )
-            `,
-            filter: "blur(6px)",
-            transform: "rotate(-15deg)",
-          }}
-        />
-
-        {/* Specular highlight - secondary (smaller, brighter spot) */}
-        <div
-          className="absolute rounded-full"
-          style={{
-            top: "12%",
-            left: "18%",
-            width: "18%",
-            height: "10%",
-            background: `
-              radial-gradient(
-                ellipse at 50% 50%,
-                hsla(185, 100%, 95%, 0.85) 0%,
-                hsla(195, 100%, 90%, 0.5) 40%,
-                transparent 100%
-              )
-            `,
-            filter: "blur(3px)",
-            transform: "rotate(-20deg)",
-          }}
-        />
-
-        {/* Edge definition - subtle rim lighting */}
+        {/* Subsurface scattering effect - edge glow */}
         <div
           className="absolute inset-0 rounded-full"
           style={{
             background: `
               radial-gradient(
                 circle at 50% 50%,
-                transparent 60%,
-                hsla(210, 75%, 65%, 0.08) 75%,
-                hsla(230, 65%, 55%, 0.05) 85%,
+                transparent 55%,
+                hsla(210, 80%, 65%, 0.12) 65%,
+                hsla(240, 70%, 55%, 0.08) 75%,
+                hsla(270, 60%, 50%, 0.04) 85%,
                 transparent 95%
-              )
-            `,
-          }}
-        />
-
-        {/* Bottom rim reflection - subtle bounce light */}
-        <div
-          className="absolute rounded-full"
-          style={{
-            bottom: "8%",
-            left: "25%",
-            width: "50%",
-            height: "15%",
-            background: `
-              radial-gradient(
-                ellipse 100% 100% at 50% 0%,
-                hsla(200, 70%, 70%, 0.15) 0%,
-                hsla(210, 65%, 60%, 0.08) 50%,
-                transparent 100%
               )
             `,
             filter: "blur(8px)",
           }}
         />
 
-        {/* 3D depth shadow - internal shadow for volume */}
+        {/* Refraction caustic - subtle light bending effect */}
         <div
-          className="absolute inset-0 rounded-full"
+          className="absolute rounded-full"
           style={{
-            boxShadow: `
-              inset -20px -20px 40px hsla(250, 50%, 15%, 0.25),
-              inset -10px -10px 20px hsla(240, 45%, 20%, 0.15),
-              inset 15px 15px 30px hsla(200, 80%, 80%, 0.1)
+            top: "55%",
+            left: "50%",
+            width: "30%",
+            height: "20%",
+            background: `
+              radial-gradient(
+                ellipse at 50% 30%,
+                hsla(175, 85%, 70%, 0.25) 0%,
+                hsla(190, 80%, 65%, 0.15) 50%,
+                transparent 100%
+              )
             `,
+            filter: "blur(10px)",
+            transform: `translate(${drift * 0.4}px, ${drift * 0.2}px) rotate(${colorShift * 0.3}deg)`,
+            opacity: 0.6,
           }}
         />
       </div>

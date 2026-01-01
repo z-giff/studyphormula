@@ -19,7 +19,6 @@ export default {
         'sans': ['Elms Sans', 'sans-serif'],
         'heading': ['Elms Sans', 'sans-serif'],
         'handwriting': ['Caveat', 'cursive'],
-        'minimal': ['DM Sans', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
