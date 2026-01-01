@@ -246,7 +246,7 @@ const FlashcardSequence = () => {
             </h1>
 
             {/* Slogan */}
-            <p className="text-xl sm:text-2xl md:text-3xl text-foreground/80 italic font-serif tracking-wide mt-4 relative z-10">
+            <p className="text-xl sm:text-2xl md:text-3xl text-foreground/60 font-light tracking-widest mt-4 relative z-10">
               simplify memorization.
             </p>
           </div>
