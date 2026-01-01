@@ -4,11 +4,12 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, LogOut, BookOpen } from "lucide-react";
+import { Plus, BookOpen, User } from "lucide-react";
 import { toast } from "sonner";
 import { CreateSetDialog } from "@/components/CreateSetDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import LogoOrb from "@/components/LogoOrb";
+import { ProfileSheet } from "@/components/ProfileSheet";
 import phormulaBackground from "@/assets/phormula-background.png";
 
 interface FlashcardSet {
@@ -105,10 +106,12 @@ const Dashboard = () => {
           <LogoOrb size="md" showWordmark={true} linkTo="/" />
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Button variant="ghost" onClick={handleSignOut} className="hover:bg-black/10 dark:hover:bg-white/10">
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
+            <ProfileSheet>
+              <Button variant="ghost" className="hover:bg-black/10 dark:hover:bg-white/10">
+                <User className="h-4 w-4 mr-2" />
+                Profile
+              </Button>
+            </ProfileSheet>
           </div>
         </div>
       </nav>
