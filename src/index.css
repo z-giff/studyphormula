@@ -9,7 +9,7 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* Pastel palette: #f2e9d8, #e2eaf7, #f1d3d1, #c5d5e2, #b7d5df */
-    --background: 39 47% 90%;
+    --background: 0 0% 98%;
     --foreground: 210 20% 25%;
 
     --card: 0 0% 100%;
