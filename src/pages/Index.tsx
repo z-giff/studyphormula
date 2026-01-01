@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import LogoOrb from "@/components/LogoOrb";
 import FlashcardSequence from "@/components/FlashcardSequence";
@@ -9,6 +9,7 @@ import FlashcardSequence from "@/components/FlashcardSequence";
 const Index = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [showNav, setShowNav] = useState(false);
   
   useEffect(() => {
     if (user) {
@@ -16,10 +17,27 @@ const Index = () => {
     }
   }, [user, navigate]);
 
+  // Show navbar on scroll past first screen
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const viewportHeight = window.innerHeight;
+      // Show nav when scrolled past ~30% of first screen
+      setShowNav(scrollY > viewportHeight * 0.3);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Fixed Navigation - Always visible */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
+      {/* Fixed Navigation - Shows on scroll */}
+      <nav 
+        className={`fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50 transition-all duration-300 ${
+          showNav ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-full pointer-events-none"
+        }`}
+      >
         <div className="container mx-auto px-4 flex items-center justify-between py-4">
           <LogoOrb size="md" showWordmark={true} linkTo="/" />
           <div className="flex items-center gap-3">
