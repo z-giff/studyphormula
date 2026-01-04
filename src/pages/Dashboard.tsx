@@ -211,7 +211,7 @@ const Dashboard = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="absolute top-2 right-2 h-8 w-8 bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-700 z-10"
+                    className="absolute top-2 right-2 h-8 w-8 hover:bg-black/10 dark:hover:bg-white/10 z-10"
                     onClick={(e) => e.preventDefault()}
                   >
                     <MoreHorizontal className="h-4 w-4" />
