@@ -4,12 +4,28 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, BookOpen, User } from "lucide-react";
+import { Plus, BookOpen, User, MoreHorizontal, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { CreateSetDialog } from "@/components/CreateSetDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import LogoOrb from "@/components/LogoOrb";
 import { ProfileSheet } from "@/components/ProfileSheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import phormulaBackground from "@/assets/phormula-background.png";
 
 interface FlashcardSet {
@@ -28,6 +44,8 @@ const Dashboard = () => {
   const [sets, setSets] = useState<FlashcardSet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [deleteSetId, setDeleteSetId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -87,6 +105,28 @@ const Dashboard = () => {
     await signOut();
   };
 
+  const handleDeleteSet = async () => {
+    if (!deleteSetId) return;
+    
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from("flashcard_sets")
+        .delete()
+        .eq("id", deleteSetId);
+
+      if (error) throw error;
+
+      setSets((prev) => prev.filter((set) => set.id !== deleteSetId));
+      toast.success("Flashcard set deleted");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete set");
+    } finally {
+      setIsDeleting(false);
+      setDeleteSetId(null);
+    }
+  };
+
   if (loading || isLoading) {
     return (
       <div className="min-h-screen bg-[#e8eef4] dark:bg-[#2d3748] flex items-center justify-center">
@@ -139,34 +179,63 @@ const Dashboard = () => {
 
           {/* Existing Sets */}
           {sets.map((set) => (
-            <Link key={set.id} to={`/set/${set.id}`}>
-              <Card
-                className="h-48 cursor-pointer hover:shadow-lg transition-all overflow-hidden group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-black/10 dark:border-white/10"
-                style={{
-                  borderTop: `6px solid ${set.displayColor}`,
-                  background: `linear-gradient(to bottom, ${set.displayColor}15, rgba(255,255,255,0.8))`,
-                }}
-              >
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between text-foreground">
-                    <span className="truncate">{set.title}</span>
-                    <div
-                      className="w-6 h-6 rounded-full flex-shrink-0 shadow-md"
-                      style={{ backgroundColor: set.displayColor }}
-                    />
-                  </CardTitle>
-                  <CardDescription className="line-clamp-2">
-                    {set.description || "No description"}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <BookOpen className="h-4 w-4" />
-                    <span>{set._count?.flashcards || 0} cards</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
+            <div key={set.id} className="relative">
+              <Link to={`/set/${set.id}`}>
+                <Card
+                  className="h-48 cursor-pointer hover:shadow-lg transition-all overflow-hidden group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-black/10 dark:border-white/10"
+                  style={{
+                    borderTop: `6px solid ${set.displayColor}`,
+                    background: `linear-gradient(to bottom, ${set.displayColor}15, rgba(255,255,255,0.8))`,
+                  }}
+                >
+                  <CardHeader className="pr-12">
+                    <CardTitle className="flex items-center justify-between text-foreground">
+                      <span className="truncate">{set.title}</span>
+                      <div
+                        className="w-6 h-6 rounded-full flex-shrink-0 shadow-md"
+                        style={{ backgroundColor: set.displayColor }}
+                      />
+                    </CardTitle>
+                    <CardDescription className="line-clamp-2">
+                      {set.description || "No description"}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <BookOpen className="h-4 w-4" />
+                      <span>{set._count?.flashcards || 0} cards</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+              
+              {/* More Options Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2 h-8 w-8 bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-700 z-10"
+                    onClick={(e) => e.preventDefault()}
+                  >
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="sr-only">More options</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-popover">
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setDeleteSetId(set.id);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete set
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           ))}
         </div>
 
@@ -190,6 +259,28 @@ const Dashboard = () => {
         onOpenChange={setIsCreateDialogOpen}
         onSuccess={fetchSets}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteSetId} onOpenChange={(open) => !open && setDeleteSetId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this set?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This can't be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteSet}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
