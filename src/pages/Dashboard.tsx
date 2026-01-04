@@ -189,12 +189,8 @@ const Dashboard = () => {
                   }}
                 >
                   <CardHeader className="pr-12">
-                    <CardTitle className="flex items-center justify-between text-foreground">
+                    <CardTitle className="text-foreground">
                       <span className="truncate">{set.title}</span>
-                      <div
-                        className="w-6 h-6 rounded-full flex-shrink-0 shadow-md"
-                        style={{ backgroundColor: set.displayColor }}
-                      />
                     </CardTitle>
                     <CardDescription className="line-clamp-2">
                       {set.description || "No description"}
