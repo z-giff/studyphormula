@@ -17,6 +17,7 @@ const features = [
     icon: Palette,
     title: "Colour-Coded Organization",
     description: "Organize flashcards by colour that help group related content and reinforce memory through visually associated.",
+    bgColor: "bg-pink-100/60 dark:bg-pink-900/20",
   },
   {
     icon: ImageIcon,
@@ -268,7 +269,7 @@ const FlashcardSequence = () => {
               {features.map((feature, index) => (
                 <div
                   key={index}
-                  className="group bg-foreground/5 rounded-2xl p-4 sm:p-6 border border-foreground/10 hover:bg-foreground/10 transition-all duration-300 hover:shadow-lg"
+                  className={`group rounded-2xl p-4 sm:p-6 border border-foreground/10 hover:bg-foreground/10 transition-all duration-300 hover:shadow-lg ${feature.bgColor || "bg-foreground/5"}`}
                 >
                   <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-3 sm:mb-4 bg-foreground/10">
                     <feature.icon className="h-5 w-5 sm:h-6 sm:w-6 text-foreground" />
