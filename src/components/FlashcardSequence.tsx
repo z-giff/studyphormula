@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Palette, ImageIcon, Network, Shuffle } from "lucide-react";
+import { Palette, ImageIcon, Network, Brain } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import phormulaTextLogo from "@/assets/phormula-text-logo.png";
@@ -29,7 +29,7 @@ const features = [
     description: "Create diagrams and flowcharts directly within definition terms, allowing complex processes and relationships to be learned structurally.",
   },
   {
-    icon: Shuffle,
+    icon: Brain,
     title: "Smart Study",
     description: "Engage with intelligent learning tools such as auto-read text on diagrams and interactive fill-in-the-blank testing to actively reinforce knowledge and identify gaps in understanding.",
   },
