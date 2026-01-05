@@ -51,6 +51,8 @@ export const PrivacySecuritySettings = ({
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [deleteStage, setDeleteStage] = useState<0 | 1 | 2>(0);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
@@ -96,7 +98,14 @@ export const PrivacySecuritySettings = ({
     toast.info(
       "To delete your account, please contact support at support@phormula.co"
     );
+    setDeleteStage(0);
+    setDeleteConfirmText("");
     onOpenChange(false);
+  };
+
+  const resetDeleteFlow = () => {
+    setDeleteStage(0);
+    setDeleteConfirmText("");
   };
 
   const handleExportData = async () => {
@@ -276,32 +285,78 @@ export const PrivacySecuritySettings = ({
               Danger Zone
             </div>
 
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" className="w-full">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Account
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete
-                    your account and remove all your data from our servers.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleDeleteAccount}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            {deleteStage === 0 && (
+              <Button
+                variant="destructive"
+                className="w-full"
+                onClick={() => setDeleteStage(1)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Account
+              </Button>
+            )}
+
+            {deleteStage === 1 && (
+              <div className="space-y-3 p-4 border border-destructive/50 rounded-lg bg-destructive/5">
+                <p className="text-sm font-medium text-destructive">
+                  Are you sure you want to delete your account?
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  This will permanently delete all your flashcard sets, progress, and account data.
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={resetDeleteFlow}
                   >
-                    Delete Account
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => setDeleteStage(2)}
+                  >
+                    Yes, I want to delete
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {deleteStage === 2 && (
+              <div className="space-y-3 p-4 border border-destructive rounded-lg bg-destructive/10">
+                <p className="text-sm font-medium text-destructive">
+                  Final confirmation required
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Type <span className="font-mono font-bold text-foreground">DELETE</span> to confirm account deletion.
+                </p>
+                <Input
+                  placeholder="Type DELETE to confirm"
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  className="border-destructive/50"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={resetDeleteFlow}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleDeleteAccount}
+                    disabled={deleteConfirmText !== "DELETE"}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Permanently Delete
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </DialogContent>
