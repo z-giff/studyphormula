@@ -1,9 +1,37 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Allowed domains for image URLs (Supabase storage and common image hosts)
+const ALLOWED_HOSTS = [
+  'supabase.co',
+  'supabase.com',
+  'awvwrdjtptjyalmsyejt.supabase.co',
+];
+
+function isValidImageUrl(urlString: string): boolean {
+  try {
+    const url = new URL(urlString);
+    
+    // Check if protocol is https
+    if (url.protocol !== 'https:') {
+      return false;
+    }
+    
+    // Check if host is allowed
+    const isAllowed = ALLOWED_HOSTS.some(host => 
+      url.hostname === host || url.hostname.endsWith('.' + host)
+    );
+    
+    return isAllowed;
+  } catch {
+    return false;
+  }
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -11,14 +39,65 @@ serve(async (req) => {
   }
 
   try {
-    const { imageUrl } = await req.json();
+    // Verify authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('No authorization header provided');
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Verify the user's session using Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.error('Authentication failed:', authError?.message);
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Parse and validate request body
+    const body = await req.json();
+    const { imageUrl } = body;
+
+    // Validate imageUrl exists and is a string
+    if (!imageUrl || typeof imageUrl !== 'string') {
+      console.error('Invalid imageUrl parameter');
+      return new Response(JSON.stringify({ error: 'Invalid request: imageUrl is required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Validate URL format and allowed domains
+    if (!isValidImageUrl(imageUrl)) {
+      console.error('URL validation failed for:', imageUrl);
+      return new Response(JSON.stringify({ error: 'Invalid request: URL not allowed' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+      console.error("LOVABLE_API_KEY is not configured");
+      return new Response(JSON.stringify({ error: 'Service configuration error' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    console.log('Detecting text in image...');
+    console.log('Detecting text in image for user:', user.id);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -68,17 +147,22 @@ Be precise with coordinates and include all visible text, even small labels.`
     if (!response.ok) {
       const errorText = await response.text();
       console.error("AI gateway error:", response.status, errorText);
-      throw new Error(`AI gateway error: ${response.status}`);
+      return new Response(JSON.stringify({ error: 'Failed to process image' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
     
     if (!content) {
-      throw new Error("No response from AI");
+      console.error("No response from AI");
+      return new Response(JSON.stringify({ error: 'Failed to process image' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
-
-    console.log('AI Response:', content);
 
     // Extract JSON from the response (it might be wrapped in markdown code blocks)
     let jsonMatch = content.match(/\[[\s\S]*\]/);
@@ -91,19 +175,22 @@ Be precise with coordinates and include all visible text, even small labels.`
     }
 
     if (!jsonMatch) {
-      console.error('Could not find JSON in response:', content);
-      throw new Error("Could not parse AI response");
+      console.error('Could not find JSON in response');
+      return new Response(JSON.stringify({ error: 'Failed to process image' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const textBoxes = JSON.parse(jsonMatch[0]);
-    console.log('Detected text boxes:', textBoxes);
+    console.log('Detected text boxes count:', textBoxes.length);
 
     return new Response(JSON.stringify({ textBoxes }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('Error in detect-text function:', error);
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
+    return new Response(JSON.stringify({ error: 'Failed to process image' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
