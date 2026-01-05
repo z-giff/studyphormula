@@ -6,72 +6,58 @@ import phormulaTextLogo from "@/assets/phormula-text-logo.png";
 import GlowSphere from "./GlowSphere";
 
 // Card color palette - cream/white aesthetic
-const CARD_COLORS = [
-  "hsl(40, 33%, 96%)", // warm white/cream for hero
-  "hsl(40, 33%, 96%)", // warm white for features
-  "hsl(40, 33%, 96%)", // warm white for about
+const CARD_COLORS = ["hsl(40, 33%, 96%)",
+// warm white/cream for hero
+"hsl(40, 33%, 96%)",
+// warm white for features
+"hsl(40, 33%, 96%)" // warm white for about
 ];
-
-const features = [
-  {
-    icon: Palette,
-    title: "Colour-Coded Organization",
-    description: "Organize flashcards by colour that help group related content and reinforce memory through visually associated.",
-    bgColor: "bg-rose-50/80 dark:bg-rose-900/15 border-rose-200/50 dark:border-rose-800/30",
-  },
-  {
-    icon: ImageIcon,
-    title: "Visual Learning",
-    description: "Add images, diagrams, and annotations for complex topics.",
-    bgColor: "bg-emerald-50/80 dark:bg-emerald-900/15 border-emerald-200/50 dark:border-emerald-800/30",
-  },
-  {
-    icon: Network,
-    title: "Process-Based",
-    description: "Create diagrams and flowcharts directly within definition terms, allowing complex processes and relationships to be learned structurally.",
-    bgColor: "bg-violet-50/80 dark:bg-violet-900/15 border-violet-200/50 dark:border-violet-800/30",
-  },
-  {
-    icon: Brain,
-    title: "Smart Study",
-    description: "Engage with intelligent learning tools such as auto-read text on diagrams and interactive fill-in-the-blank testing to actively reinforce knowledge and identify gaps in understanding.",
-    bgColor: "bg-amber-50/80 dark:bg-amber-900/15 border-amber-200/50 dark:border-amber-800/30",
-  },
-];
-
+const features = [{
+  icon: Palette,
+  title: "Colour-Coded Organization",
+  description: "Organize flashcards by colour that help group related content and reinforce memory through visually associated.",
+  bgColor: "bg-rose-50/80 dark:bg-rose-900/15 border-rose-200/50 dark:border-rose-800/30"
+}, {
+  icon: ImageIcon,
+  title: "Visual Learning",
+  description: "Add images, diagrams, and annotations for complex topics.",
+  bgColor: "bg-emerald-50/80 dark:bg-emerald-900/15 border-emerald-200/50 dark:border-emerald-800/30"
+}, {
+  icon: Network,
+  title: "Process-Based",
+  description: "Create diagrams and flowcharts directly within definition terms, allowing complex processes and relationships to be learned structurally.",
+  bgColor: "bg-violet-50/80 dark:bg-violet-900/15 border-violet-200/50 dark:border-violet-800/30"
+}, {
+  icon: Brain,
+  title: "Smart Study",
+  description: "Engage with intelligent learning tools such as auto-read text on diagrams and interactive fill-in-the-blank testing to actively reinforce knowledge and identify gaps in understanding.",
+  bgColor: "bg-amber-50/80 dark:bg-amber-900/15 border-amber-200/50 dark:border-amber-800/30"
+}];
 type FlashcardScreenProps = {
   isVisible: boolean;
   isExiting: boolean;
   children: React.ReactNode;
   cardColor: string;
 };
-
-const FlashcardScreen = ({ isVisible, isExiting, children, cardColor }: FlashcardScreenProps) => {
-  return (
-    <div
-      className={`absolute inset-4 sm:inset-6 md:inset-8 lg:inset-12 rounded-2xl transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${
-        isVisible && !isExiting
-          ? "opacity-100 translate-x-0 rotate-0 scale-100"
-          : isExiting
-            ? "opacity-0 -translate-x-[120%] -rotate-6 scale-95"
-            : "opacity-0 translate-x-[120%] rotate-6 scale-95"
-      }`}
-      style={{
-        perspective: "1000px",
-        backgroundColor: cardColor,
-        border: "1px solid hsl(220, 13%, 75%)",
-        boxShadow: `
+const FlashcardScreen = ({
+  isVisible,
+  isExiting,
+  children,
+  cardColor
+}: FlashcardScreenProps) => {
+  return <div className={`absolute inset-4 sm:inset-6 md:inset-8 lg:inset-12 rounded-2xl transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isVisible && !isExiting ? "opacity-100 translate-x-0 rotate-0 scale-100" : isExiting ? "opacity-0 -translate-x-[120%] -rotate-6 scale-95" : "opacity-0 translate-x-[120%] rotate-6 scale-95"}`} style={{
+    perspective: "1000px",
+    backgroundColor: cardColor,
+    border: "1px solid hsl(220, 13%, 75%)",
+    boxShadow: `
           0 4px 20px -4px rgba(0, 0, 0, 0.08),
           0 8px 40px -8px rgba(0, 0, 0, 0.05)
-        `,
-      }}
-    >
+        `
+  }}>
       {/* Card content */}
       <div className="relative z-10 w-full h-full flex items-center justify-center">{children}</div>
-    </div>
-  );
+    </div>;
 };
-
 const FlashcardSequence = () => {
   const [currentScreen, setCurrentScreen] = useState(0);
   const [exitingScreen, setExitingScreen] = useState<number | null>(null);
@@ -94,7 +80,7 @@ const FlashcardSequence = () => {
   useEffect(() => {
     if (prefersReducedMotion) return;
     const interval = setInterval(() => {
-      setPulsePhase((p) => (p + 1) % 100);
+      setPulsePhase(p => (p + 1) % 100);
     }, 50);
     return () => clearInterval(interval);
   }, [prefersReducedMotion]);
@@ -106,18 +92,15 @@ const FlashcardSequence = () => {
     let isSnapping = false;
     let snapTimeout: NodeJS.Timeout | null = null;
     let lastScrollTime = Date.now();
-
     const snapToScreen = (targetScreen: number) => {
       if (!containerRef.current || isSnapping) return;
-
       isSnapping = true;
       const viewportHeight = window.innerHeight;
       const containerTop = containerRef.current.offsetTop;
       const targetScrollY = containerTop + targetScreen * viewportHeight;
-
       window.scrollTo({
         top: targetScrollY,
-        behavior: "smooth",
+        behavior: "smooth"
       });
 
       // Reset snapping flag after animation
@@ -125,10 +108,8 @@ const FlashcardSequence = () => {
         isSnapping = false;
       }, 600);
     };
-
     const handleScroll = () => {
       if (!containerRef.current || isSnapping) return;
-
       const scrollY = window.scrollY;
       const containerTop = containerRef.current.offsetTop;
       const containerHeight = containerRef.current.offsetHeight;
@@ -137,14 +118,11 @@ const FlashcardSequence = () => {
       // Calculate scroll progress within the flashcard sequence area
       const scrollInContainer = scrollY - containerTop;
       const maxScroll = containerHeight - viewportHeight;
-
       if (scrollInContainer < 0) return;
-
       const progress = Math.max(0, Math.min(1, scrollInContainer / maxScroll));
 
       // Determine target screen based on progress
       const targetScreen = progress < 0.33 ? 0 : progress < 0.66 ? 1 : 2;
-
       if (targetScreen !== currentScreen && exitingScreen === null) {
         if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current);
         hasAutoAdvanced.current = true;
@@ -161,70 +139,53 @@ const FlashcardSequence = () => {
         }
       }, 150);
     };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll, {
+      passive: true
+    });
     return () => {
       window.removeEventListener("scroll", handleScroll);
       if (snapTimeout) clearTimeout(snapTimeout);
     };
   }, [currentScreen, exitingScreen]);
-
   const goToScreen = (targetScreen: number) => {
     if (targetScreen === currentScreen || exitingScreen !== null) return;
-
     setExitingScreen(currentScreen);
     setTimeout(() => {
       setCurrentScreen(targetScreen);
       setExitingScreen(null);
     }, 350);
   };
-
   const pulseScale = prefersReducedMotion ? 1 : 1 + Math.sin(pulsePhase * 0.1) * 0.02;
-
-  return (
-    <div ref={containerRef} className="relative" style={{ height: "300vh" }}>
+  return <div ref={containerRef} className="relative" style={{
+    height: "300vh"
+  }}>
       <div className="sticky top-0 h-screen overflow-hidden bg-background">
         {/* Gradient bubbles background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {/* Top-left bubble - vibrant pink/coral */}
-          <div
-            className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-60 blur-3xl animate-float-1"
-            style={{
-              background: "radial-gradient(circle, hsl(340, 95%, 65%) 0%, transparent 70%)",
-            }}
-          />
+          <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-60 blur-3xl animate-float-1" style={{
+          background: "radial-gradient(circle, hsl(340, 95%, 65%) 0%, transparent 70%)"
+        }} />
           {/* Top-right bubble - vibrant blue */}
-          <div
-            className="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-55 blur-3xl animate-float-2"
-            style={{
-              background: "radial-gradient(circle, hsl(210, 90%, 65%) 0%, transparent 70%)",
-              animationDelay: "2s",
-            }}
-          />
+          <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-55 blur-3xl animate-float-2" style={{
+          background: "radial-gradient(circle, hsl(210, 90%, 65%) 0%, transparent 70%)",
+          animationDelay: "2s"
+        }} />
           {/* Bottom-left bubble - vibrant green/teal */}
-          <div
-            className="absolute -bottom-40 -left-20 w-72 h-72 rounded-full opacity-50 blur-3xl animate-float-3"
-            style={{
-              background: "radial-gradient(circle, hsl(170, 85%, 55%) 0%, transparent 70%)",
-              animationDelay: "4s",
-            }}
-          />
+          <div className="absolute -bottom-40 -left-20 w-72 h-72 rounded-full opacity-50 blur-3xl animate-float-3" style={{
+          background: "radial-gradient(circle, hsl(170, 85%, 55%) 0%, transparent 70%)",
+          animationDelay: "4s"
+        }} />
           {/* Bottom-right bubble - vibrant purple */}
-          <div
-            className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full opacity-55 blur-3xl animate-float-1"
-            style={{
-              background: "radial-gradient(circle, hsl(280, 85%, 65%) 0%, transparent 70%)",
-              animationDelay: "1s",
-            }}
-          />
+          <div className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full opacity-55 blur-3xl animate-float-1" style={{
+          background: "radial-gradient(circle, hsl(280, 85%, 65%) 0%, transparent 70%)",
+          animationDelay: "1s"
+        }} />
           {/* Center accent bubble - vibrant yellow/orange */}
-          <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full opacity-35 blur-3xl animate-float-2"
-            style={{
-              background: "radial-gradient(circle, hsl(35, 95%, 60%) 0%, transparent 70%)",
-              animationDelay: "3s",
-            }}
-          />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full opacity-35 blur-3xl animate-float-2" style={{
+          background: "radial-gradient(circle, hsl(35, 95%, 60%) 0%, transparent 70%)",
+          animationDelay: "3s"
+        }} />
         </div>
 
         {/* Screen 0: Hero / Intro */}
@@ -234,9 +195,7 @@ const FlashcardSequence = () => {
             <GlowSphere />
             
             {/* Logo with gradient */}
-            <h1
-              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight relative z-10 text-foreground"
-            >
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight relative z-10 text-foreground">
               Phormula
             </h1>
 
@@ -269,18 +228,13 @@ const FlashcardSequence = () => {
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 w-full">
-              {features.map((feature, index) => (
-                <div
-                  key={index}
-                  className={`group rounded-2xl p-4 sm:p-6 border transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${feature.bgColor}`}
-                >
+              {features.map((feature, index) => <div key={index} className={`group rounded-2xl p-4 sm:p-6 border transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${feature.bgColor}`}>
                   <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-3 sm:mb-4 bg-foreground/10">
-                    <feature.icon className="h-5 w-5 sm:h-6 sm:w-6 text-foreground" />
+                    
                   </div>
                   <h3 className="text-base sm:text-lg font-semibold mb-2 text-foreground">{feature.title}</h3>
                   <p className="text-foreground/70 text-xs sm:text-sm">{feature.description}</p>
-                </div>
-              ))}
+                </div>)}
             </div>
           </div>
         </FlashcardScreen>
@@ -294,20 +248,9 @@ const FlashcardSequence = () => {
 
         {/* Navigation dots */}
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-40">
-          {[0, 1, 2].map((index) => (
-            <button
-              key={index}
-              onClick={() => goToScreen(index)}
-              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                currentScreen === index ? "bg-foreground scale-125" : "bg-foreground/30 hover:bg-foreground/50"
-              }`}
-              aria-label={`Go to screen ${index + 1}`}
-            />
-          ))}
+          {[0, 1, 2].map(index => <button key={index} onClick={() => goToScreen(index)} className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${currentScreen === index ? "bg-foreground scale-125" : "bg-foreground/30 hover:bg-foreground/50"}`} aria-label={`Go to screen ${index + 1}`} />)}
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default FlashcardSequence;
