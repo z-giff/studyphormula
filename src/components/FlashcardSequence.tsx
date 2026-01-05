@@ -30,8 +30,8 @@ const features = [
   },
   {
     icon: Shuffle,
-    title: "Study Modes",
-    description: "Flip, shuffle, and repeat for effective learning.",
+    title: "Smart Study Features",
+    description: "Engage with intelligent learning tools such as auto-read text on diagrams and interactive fill-in-the-blank testing to actively reinforce knowledge and identify gaps in understanding.",
   },
 ];
 
