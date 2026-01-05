@@ -228,13 +228,18 @@ const FlashcardSequence = () => {
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 w-full">
-              {features.map((feature, index) => <div key={index} className={`group rounded-2xl p-4 sm:p-6 border transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${feature.bgColor}`}>
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-3 sm:mb-4 bg-foreground/10">
-                    
+              {features.map((feature, index) => {
+                const Icon = feature.icon;
+                return (
+                  <div key={index} className={`group rounded-2xl p-4 sm:p-6 border transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${feature.bgColor}`}>
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-3 sm:mb-4 bg-foreground/10">
+                      <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-foreground/80" />
+                    </div>
+                    <h3 className="text-base sm:text-lg font-semibold mb-2 text-foreground">{feature.title}</h3>
+                    <p className="text-foreground/70 text-xs sm:text-sm">{feature.description}</p>
                   </div>
-                  <h3 className="text-base sm:text-lg font-semibold mb-2 text-foreground">{feature.title}</h3>
-                  <p className="text-foreground/70 text-xs sm:text-sm">{feature.description}</p>
-                </div>)}
+                );
+              })}
             </div>
           </div>
         </FlashcardScreen>
