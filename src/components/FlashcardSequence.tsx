@@ -17,22 +17,25 @@ const features = [
     icon: Palette,
     title: "Colour-Coded Organization",
     description: "Organize flashcards by colour that help group related content and reinforce memory through visually associated.",
-    bgColor: "bg-pink-100/60 dark:bg-pink-900/20",
+    bgColor: "bg-rose-50/80 dark:bg-rose-900/15 border-rose-200/50 dark:border-rose-800/30",
   },
   {
     icon: ImageIcon,
     title: "Visual Learning",
     description: "Add images, diagrams, and annotations for complex topics.",
+    bgColor: "bg-emerald-50/80 dark:bg-emerald-900/15 border-emerald-200/50 dark:border-emerald-800/30",
   },
   {
     icon: Network,
     title: "Process-Based",
     description: "Create diagrams and flowcharts directly within definition terms, allowing complex processes and relationships to be learned structurally.",
+    bgColor: "bg-violet-50/80 dark:bg-violet-900/15 border-violet-200/50 dark:border-violet-800/30",
   },
   {
     icon: Brain,
     title: "Smart Study",
     description: "Engage with intelligent learning tools such as auto-read text on diagrams and interactive fill-in-the-blank testing to actively reinforce knowledge and identify gaps in understanding.",
+    bgColor: "bg-amber-50/80 dark:bg-amber-900/15 border-amber-200/50 dark:border-amber-800/30",
   },
 ];
 
@@ -269,7 +272,7 @@ const FlashcardSequence = () => {
               {features.map((feature, index) => (
                 <div
                   key={index}
-                  className={`group rounded-2xl p-4 sm:p-6 border border-foreground/10 hover:bg-foreground/10 transition-all duration-300 hover:shadow-lg ${feature.bgColor || "bg-foreground/5"}`}
+                  className={`group rounded-2xl p-4 sm:p-6 border transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${feature.bgColor}`}
                 >
                   <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-3 sm:mb-4 bg-foreground/10">
                     <feature.icon className="h-5 w-5 sm:h-6 sm:w-6 text-foreground" />
