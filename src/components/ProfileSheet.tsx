@@ -26,6 +26,10 @@ import {
   HelpCircle,
   ChevronRight,
 } from "lucide-react";
+import { NotificationsSettings } from "@/components/settings/NotificationsSettings";
+import { PrivacySecuritySettings } from "@/components/settings/PrivacySecuritySettings";
+import { PreferencesSettings } from "@/components/settings/PreferencesSettings";
+import { HelpSupportSettings } from "@/components/settings/HelpSupportSettings";
 
 interface ProfileSheetProps {
   children: React.ReactNode;
@@ -36,6 +40,10 @@ export const ProfileSheet = ({ children }: ProfileSheetProps) => {
   const [fullName, setFullName] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [preferencesOpen, setPreferencesOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -98,10 +106,10 @@ export const ProfileSheet = ({ children }: ProfileSheetProps) => {
   };
 
   const menuItems = [
-    { icon: Bell, label: "Notifications", onClick: () => toast.info("Coming soon") },
-    { icon: Shield, label: "Privacy & Security", onClick: () => toast.info("Coming soon") },
-    { icon: Settings, label: "Preferences", onClick: () => toast.info("Coming soon") },
-    { icon: HelpCircle, label: "Help & Support", onClick: () => toast.info("Coming soon") },
+    { icon: Bell, label: "Notifications", onClick: () => setNotificationsOpen(true) },
+    { icon: Shield, label: "Privacy & Security", onClick: () => setPrivacyOpen(true) },
+    { icon: Settings, label: "Preferences", onClick: () => setPreferencesOpen(true) },
+    { icon: HelpCircle, label: "Help & Support", onClick: () => setHelpOpen(true) },
   ];
 
   return (
@@ -231,6 +239,24 @@ export const ProfileSheet = ({ children }: ProfileSheetProps) => {
             Sign Out
           </Button>
         </div>
+
+        {/* Settings Dialogs */}
+        <NotificationsSettings
+          open={notificationsOpen}
+          onOpenChange={setNotificationsOpen}
+        />
+        <PrivacySecuritySettings
+          open={privacyOpen}
+          onOpenChange={setPrivacyOpen}
+        />
+        <PreferencesSettings
+          open={preferencesOpen}
+          onOpenChange={setPreferencesOpen}
+        />
+        <HelpSupportSettings
+          open={helpOpen}
+          onOpenChange={setHelpOpen}
+        />
       </SheetContent>
     </Sheet>
   );
