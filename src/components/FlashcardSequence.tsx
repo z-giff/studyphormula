@@ -25,8 +25,8 @@ const features = [
   },
   {
     icon: BookmarkIcon,
-    title: "Smart Sections",
-    description: "Organize large decks into focused study segments.",
+    title: "Process-Based Learning",
+    description: "Create diagrams and flowcharts directly within definition terms, allowing complex processes and relationships to be learned structurally.",
   },
   {
     icon: Shuffle,
