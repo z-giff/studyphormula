@@ -15,8 +15,8 @@ const CARD_COLORS = [
 const features = [
   {
     icon: Palette,
-    title: "Rainbow Organization",
-    description: "Color-code your decks for visual memory and instant recognition.",
+    title: "Colour-Coded Organization",
+    description: "Organize flashcards by colour that help group related content and reinforce memory through visually associated.",
   },
   {
     icon: ImageIcon,
