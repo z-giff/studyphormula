@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Palette, ImageIcon, BookmarkIcon, Shuffle } from "lucide-react";
+import { Palette, ImageIcon, Workflow, Shuffle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import phormulaTextLogo from "@/assets/phormula-text-logo.png";
@@ -24,7 +24,7 @@ const features = [
     description: "Add images, diagrams, and annotations for complex topics.",
   },
   {
-    icon: BookmarkIcon,
+    icon: Workflow,
     title: "Process-Based",
     description: "Create diagrams and flowcharts directly within definition terms, allowing complex processes and relationships to be learned structurally.",
   },
