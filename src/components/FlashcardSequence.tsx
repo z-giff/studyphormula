@@ -25,7 +25,7 @@ const features = [
   },
   {
     icon: BookmarkIcon,
-    title: "Process-Based Learning",
+    title: "Process-Based",
     description: "Create diagrams and flowcharts directly within definition terms, allowing complex processes and relationships to be learned structurally.",
   },
   {
