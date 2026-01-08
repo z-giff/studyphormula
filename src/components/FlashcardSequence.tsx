@@ -248,6 +248,7 @@ const FlashcardSequence = () => {
         <FlashcardScreen isVisible={currentScreen === 2} isExiting={exitingScreen === 2} cardColor={CARD_COLORS[2]}>
           <div className="flex flex-col items-center justify-center text-center px-4">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground">About</h2>
+            <p className="text-lg sm:text-xl md:text-2xl text-foreground/60 font-light mt-4">A personal message from the founder</p>
           </div>
         </FlashcardScreen>
 
