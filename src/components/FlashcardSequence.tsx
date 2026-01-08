@@ -250,7 +250,7 @@ const FlashcardSequence = () => {
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">About</h2>
             <p className="text-base sm:text-lg md:text-xl text-foreground/60 font-light mt-2 mb-6">A personal message from the founder</p>
             
-            <div className="text-left space-y-4 text-sm sm:text-base text-foreground/80 leading-relaxed">
+            <div className="text-left space-y-4 text-sm sm:text-base text-foreground/80 leading-relaxed italic">
               <p>
                 Phormula was born from a personal journey rooted in challenge, adaptation, and discovery. As a student transitioning from a highly creative undergraduate program into a demanding STEM pathway, I quickly realized that traditional study methods were no longer sufficient. The shift came with significant academic pressure, particularly the challenge of mastering large volumes of information while striving for excellence.
               </p>
