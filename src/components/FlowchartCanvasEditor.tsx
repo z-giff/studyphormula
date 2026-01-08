@@ -504,7 +504,7 @@ const FlowchartCanvasEditorInner = ({ flowchartData, onChange }: FlowchartCanvas
 
   const onConnect = useCallback(
     (params: Connection) => {
-      const newEdges = addEdge({ ...params, animated: true }, edges);
+      const newEdges = addEdge(params, edges);
       setEdges(newEdges);
       onChange({ nodes, edges: newEdges });
     },
@@ -547,7 +547,6 @@ const FlowchartCanvasEditorInner = ({ flowchartData, onChange }: FlowchartCanvas
         id: `e${lastNodeId}-${newId}`,
         source: lastNodeId,
         target: newId,
-        animated: true,
       };
       newEdges = [...edges, autoEdge];
       setEdges(newEdges);
