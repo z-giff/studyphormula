@@ -267,7 +267,7 @@ const FlashcardSequence = () => {
                 Built at the intersection of science, design, and education, Phormula empowers learners to study smarter by leveraging visual reinforcement, thoughtful organization, and intuitive design. Our mission is to make memorization more accessible, less intimidating, and genuinely effective—especially for those who learn best by seeing, not just reading.
               </p>
               
-              <p className="mt-6 not-italic font-medium text-foreground">
+              <p className="mt-6 italic font-medium text-foreground">
                 Built with purpose,<br />
                 Zoha S<br />
                 Founder, Phormula
