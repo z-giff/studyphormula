@@ -244,11 +244,29 @@ const FlashcardSequence = () => {
           </div>
         </FlashcardScreen>
 
-        {/* Screen 2: About (placeholder) */}
+        {/* Screen 2: About */}
         <FlashcardScreen isVisible={currentScreen === 2} isExiting={exitingScreen === 2} cardColor={CARD_COLORS[2]}>
-          <div className="flex flex-col items-center justify-center text-center px-4">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-foreground">About</h2>
-            <p className="text-lg sm:text-xl md:text-2xl text-foreground/60 font-light mt-4">A personal message from the founder</p>
+          <div className="flex flex-col items-center justify-start text-center px-4 sm:px-8 md:px-12 py-8 max-w-4xl mx-auto h-full overflow-y-auto">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">About</h2>
+            <p className="text-base sm:text-lg md:text-xl text-foreground/60 font-light mt-2 mb-6">A personal message from the founder</p>
+            
+            <div className="text-left space-y-4 text-sm sm:text-base text-foreground/80 leading-relaxed">
+              <p>
+                Phormula was born from a personal journey rooted in challenge, adaptation, and discovery. As a student transitioning from a highly creative undergraduate program into a demanding STEM pathway, I quickly realized that traditional study methods were no longer sufficient. The shift came with significant academic pressure, particularly the challenge of mastering large volumes of information while striving for excellence.
+              </p>
+              
+              <p>
+                Through this experience, I discovered something transformative about my own learning process: memorization became significantly more effective when information was paired with colour, structure, and visual design. Concepts that once felt overwhelming became clearer, more engaging, and easier to retain when presented visually. What began as a personal study strategy soon revealed a broader truth—many students, especially visual learners, are underserved by conventional memorization tools.
+              </p>
+              
+              <p className="text-foreground font-medium">
+                Phormula was created to bridge that gap.
+              </p>
+              
+              <p>
+                Built at the intersection of science, design, and education, Phormula empowers learners to study smarter by leveraging visual reinforcement, thoughtful organization, and intuitive design. Our mission is to make memorization more accessible, less intimidating, and genuinely effective—especially for those who learn best by seeing, not just reading.
+              </p>
+            </div>
           </div>
         </FlashcardScreen>
 
