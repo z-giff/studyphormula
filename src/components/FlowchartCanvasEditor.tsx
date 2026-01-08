@@ -52,7 +52,7 @@ const TEMPLATES = {
       { id: "5", data: { label: "End", color: "#ef4444" }, position: { x: 250, y: 300 } },
     ],
     edges: [
-      { id: "e1-2", source: "1", target: "2", animated: true },
+      { id: "e1-2", source: "1", target: "2" },
       { id: "e2-3", source: "2", target: "3", label: "Yes" },
       { id: "e2-4", source: "2", target: "4", label: "No" },
       { id: "e3-5", source: "3", target: "5" },
