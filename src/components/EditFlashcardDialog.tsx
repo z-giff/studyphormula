@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +32,7 @@ interface Flashcard {
   color?: string | null;
   flashcard_type?: string;
   interactive_data?: any;
+  set_id?: string;
 }
 
 interface EditFlashcardDialogProps {
@@ -41,8 +43,9 @@ interface EditFlashcardDialogProps {
 }
 
 export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }: EditFlashcardDialogProps) => {
+  const { id: setIdFromParams } = useParams<{ id: string }>();
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedColor, setSelectedColor] = useState(flashcard.color || "#38b6ff");
+  const [selectedSetColor, setSelectedSetColor] = useState("#38b6ff");
   const [flashcardType, setFlashcardType] = useState<"standard" | "interactive" | "flowchart">(
     flashcard.flashcard_type === "interactive" ? "interactive" : 
     flashcard.flashcard_type === "flowchart" ? "flowchart" : 
@@ -64,6 +67,24 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
       : { nodes: [], edges: [] }
   );
 
+  // Fetch the current set color when dialog opens
+  useEffect(() => {
+    const fetchSetColor = async () => {
+      const setId = flashcard.set_id || setIdFromParams;
+      if (setId && open) {
+        const { data } = await supabase
+          .from("flashcard_sets")
+          .select("color")
+          .eq("id", setId)
+          .single();
+        if (data?.color) {
+          setSelectedSetColor(data.color);
+        }
+      }
+    };
+    fetchSetColor();
+  }, [flashcard.set_id, setIdFromParams, open]);
+
   useEffect(() => {
     setFlashcardType(
       flashcard.flashcard_type === "interactive" ? "interactive" : 
@@ -81,9 +102,8 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
     setFlowchartData(
       flashcard.flashcard_type === "flowchart" && flashcard.interactive_data
         ? flashcard.interactive_data
-        : { nodes: [], edges: [] }
+      : { nodes: [], edges: [] }
     );
-    setSelectedColor(flashcard.color || "#38b6ff");
   }, [flashcard]);
 
   const handleEyeDropper = async () => {
@@ -91,12 +111,32 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
       try {
         const eyeDropper = new (window as any).EyeDropper();
         const result = await eyeDropper.open();
-        setSelectedColor(result.sRGBHex);
+        setSelectedSetColor(result.sRGBHex);
+        // Immediately update the set color
+        await handleUpdateSetColor(result.sRGBHex);
       } catch (e) {
         // User cancelled
       }
     } else {
       toast.error("Eyedropper not supported in this browser");
+    }
+  };
+
+  const handleUpdateSetColor = async (newColor: string) => {
+    const setId = flashcard.set_id || setIdFromParams;
+    if (!setId) return;
+    
+    try {
+      const { error } = await supabase
+        .from("flashcard_sets")
+        .update({ color: newColor })
+        .eq("id", setId);
+
+      if (error) throw error;
+      setSelectedSetColor(newColor);
+      toast.success("Set color updated");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update set color");
     }
   };
 
@@ -141,7 +181,6 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
     try {
       const updateData: any = {
         flashcard_type: flashcardType,
-        color: selectedColor,
       };
 
       if (flashcardType === "standard") {
@@ -283,15 +322,15 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
           </Tabs>
 
           <div className="space-y-2">
-            <Label>Flashcard Color</Label>
+            <Label>Flashcard Set Color</Label>
             <div className="flex items-center gap-2 flex-wrap">
               {FLASHCARD_COLORS.map((color) => (
                 <button
                   key={color}
                   type="button"
-                  onClick={() => setSelectedColor(color)}
+                  onClick={() => handleUpdateSetColor(color)}
                   className={`w-8 h-8 rounded-full border-2 transition-all ${
-                    selectedColor === color 
+                    selectedSetColor === color 
                       ? "ring-2 ring-offset-2 ring-primary scale-110" 
                       : "hover:scale-105"
                   } ${color === "#ffffff" ? "border-gray-300" : "border-transparent"}`}
