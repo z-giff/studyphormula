@@ -47,8 +47,8 @@ const TEMPLATES = {
     nodes: [
       { id: "1", data: { label: "Start", color: "#22c55e" }, position: { x: 250, y: 0 } },
       { id: "2", data: { label: "Decision?", color: "#f59e0b" }, position: { x: 250, y: 100 } },
-      { id: "3", data: { label: "Yes Path", color: "#3b82f6" }, position: { x: 100, y: 200 } },
-      { id: "4", data: { label: "No Path", color: "#3b82f6" }, position: { x: 400, y: 200 } },
+      { id: "3", data: { label: "Path A", color: "#3b82f6" }, position: { x: 100, y: 200 } },
+      { id: "4", data: { label: "Path B", color: "#3b82f6" }, position: { x: 400, y: 200 } },
       { id: "5", data: { label: "End", color: "#ef4444" }, position: { x: 250, y: 300 } },
     ],
     edges: [
