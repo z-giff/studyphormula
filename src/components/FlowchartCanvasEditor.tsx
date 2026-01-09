@@ -17,11 +17,9 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, Pipette } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface FlowchartCanvasEditorProps {
   flowchartData: { nodes: Node[]; edges: Edge[] };
@@ -61,6 +59,8 @@ const TEMPLATES = {
   },
 };
 
+import { NodeColorPalette } from "./NodeColorPalette";
+
 interface FloatingColorPickerProps {
   nodes: Node[];
   nodeId: string;
@@ -72,13 +72,8 @@ interface FloatingColorPickerProps {
 const FloatingColorPicker = ({ nodes, nodeId, currentColor, onColorChange, onDelete }: FloatingColorPickerProps) => {
   const { getViewport } = useReactFlow();
   const node = nodes.find(n => n.id === nodeId);
-  const [customColor, setCustomColor] = useState(currentColor);
-  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const viewport = getViewport();
-
-  useEffect(() => {
-    setCustomColor(currentColor);
-  }, [currentColor]);
 
   if (!node) return null;
 
@@ -104,47 +99,24 @@ const FloatingColorPicker = ({ nodes, nodeId, currentColor, onColorChange, onDel
         pointerEvents: "auto",
       }}
     >
-      {DEFAULT_COLORS.map((color) => (
+      {/* Color swatch button that opens palette */}
+      <NodeColorPalette
+        currentColor={currentColor}
+        onColorChange={onColorChange}
+        open={isPaletteOpen}
+        onOpenChange={setIsPaletteOpen}
+      >
         <button
-          key={color}
-          onClick={() => onColorChange(color)}
-          className={`w-7 h-7 rounded-full border-2 transition-transform hover:scale-110 ${
-            currentColor === color ? "border-foreground ring-2 ring-foreground/20" : "border-transparent"
+          className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${
+            isPaletteOpen ? "ring-2 ring-foreground/30" : ""
           }`}
-          style={{ backgroundColor: color }}
-          title={`Select ${color}`}
+          style={{ backgroundColor: currentColor }}
+          title="Change color"
         />
-      ))}
-      <Popover open={isPickerOpen} onOpenChange={setIsPickerOpen}>
-        <PopoverTrigger asChild>
-          <button
-            className="w-7 h-7 rounded-full border-2 border-dashed border-muted-foreground/50 flex items-center justify-center hover:border-foreground hover:bg-muted/50 transition-all"
-            title="Custom color"
-          >
-            <Plus className="w-4 h-4 text-muted-foreground" />
-          </button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-3" side="right">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Pipette className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Custom Color</span>
-            </div>
-            <input
-              type="color"
-              value={customColor}
-              onChange={(e) => {
-                setCustomColor(e.target.value);
-                onColorChange(e.target.value);
-              }}
-              className="w-full h-10 rounded cursor-pointer border-0"
-              style={{ WebkitAppearance: "none" }}
-            />
-            <p className="text-xs text-muted-foreground">Click to open color picker</p>
-          </div>
-        </PopoverContent>
-      </Popover>
-      <div className="w-px h-5 bg-border mx-1" />
+      </NodeColorPalette>
+      
+      <div className="w-px h-3 bg-border mx-1" />
+      
       <button
         onClick={onDelete}
         className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-destructive/10 text-destructive transition-colors"
