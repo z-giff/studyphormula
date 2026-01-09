@@ -268,7 +268,7 @@ const FlashcardSetPage = () => {
         {flashcards.length === 0 ? (
           <div className="text-center py-16">
             <div className="bg-muted/50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Plus className="h-12 w-12 text-muted-foreground" />
+              <Plus className="h-12 w-12 text-muted-foreground/50" />
             </div>
             <h3 className="text-2xl font-semibold mb-2">No flashcards yet</h3>
             <p className="text-muted-foreground mb-6">Add your first flashcard to start studying</p>
