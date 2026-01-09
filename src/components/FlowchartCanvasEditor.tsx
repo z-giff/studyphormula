@@ -166,7 +166,8 @@ const EditableBoxNode = ({ id, data, isEditing, onStartEdit, onFinishEdit, onHan
       <Handle 
         type="target" 
         position={Position.Top} 
-        style={{ background: "#555", cursor: "pointer" }} 
+        className="!w-4 !h-4 !-top-2 !bg-gray-500 hover:!bg-gray-400 hover:!scale-125 transition-transform before:content-[''] before:absolute before:inset-[-8px] before:rounded-full"
+        style={{ cursor: "pointer" }} 
         onDoubleClick={(e) => { e.stopPropagation(); onHandleDoubleClick(id, 'target'); }}
         title="Double-click to disconnect"
       />
@@ -208,7 +209,8 @@ const EditableBoxNode = ({ id, data, isEditing, onStartEdit, onFinishEdit, onHan
       <Handle 
         type="source" 
         position={Position.Bottom} 
-        style={{ background: "#555", cursor: "pointer" }} 
+        className="!w-4 !h-4 !-bottom-2 !bg-gray-500 hover:!bg-gray-400 hover:!scale-125 transition-transform before:content-[''] before:absolute before:inset-[-8px] before:rounded-full"
+        style={{ cursor: "pointer" }} 
         onDoubleClick={(e) => { e.stopPropagation(); onHandleDoubleClick(id, 'source'); }}
         title="Double-click to disconnect"
       />
@@ -245,7 +247,8 @@ const EditableCircleNode = ({ id, data, isEditing, onStartEdit, onFinishEdit, on
       <Handle 
         type="target" 
         position={Position.Top} 
-        style={{ background: "#555", cursor: "pointer" }} 
+        className="!w-4 !h-4 !-top-2 !bg-gray-500 hover:!bg-gray-400 hover:!scale-125 transition-transform before:content-[''] before:absolute before:inset-[-8px] before:rounded-full"
+        style={{ cursor: "pointer" }} 
         onDoubleClick={(e) => { e.stopPropagation(); onHandleDoubleClick(id, 'target'); }}
         title="Double-click to disconnect"
       />
@@ -292,7 +295,8 @@ const EditableCircleNode = ({ id, data, isEditing, onStartEdit, onFinishEdit, on
       <Handle 
         type="source" 
         position={Position.Bottom} 
-        style={{ background: "#555", cursor: "pointer" }} 
+        className="!w-4 !h-4 !-bottom-2 !bg-gray-500 hover:!bg-gray-400 hover:!scale-125 transition-transform before:content-[''] before:absolute before:inset-[-8px] before:rounded-full"
+        style={{ cursor: "pointer" }} 
         onDoubleClick={(e) => { e.stopPropagation(); onHandleDoubleClick(id, 'source'); }}
         title="Double-click to disconnect"
       />
@@ -329,7 +333,8 @@ const EditableDiamondNode = ({ id, data, isEditing, onStartEdit, onFinishEdit, o
       <Handle 
         type="target" 
         position={Position.Top} 
-        style={{ background: "#555", top: "-5px", cursor: "pointer" }} 
+        className="!w-4 !h-4 !-top-3 !bg-gray-500 hover:!bg-gray-400 hover:!scale-125 transition-transform before:content-[''] before:absolute before:inset-[-8px] before:rounded-full"
+        style={{ cursor: "pointer" }} 
         onDoubleClick={(e) => { e.stopPropagation(); onHandleDoubleClick(id, 'target'); }}
         title="Double-click to disconnect"
       />
@@ -383,7 +388,8 @@ const EditableDiamondNode = ({ id, data, isEditing, onStartEdit, onFinishEdit, o
       <Handle 
         type="source" 
         position={Position.Bottom} 
-        style={{ background: "#555", bottom: "-5px", cursor: "pointer" }} 
+        className="!w-4 !h-4 !-bottom-3 !bg-gray-500 hover:!bg-gray-400 hover:!scale-125 transition-transform before:content-[''] before:absolute before:inset-[-8px] before:rounded-full"
+        style={{ cursor: "pointer" }} 
         onDoubleClick={(e) => { e.stopPropagation(); onHandleDoubleClick(id, 'source'); }}
         title="Double-click to disconnect"
       />
