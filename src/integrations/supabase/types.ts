@@ -14,11 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      flashcard_files: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       flashcard_sets: {
         Row: {
           color: string
           created_at: string | null
           description: string | null
+          file_id: string | null
           id: string
           title: string
           updated_at: string | null
@@ -28,6 +53,7 @@ export type Database = {
           color?: string
           created_at?: string | null
           description?: string | null
+          file_id?: string | null
           id?: string
           title: string
           updated_at?: string | null
@@ -37,12 +63,21 @@ export type Database = {
           color?: string
           created_at?: string | null
           description?: string | null
+          file_id?: string | null
           id?: string
           title?: string
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "flashcard_sets_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "flashcard_files"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       flashcards: {
         Row: {
