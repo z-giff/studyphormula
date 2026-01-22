@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, BookOpen, User, MoreHorizontal, Trash2 } from "lucide-react";
+import { Plus, BookOpen, User, MoreHorizontal, Trash2, Folder, ArrowRightLeft } from "lucide-react";
 import { toast } from "sonner";
 import { CreateSetDialog } from "@/components/CreateSetDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -13,11 +13,14 @@ import { ProfileSheet } from "@/components/ProfileSheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import phormulaBackground from "@/assets/phormula-background.png";
+import { CreateFileDialog } from "@/components/CreateFileDialog";
+import { FlashcardFile, MoveSetToFileDialog } from "@/components/MoveSetToFileDialog";
 interface FlashcardSet {
   id: string;
   title: string;
   description: string | null;
   color: string;
+  file_id?: string | null;
   created_at: string;
   _count?: {
     flashcards: number;
@@ -32,10 +35,15 @@ const Dashboard = () => {
   } = useAuth();
   const navigate = useNavigate();
   const [sets, setSets] = useState<FlashcardSet[]>([]);
+  const [files, setFiles] = useState<FlashcardFile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isCreateFileDialogOpen, setIsCreateFileDialogOpen] = useState(false);
   const [deleteSetId, setDeleteSetId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [moveSetId, setMoveSetId] = useState<string | null>(null);
+  const [moveSelectedFileId, setMoveSelectedFileId] = useState<string | null>(null);
+  const [isMoving, setIsMoving] = useState(false);
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
@@ -43,9 +51,24 @@ const Dashboard = () => {
   }, [user, loading, navigate]);
   useEffect(() => {
     if (user) {
-      fetchSets();
+      void Promise.all([fetchSets(), fetchFiles()]);
     }
   }, [user]);
+
+  const fetchFiles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("flashcard_files")
+        .select("id,name")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setFiles((data || []) as FlashcardFile[]);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to fetch files");
+    }
+  };
+
   const fetchSets = async () => {
     try {
       const {
@@ -86,6 +109,20 @@ const Dashboard = () => {
       setIsLoading(false);
     }
   };
+
+  const moveSetTarget = useMemo(() => {
+    if (!moveSetId) return null;
+    return sets.find((s) => s.id === moveSetId) ?? null;
+  }, [moveSetId, sets]);
+
+  const fileSetCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const s of sets) {
+      if (!s.file_id) continue;
+      counts.set(s.file_id, (counts.get(s.file_id) ?? 0) + 1);
+    }
+    return counts;
+  }, [sets]);
   const handleSignOut = async () => {
     await signOut();
   };
@@ -106,6 +143,35 @@ const Dashboard = () => {
       setDeleteSetId(null);
     }
   };
+
+  const openMoveDialogForSet = (setId: string) => {
+    const target = sets.find((s) => s.id === setId);
+    setMoveSetId(setId);
+    setMoveSelectedFileId(target?.file_id ?? null);
+  };
+
+  const handleMoveSetToFile = async () => {
+    if (!moveSetId) return;
+    setIsMoving(true);
+    try {
+      const { error } = await supabase
+        .from("flashcard_sets")
+        .update({ file_id: moveSelectedFileId })
+        .eq("id", moveSetId);
+
+      if (error) throw error;
+
+      toast.success("Set moved");
+      setMoveSetId(null);
+      setMoveSelectedFileId(null);
+      await fetchSets();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to move set");
+    } finally {
+      setIsMoving(false);
+    }
+  };
+
   if (loading || isLoading) {
     return <div className="min-h-screen bg-[#e8eef4] dark:bg-[#2d3748] flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -137,6 +203,53 @@ const Dashboard = () => {
           <p className="text-muted-foreground">Create and manage your study materials</p>
         </div>
 
+        {/* Files */}
+        <section className="mb-10">
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div className="flex items-center gap-2">
+              <Folder className="h-5 w-5 text-muted-foreground" />
+              <h2 className="text-lg font-semibold text-foreground">Files</h2>
+            </div>
+
+            <Button onClick={() => setIsCreateFileDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create File
+            </Button>
+          </div>
+
+          {files.length === 0 ? (
+            <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md border-black/10 dark:border-white/10">
+              <CardContent className="py-8">
+                <p className="text-sm text-muted-foreground">
+                  No files yet — create one to organize related flashcard sets.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {files.map((file) => (
+                <Card
+                  key={file.id}
+                  className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-black/10 dark:border-white/10"
+                >
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Folder className="h-4 w-4 text-muted-foreground" />
+                      <span className="truncate">{file.name}</span>
+                    </CardTitle>
+                    <CardDescription>
+                      {(fileSetCounts.get(file.id) ?? 0).toString()} set(s)
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Sets */}
+        <section>
+          <h2 className="sr-only">Sets</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Create New Set Card */}
           <Card className="border-2 border-dashed border-black/20 dark:border-white/20 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all bg-white/80 dark:bg-gray-800/80 backdrop-blur-md" onClick={() => setIsCreateDialogOpen(true)}>
@@ -182,6 +295,16 @@ const Dashboard = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-popover">
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={e => {
+                      e.preventDefault();
+                      openMoveDialogForSet(set.id);
+                    }}
+                  >
+                    <ArrowRightLeft className="h-4 w-4 mr-2" />
+                    Move to file
+                  </DropdownMenuItem>
                   <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer" onClick={e => {
                 e.preventDefault();
                 setDeleteSetId(set.id);
@@ -193,6 +316,8 @@ const Dashboard = () => {
               </DropdownMenu>
             </div>)}
         </div>
+
+        </section>
 
         {sets.length === 0 && <div className="text-center py-16">
             <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -208,6 +333,23 @@ const Dashboard = () => {
       </main>
 
       <CreateSetDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} onSuccess={fetchSets} />
+      <CreateFileDialog open={isCreateFileDialogOpen} onOpenChange={setIsCreateFileDialogOpen} onSuccess={fetchFiles} />
+
+      <MoveSetToFileDialog
+        open={!!moveSetId}
+        onOpenChange={(open) => {
+          if (!open) {
+            setMoveSetId(null);
+            setMoveSelectedFileId(null);
+          }
+        }}
+        setTitle={moveSetTarget?.title ?? "this set"}
+        files={files}
+        selectedFileId={moveSelectedFileId}
+        onSelectedFileIdChange={setMoveSelectedFileId}
+        isSaving={isMoving}
+        onSave={handleMoveSetToFile}
+      />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteSetId} onOpenChange={open => !open && setDeleteSetId(null)}>
