@@ -133,7 +133,7 @@ const Dashboard = () => {
 
       <main className="container mx-auto px-4 py-12 relative z-10">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 text-foreground">Your Phormula to Stud</h1>
+          <h1 className="text-4xl font-bold mb-2 text-foreground">Your Phormula to Studying</h1>
           <p className="text-muted-foreground">Create and manage your study materials</p>
         </div>
 
