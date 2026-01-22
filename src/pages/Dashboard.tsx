@@ -10,89 +10,75 @@ import { CreateSetDialog } from "@/components/CreateSetDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import LogoOrb from "@/components/LogoOrb";
 import { ProfileSheet } from "@/components/ProfileSheet";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import phormulaBackground from "@/assets/phormula-background.png";
-
 interface FlashcardSet {
   id: string;
   title: string;
   description: string | null;
   color: string;
   created_at: string;
-  _count?: { flashcards: number };
+  _count?: {
+    flashcards: number;
+  };
   displayColor: string;
 }
-
 const Dashboard = () => {
-  const { user, signOut, loading } = useAuth();
+  const {
+    user,
+    signOut,
+    loading
+  } = useAuth();
   const navigate = useNavigate();
   const [sets, setSets] = useState<FlashcardSet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [deleteSetId, setDeleteSetId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
     }
   }, [user, loading, navigate]);
-
   useEffect(() => {
     if (user) {
       fetchSets();
     }
   }, [user]);
-
   const fetchSets = async () => {
     try {
-      const { data, error } = await supabase
-        .from("flashcard_sets")
-        .select("*")
-        .order("created_at", { ascending: false });
-
+      const {
+        data,
+        error
+      } = await supabase.from("flashcard_sets").select("*").order("created_at", {
+        ascending: false
+      });
       if (error) throw error;
 
       // Fetch flashcard counts and first flashcard color for each set
-      const setsWithCounts = await Promise.all(
-        (data || []).map(async (set) => {
-          const { count } = await supabase
-            .from("flashcards")
-            .select("*", { count: "exact", head: true })
-            .eq("set_id", set.id);
+      const setsWithCounts = await Promise.all((data || []).map(async set => {
+        const {
+          count
+        } = await supabase.from("flashcards").select("*", {
+          count: "exact",
+          head: true
+        }).eq("set_id", set.id);
 
-          // Get the first flashcard's color
-          const { data: firstFlashcard } = await supabase
-            .from("flashcards")
-            .select("color")
-            .eq("set_id", set.id)
-            .order("position", { ascending: true })
-            .limit(1)
-            .maybeSingle();
-
-          return {
-            ...set,
-            _count: { flashcards: count || 0 },
-            displayColor: firstFlashcard?.color || set.color,
-          };
-        })
-      );
-
+        // Get the first flashcard's color
+        const {
+          data: firstFlashcard
+        } = await supabase.from("flashcards").select("color").eq("set_id", set.id).order("position", {
+          ascending: true
+        }).limit(1).maybeSingle();
+        return {
+          ...set,
+          _count: {
+            flashcards: count || 0
+          },
+          displayColor: firstFlashcard?.color || set.color
+        };
+      }));
       setSets(setsWithCounts);
     } catch (error: any) {
       toast.error(error.message || "Failed to fetch flashcard sets");
@@ -100,24 +86,18 @@ const Dashboard = () => {
       setIsLoading(false);
     }
   };
-
   const handleSignOut = async () => {
     await signOut();
   };
-
   const handleDeleteSet = async () => {
     if (!deleteSetId) return;
-    
     setIsDeleting(true);
     try {
-      const { error } = await supabase
-        .from("flashcard_sets")
-        .delete()
-        .eq("id", deleteSetId);
-
+      const {
+        error
+      } = await supabase.from("flashcard_sets").delete().eq("id", deleteSetId);
       if (error) throw error;
-
-      setSets((prev) => prev.filter((set) => set.id !== deleteSetId));
+      setSets(prev => prev.filter(set => set.id !== deleteSetId));
       toast.success("Flashcard set deleted");
     } catch (error: any) {
       toast.error(error.message || "Failed to delete set");
@@ -126,20 +106,15 @@ const Dashboard = () => {
       setDeleteSetId(null);
     }
   };
-
   if (loading || isLoading) {
-    return (
-      <div className="min-h-screen bg-[#e8eef4] dark:bg-[#2d3748] flex items-center justify-center">
+    return <div className="min-h-screen bg-[#e8eef4] dark:bg-[#2d3748] flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
           <p className="text-muted-foreground">Loading...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-[#e8eef4] dark:bg-[#2d3748] relative overflow-hidden">
+  return <div className="min-h-screen bg-[#e8eef4] dark:bg-[#2d3748] relative overflow-hidden">
 
       <nav className="relative z-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-black/10 dark:border-white/10">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -158,16 +133,13 @@ const Dashboard = () => {
 
       <main className="container mx-auto px-4 py-12 relative z-10">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 text-foreground">My Flashcard Sets</h1>
+          <h1 className="text-4xl font-bold mb-2 text-foreground">Your Phormula to Stud</h1>
           <p className="text-muted-foreground">Create and manage your study materials</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Create New Set Card */}
-          <Card
-            className="border-2 border-dashed border-black/20 dark:border-white/20 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all bg-white/80 dark:bg-gray-800/80 backdrop-blur-md"
-            onClick={() => setIsCreateDialogOpen(true)}
-          >
+          <Card className="border-2 border-dashed border-black/20 dark:border-white/20 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all bg-white/80 dark:bg-gray-800/80 backdrop-blur-md" onClick={() => setIsCreateDialogOpen(true)}>
             <CardContent className="flex flex-col items-center justify-center h-48 text-center">
               <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mb-4">
                 <Plus className="h-8 w-8 text-primary" />
@@ -178,16 +150,12 @@ const Dashboard = () => {
           </Card>
 
           {/* Existing Sets */}
-          {sets.map((set) => (
-            <div key={set.id} className="relative">
+          {sets.map(set => <div key={set.id} className="relative">
               <Link to={`/set/${set.id}`}>
-                <Card
-                  className="h-48 cursor-pointer hover:shadow-lg transition-all overflow-hidden group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-black/10 dark:border-white/10"
-                  style={{
-                    borderTop: `6px solid ${set.displayColor}`,
-                    background: `linear-gradient(to bottom, ${set.displayColor}15, rgba(255,255,255,0.8))`,
-                  }}
-                >
+                <Card className="h-48 cursor-pointer hover:shadow-lg transition-all overflow-hidden group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-black/10 dark:border-white/10" style={{
+              borderTop: `6px solid ${set.displayColor}`,
+              background: `linear-gradient(to bottom, ${set.displayColor}15, rgba(255,255,255,0.8))`
+            }}>
                   <CardHeader className="pr-12">
                     <CardTitle className="text-foreground">
                       <span className="truncate">{set.title}</span>
@@ -208,35 +176,25 @@ const Dashboard = () => {
               {/* More Options Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-2 right-2 h-8 w-8 hover:bg-black/10 dark:hover:bg-white/10 z-10"
-                    onClick={(e) => e.preventDefault()}
-                  >
+                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-8 w-8 hover:bg-black/10 dark:hover:bg-white/10 z-10" onClick={e => e.preventDefault()}>
                     <MoreHorizontal className="h-4 w-4" />
                     <span className="sr-only">More options</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-popover">
-                  <DropdownMenuItem
-                    className="text-destructive focus:text-destructive cursor-pointer"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setDeleteSetId(set.id);
-                    }}
-                  >
+                  <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer" onClick={e => {
+                e.preventDefault();
+                setDeleteSetId(set.id);
+              }}>
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete set
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
-          ))}
+            </div>)}
         </div>
 
-        {sets.length === 0 && (
-          <div className="text-center py-16">
+        {sets.length === 0 && <div className="text-center py-16">
             <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
               <BookOpen className="h-12 w-12 text-muted-foreground" />
             </div>
@@ -246,18 +204,13 @@ const Dashboard = () => {
               <Plus className="h-4 w-4 mr-2" />
               Create Your First Set
             </Button>
-          </div>
-        )}
+          </div>}
       </main>
 
-      <CreateSetDialog
-        open={isCreateDialogOpen}
-        onOpenChange={setIsCreateDialogOpen}
-        onSuccess={fetchSets}
-      />
+      <CreateSetDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} onSuccess={fetchSets} />
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deleteSetId} onOpenChange={(open) => !open && setDeleteSetId(null)}>
+      <AlertDialog open={!!deleteSetId} onOpenChange={open => !open && setDeleteSetId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this set?</AlertDialogTitle>
@@ -267,19 +220,12 @@ const Dashboard = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteSet}
-              disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
+            <AlertDialogAction onClick={handleDeleteSet} disabled={isDeleting} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               {isDeleting ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
-  );
+    </div>;
 };
-
 export default Dashboard;
-
