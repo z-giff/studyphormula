@@ -45,6 +45,7 @@ export type Database = {
           description: string | null
           file_id: string | null
           id: string
+          last_accessed_at: string | null
           title: string
           updated_at: string | null
           user_id: string
@@ -55,6 +56,7 @@ export type Database = {
           description?: string | null
           file_id?: string | null
           id?: string
+          last_accessed_at?: string | null
           title: string
           updated_at?: string | null
           user_id: string
@@ -65,6 +67,7 @@ export type Database = {
           description?: string | null
           file_id?: string | null
           id?: string
+          last_accessed_at?: string | null
           title?: string
           updated_at?: string | null
           user_id?: string

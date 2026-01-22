@@ -48,8 +48,22 @@ const StudyMode = () => {
   useEffect(() => {
     if (user && id) {
       fetchData();
+      void markSetAccessed();
     }
   }, [user, id]);
+
+  const markSetAccessed = async () => {
+    try {
+      const payload: any = {};
+      payload.last_accessed_at = new Date().toISOString();
+      await (supabase as any)
+        .from("flashcard_sets")
+        .update(payload)
+        .eq("id", id);
+    } catch {
+      // no-op
+    }
+  };
 
   const fetchData = async () => {
     try {

@@ -68,8 +68,22 @@ const FlashcardSetPage = () => {
     if (user && id) {
       fetchSetData();
       fetchFlashcards();
+      void markSetAccessed();
     }
   }, [user, id]);
+
+  const markSetAccessed = async () => {
+    try {
+      const payload: any = {};
+      payload.last_accessed_at = new Date().toISOString();
+      await (supabase as any)
+        .from("flashcard_sets")
+        .update(payload)
+        .eq("id", id);
+    } catch {
+      // no-op: sorting aid only
+    }
+  };
 
   const fetchSetData = async () => {
     try {
