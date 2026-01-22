@@ -47,6 +47,7 @@ const Dashboard = () => {
   const [moveSelectedFileId, setMoveSelectedFileId] = useState<string | null>(null);
   const [isMoving, setIsMoving] = useState(false);
   const [sortMode, setSortMode] = useState<"used" | "recent" | "least" | "alpha">("used");
+  const [dragOverFileId, setDragOverFileId] = useState<string | null>(null);
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
@@ -194,6 +195,22 @@ const Dashboard = () => {
     }
   };
 
+  const handleDropSetOnFile = async (setId: string, fileId: string) => {
+    try {
+      const { error } = await supabase
+        .from("flashcard_sets")
+        .update({ file_id: fileId })
+        .eq("id", setId);
+
+      if (error) throw error;
+
+      toast.success("Set moved");
+      await fetchSets();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to move set");
+    }
+  };
+
   if (loading || isLoading) {
     return <div className="min-h-screen bg-[#e8eef4] dark:bg-[#2d3748] flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -250,19 +267,44 @@ const Dashboard = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {files.map((file) => (
-                <Link key={file.id} to={`/file/${file.id}`}>
-                  <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-black/10 dark:border-white/10 hover:shadow-md transition-shadow cursor-pointer">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <Folder className="h-4 w-4 text-muted-foreground" />
-                        <span className="truncate">{file.name}</span>
-                      </CardTitle>
-                      <CardDescription>
-                        {(fileSetCounts.get(file.id) ?? 0).toString()} set(s)
-                      </CardDescription>
-                    </CardHeader>
-                  </Card>
-                </Link>
+                <div
+                  key={file.id}
+                  onDragEnter={() => setDragOverFileId(file.id)}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setDragOverFileId(file.id);
+                  }}
+                  onDragLeave={() => {
+                    setDragOverFileId((prev) => (prev === file.id ? null : prev));
+                  }}
+                  onDrop={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setDragOverFileId(null);
+                    const setId = e.dataTransfer.getData("text/plain");
+                    if (!setId) return;
+                    await handleDropSetOnFile(setId, file.id);
+                  }}
+                >
+                  <Link to={`/file/${file.id}`}>
+                    <Card
+                      className={
+                        "bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-black/10 dark:border-white/10 hover:shadow-md transition-shadow cursor-pointer " +
+                        (dragOverFileId === file.id ? "ring-2 ring-primary" : "")
+                      }
+                    >
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center gap-2">
+                          <Folder className="h-4 w-4 text-muted-foreground" />
+                          <span className="truncate">{file.name}</span>
+                        </CardTitle>
+                        <CardDescription>
+                          {(fileSetCounts.get(file.id) ?? 0).toString()} set(s)
+                        </CardDescription>
+                      </CardHeader>
+                    </Card>
+                  </Link>
+                </div>
               ))}
             </div>
           )}
@@ -274,12 +316,11 @@ const Dashboard = () => {
             <h2 className="text-lg font-semibold text-foreground">Sets</h2>
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Sort</span>
-              <Select value={sortMode} onValueChange={(v) => setSortMode(v as any)}>
+              <Select value={sortMode === "used" ? "" : sortMode} onValueChange={(v) => setSortMode(v as any)}>
                 <SelectTrigger className="w-[220px]">
-                  <SelectValue />
+                  <SelectValue placeholder="Most recently used" />
                 </SelectTrigger>
                 <SelectContent className="bg-popover">
-                  <SelectItem value="used">Most recently used</SelectItem>
                   <SelectItem value="recent">Most recent</SelectItem>
                   <SelectItem value="least">Least recent</SelectItem>
                   <SelectItem value="alpha">Alphabetical</SelectItem>
@@ -300,7 +341,15 @@ const Dashboard = () => {
           </Card>
 
           {/* Existing Sets */}
-          {sortedSets.map(set => <div key={set.id} className="relative">
+          {sortedSets.map(set => <div
+              key={set.id}
+              className="relative"
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData("text/plain", set.id);
+                e.dataTransfer.effectAllowed = "move";
+              }}
+            >
               <Link to={`/set/${set.id}`}>
                 <Card className="h-48 cursor-pointer hover:shadow-lg transition-all overflow-hidden group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-black/10 dark:border-white/10" style={{
               borderTop: `6px solid ${set.displayColor}`,
