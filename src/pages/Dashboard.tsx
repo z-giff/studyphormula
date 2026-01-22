@@ -15,6 +15,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import phormulaBackground from "@/assets/phormula-background.png";
 import { CreateFileDialog } from "@/components/CreateFileDialog";
 import { FlashcardFile, MoveSetToFileDialog } from "@/components/MoveSetToFileDialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 interface FlashcardSet {
   id: string;
   title: string;
@@ -22,6 +23,7 @@ interface FlashcardSet {
   color: string;
   file_id?: string | null;
   created_at: string;
+  last_accessed_at?: string | null;
   _count?: {
     flashcards: number;
   };
@@ -44,6 +46,7 @@ const Dashboard = () => {
   const [moveSetId, setMoveSetId] = useState<string | null>(null);
   const [moveSelectedFileId, setMoveSelectedFileId] = useState<string | null>(null);
   const [isMoving, setIsMoving] = useState(false);
+  const [sortMode, setSortMode] = useState<"used" | "recent" | "least" | "alpha">("used");
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
@@ -123,6 +126,25 @@ const Dashboard = () => {
     }
     return counts;
   }, [sets]);
+
+  const sortedSets = useMemo(() => {
+    const arr = [...sets];
+    switch (sortMode) {
+      case "alpha":
+        return arr.sort((a, b) => a.title.localeCompare(b.title));
+      case "least":
+        return arr.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      case "recent":
+        return arr.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      case "used":
+      default:
+        return arr.sort((a, b) => {
+          const aT = new Date(a.last_accessed_at || a.created_at).getTime();
+          const bT = new Date(b.last_accessed_at || b.created_at).getTime();
+          return bT - aT;
+        });
+    }
+  }, [sets, sortMode]);
   const handleSignOut = async () => {
     await signOut();
   };
@@ -228,20 +250,19 @@ const Dashboard = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {files.map((file) => (
-                <Card
-                  key={file.id}
-                  className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-black/10 dark:border-white/10"
-                >
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <Folder className="h-4 w-4 text-muted-foreground" />
-                      <span className="truncate">{file.name}</span>
-                    </CardTitle>
-                    <CardDescription>
-                      {(fileSetCounts.get(file.id) ?? 0).toString()} set(s)
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
+                <Link key={file.id} to={`/file/${file.id}`}>
+                  <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-black/10 dark:border-white/10 hover:shadow-md transition-shadow cursor-pointer">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Folder className="h-4 w-4 text-muted-foreground" />
+                        <span className="truncate">{file.name}</span>
+                      </CardTitle>
+                      <CardDescription>
+                        {(fileSetCounts.get(file.id) ?? 0).toString()} set(s)
+                      </CardDescription>
+                    </CardHeader>
+                  </Card>
+                </Link>
               ))}
             </div>
           )}
@@ -249,7 +270,23 @@ const Dashboard = () => {
 
         {/* Sets */}
         <section>
-          <h2 className="sr-only">Sets</h2>
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <h2 className="text-lg font-semibold text-foreground">Sets</h2>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Sort</span>
+              <Select value={sortMode} onValueChange={(v) => setSortMode(v as any)}>
+                <SelectTrigger className="w-[220px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-popover">
+                  <SelectItem value="used">Most recently used</SelectItem>
+                  <SelectItem value="recent">Most recent</SelectItem>
+                  <SelectItem value="least">Least recent</SelectItem>
+                  <SelectItem value="alpha">Alphabetical</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Create New Set Card */}
           <Card className="border-2 border-dashed border-black/20 dark:border-white/20 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all bg-white/80 dark:bg-gray-800/80 backdrop-blur-md" onClick={() => setIsCreateDialogOpen(true)}>
@@ -263,7 +300,7 @@ const Dashboard = () => {
           </Card>
 
           {/* Existing Sets */}
-          {sets.map(set => <div key={set.id} className="relative">
+          {sortedSets.map(set => <div key={set.id} className="relative">
               <Link to={`/set/${set.id}`}>
                 <Card className="h-48 cursor-pointer hover:shadow-lg transition-all overflow-hidden group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-black/10 dark:border-white/10" style={{
               borderTop: `6px solid ${set.displayColor}`,
