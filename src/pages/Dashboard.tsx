@@ -257,18 +257,17 @@ const Dashboard = () => {
           </div>
 
           {files.length === 0 ? (
-            <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md border-black/10 dark:border-white/10">
-              <CardContent className="py-8">
-                <p className="text-sm text-muted-foreground">
-                  No files yet — create one to organize related flashcard sets.
-                </p>
-              </CardContent>
-            </Card>
+            <div className="py-8">
+              <p className="text-sm text-muted-foreground">
+                No files yet — create one to organize related flashcard sets.
+              </p>
+            </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="flex flex-wrap gap-6">
               {files.map((file) => (
                 <div
                   key={file.id}
+                  className="flex flex-col items-center"
                   onDragEnter={() => setDragOverFileId(file.id)}
                   onDragOver={(e) => {
                     e.preventDefault();
@@ -286,23 +285,38 @@ const Dashboard = () => {
                     await handleDropSetOnFile(setId, file.id);
                   }}
                 >
-                  <Link to={`/file/${file.id}`}>
-                    <Card
+                  <Link to={`/file/${file.id}`} className="flex flex-col items-center group">
+                    <div
                       className={
-                        "bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-black/10 dark:border-white/10 hover:shadow-md transition-shadow cursor-pointer " +
-                        (dragOverFileId === file.id ? "ring-2 ring-primary" : "")
+                        "relative w-20 h-16 transition-transform group-hover:scale-105 " +
+                        (dragOverFileId === file.id ? "scale-110" : "")
                       }
                     >
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <Folder className="h-4 w-4 text-muted-foreground" />
-                          <span className="truncate">{file.name}</span>
-                        </CardTitle>
-                        <CardDescription>
-                          {(fileSetCounts.get(file.id) ?? 0).toString()} set(s)
-                        </CardDescription>
-                      </CardHeader>
-                    </Card>
+                      {/* Folder icon shape */}
+                      <svg
+                        viewBox="0 0 80 64"
+                        className={
+                          "w-full h-full transition-colors " +
+                          (dragOverFileId === file.id
+                            ? "text-primary"
+                            : "text-muted-foreground/60 group-hover:text-muted-foreground")
+                        }
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        {/* Folder tab */}
+                        <path d="M4 16 L4 8 Q4 4 8 4 L28 4 L34 12 L72 12 Q76 12 76 16 L76 56 Q76 60 72 60 L8 60 Q4 60 4 56 Z" />
+                      </svg>
+                    </div>
+                    <span className="mt-2 text-sm text-foreground text-center max-w-24 truncate">
+                      {file.name}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {(fileSetCounts.get(file.id) ?? 0)} set(s)
+                    </span>
                   </Link>
                 </div>
               ))}
