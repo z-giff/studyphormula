@@ -244,84 +244,86 @@ const Dashboard = () => {
 
         {/* Files */}
         <section className="mb-10">
-          <div className="flex items-center justify-between gap-4 mb-4">
-            <div className="flex items-center gap-2">
-              <Folder className="h-5 w-5 text-muted-foreground" />
-              <h2 className="text-lg font-semibold text-foreground">Files</h2>
-            </div>
-
-            <Button onClick={() => setIsCreateFileDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create File
-            </Button>
+          <div className="flex items-center gap-2 mb-4">
+            <Folder className="h-5 w-5 text-muted-foreground" />
+            <h2 className="text-lg font-semibold text-foreground">Files</h2>
           </div>
 
-          {files.length === 0 ? (
-            <div className="py-8">
-              <p className="text-sm text-muted-foreground">
-                No files yet — create one to organize related flashcard sets.
-              </p>
-            </div>
-          ) : (
-            <div className="flex flex-wrap gap-6">
-              {files.map((file) => (
-                <div
-                  key={file.id}
-                  className="flex flex-col items-center"
-                  onDragEnter={() => setDragOverFileId(file.id)}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    setDragOverFileId(file.id);
-                  }}
-                  onDragLeave={() => {
-                    setDragOverFileId((prev) => (prev === file.id ? null : prev));
-                  }}
-                  onDrop={async (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setDragOverFileId(null);
-                    const setId = e.dataTransfer.getData("text/plain");
-                    if (!setId) return;
-                    await handleDropSetOnFile(setId, file.id);
-                  }}
-                >
-                  <Link to={`/file/${file.id}`} className="flex flex-col items-center group">
-                    <div
-                      className={
-                        "relative w-20 h-16 transition-transform group-hover:scale-105 " +
-                        (dragOverFileId === file.id ? "scale-110" : "")
-                      }
-                    >
-                      {/* Folder icon shape */}
-                      <svg
-                        viewBox="0 0 80 64"
-                        className={
-                          "w-full h-full transition-colors " +
-                          (dragOverFileId === file.id
-                            ? "text-primary"
-                            : "text-muted-foreground/60 group-hover:text-muted-foreground")
-                        }
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        {/* Folder tab */}
-                        <path d="M4 16 L4 8 Q4 4 8 4 L28 4 L34 12 L72 12 Q76 12 76 16 L76 56 Q76 60 72 60 L8 60 Q4 60 4 56 Z" />
-                      </svg>
-                    </div>
-                    <span className="mt-2 text-sm text-foreground text-center max-w-24 truncate">
-                      {file.name}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {(fileSetCounts.get(file.id) ?? 0)} set(s)
-                    </span>
-                  </Link>
+          <div className="flex flex-wrap gap-6">
+            {/* Create File circle button */}
+            <button
+              type="button"
+              onClick={() => setIsCreateFileDialogOpen(true)}
+              className="flex flex-col items-center group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg"
+            >
+              <div className="relative w-20 h-16 flex items-center justify-center transition-transform group-hover:scale-105">
+                <div className="w-14 h-14 rounded-full border-2 border-dashed border-muted-foreground/40 group-hover:border-primary flex items-center justify-center transition-colors bg-background/50">
+                  <Plus className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+              <span className="mt-2 text-sm text-muted-foreground group-hover:text-foreground text-center transition-colors">
+                New File
+              </span>
+            </button>
+
+            {/* File icons */}
+            {files.map((file) => (
+              <div
+                key={file.id}
+                className="flex flex-col items-center"
+                onDragEnter={() => setDragOverFileId(file.id)}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragOverFileId(file.id);
+                }}
+                onDragLeave={() => {
+                  setDragOverFileId((prev) => (prev === file.id ? null : prev));
+                }}
+                onDrop={async (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setDragOverFileId(null);
+                  const setId = e.dataTransfer.getData("text/plain");
+                  if (!setId) return;
+                  await handleDropSetOnFile(setId, file.id);
+                }}
+              >
+                <Link to={`/file/${file.id}`} className="flex flex-col items-center group">
+                  <div
+                    className={
+                      "relative w-20 h-16 transition-transform group-hover:scale-105 " +
+                      (dragOverFileId === file.id ? "scale-110" : "")
+                    }
+                  >
+                    {/* Folder icon shape */}
+                    <svg
+                      viewBox="0 0 80 64"
+                      className={
+                        "w-full h-full transition-colors " +
+                        (dragOverFileId === file.id
+                          ? "text-primary"
+                          : "text-muted-foreground/60 group-hover:text-muted-foreground")
+                      }
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      {/* Folder tab */}
+                      <path d="M4 16 L4 8 Q4 4 8 4 L28 4 L34 12 L72 12 Q76 12 76 16 L76 56 Q76 60 72 60 L8 60 Q4 60 4 56 Z" />
+                    </svg>
+                  </div>
+                  <span className="mt-2 text-sm text-foreground text-center max-w-24 truncate">
+                    {file.name}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {(fileSetCounts.get(file.id) ?? 0)} set(s)
+                  </span>
+                </Link>
+              </div>
+            ))}
+          </div>
         </section>
 
         {/* Sets */}
