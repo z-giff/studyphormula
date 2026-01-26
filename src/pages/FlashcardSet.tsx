@@ -3,12 +3,13 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Plus, ArrowLeft, Play, Palette } from "lucide-react";
+import { GraduationCap, Plus, ArrowLeft, Play, Palette, Edit } from "lucide-react";
 import { toast } from "sonner";
 import { CreateFlashcardDialog } from "@/components/CreateFlashcardDialog";
 import { EditFlashcardDialog } from "@/components/EditFlashcardDialog";
 import { ImportFlashcardsDialog } from "@/components/ImportFlashcardsDialog";
 import { CopyFlashcardDialog } from "@/components/CopyFlashcardDialog";
+import { BulkFlashcardEditor } from "@/components/BulkFlashcardEditor";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { StackedFlashcardDeck } from "@/components/StackedFlashcardDeck";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -55,6 +56,7 @@ const FlashcardSetPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [isBulkEditorOpen, setIsBulkEditorOpen] = useState(false);
   const [editingFlashcard, setEditingFlashcard] = useState<Flashcard | null>(null);
   const [copyingFlashcard, setCopyingFlashcard] = useState<{ id: string; setId: string } | null>(null);
 
@@ -274,6 +276,10 @@ const FlashcardSetPage = () => {
             <Plus className="h-4 w-4 mr-2" />
             Add Flashcard
           </Button>
+          <Button onClick={() => setIsBulkEditorOpen(true)}>
+            <Edit className="h-4 w-4 mr-2" />
+            Edit Set
+          </Button>
           <Button variant="outline" onClick={() => setIsImportDialogOpen(true)}>
             Import Flashcards
           </Button>
@@ -336,6 +342,18 @@ const FlashcardSetPage = () => {
           flashcardId={copyingFlashcard.id}
           currentSetId={copyingFlashcard.setId}
         />
+      )}
+
+      {isBulkEditorOpen && set && (
+        <div className="fixed inset-0 z-50 bg-background">
+          <BulkFlashcardEditor
+            setId={id!}
+            setTitle={set.title}
+            initialFlashcards={flashcards}
+            onClose={() => setIsBulkEditorOpen(false)}
+            onSuccess={fetchFlashcards}
+          />
+        </div>
       )}
     </div>
   );
