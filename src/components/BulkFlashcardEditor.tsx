@@ -331,7 +331,7 @@ export const BulkFlashcardEditor = ({
   let rowNumber = 0;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="fixed inset-0 bg-background overflow-y-auto z-[100]">
       {/* Header */}
       <nav className="border-b sticky top-0 bg-background z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
