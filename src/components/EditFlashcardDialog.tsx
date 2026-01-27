@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Pipette } from "lucide-react";
 import { InteractiveFlashcardEditor } from "@/components/InteractiveFlashcardEditor";
 import { FlowchartCanvasEditor } from "@/components/FlowchartCanvasEditor";
+import { DrawingCanvasEditor } from "@/components/DrawingCanvasEditor";
 import { ImageUploader } from "@/components/ImageUploader";
 
 const FLASHCARD_COLORS = [
@@ -46,9 +47,10 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
   const { id: setIdFromParams } = useParams<{ id: string }>();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedSetColor, setSelectedSetColor] = useState("#38b6ff");
-  const [flashcardType, setFlashcardType] = useState<"standard" | "interactive" | "flowchart">(
+  const [flashcardType, setFlashcardType] = useState<"standard" | "interactive" | "flowchart" | "drawing">(
     flashcard.flashcard_type === "interactive" ? "interactive" : 
     flashcard.flashcard_type === "flowchart" ? "flowchart" : 
+    flashcard.flashcard_type === "drawing" ? "drawing" :
     "standard"
   );
   const [formData, setFormData] = useState({
@@ -65,6 +67,11 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
     flashcard.flashcard_type === "flowchart" && flashcard.interactive_data
       ? flashcard.interactive_data
       : { nodes: [], edges: [] }
+  );
+  const [drawingData, setDrawingData] = useState(
+    flashcard.flashcard_type === "drawing" && flashcard.interactive_data
+      ? flashcard.interactive_data
+      : { strokes: [], width: 0, height: 0 }
   );
 
   // Fetch the current set color when dialog opens
@@ -89,6 +96,7 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
     setFlashcardType(
       flashcard.flashcard_type === "interactive" ? "interactive" : 
       flashcard.flashcard_type === "flowchart" ? "flowchart" : 
+      flashcard.flashcard_type === "drawing" ? "drawing" :
       "standard"
     );
     setFormData({
@@ -103,6 +111,11 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
       flashcard.flashcard_type === "flowchart" && flashcard.interactive_data
         ? flashcard.interactive_data
       : { nodes: [], edges: [] }
+    );
+    setDrawingData(
+      flashcard.flashcard_type === "drawing" && flashcard.interactive_data
+        ? flashcard.interactive_data
+        : { strokes: [], width: 0, height: 0 }
     );
   }, [flashcard]);
 
@@ -174,6 +187,15 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
         toast.error("Please create a flowchart diagram");
         return;
       }
+    } else if (flashcardType === "drawing") {
+      if (!formData.term.trim()) {
+        toast.error("Please provide a question/term");
+        return;
+      }
+      if (!drawingData.strokes || drawingData.strokes.length === 0) {
+        toast.error("Please create a drawing");
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -198,6 +220,11 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
         updateData.definition = "Flowchart diagram";
         updateData.image_url = null;
         updateData.interactive_data = flowchartData;
+      } else if (flashcardType === "drawing") {
+        updateData.term = formData.term.trim();
+        updateData.definition = "Drawing";
+        updateData.image_url = null;
+        updateData.interactive_data = drawingData;
       }
 
       const { error } = await supabase
@@ -227,11 +254,12 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <Tabs value={flashcardType} onValueChange={(v) => setFlashcardType(v as "standard" | "interactive" | "flowchart")}>
-            <TabsList className="grid w-full grid-cols-3">
+          <Tabs value={flashcardType} onValueChange={(v) => setFlashcardType(v as "standard" | "interactive" | "flowchart" | "drawing")}>
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="standard">Standard</TabsTrigger>
               <TabsTrigger value="interactive">Interactive</TabsTrigger>
               <TabsTrigger value="flowchart">Flowchart</TabsTrigger>
+              <TabsTrigger value="drawing">Drawing</TabsTrigger>
             </TabsList>
 
             <TabsContent value="standard" className="space-y-4 mt-4">
@@ -317,6 +345,25 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
               <FlowchartCanvasEditor
                 flowchartData={flowchartData}
                 onChange={setFlowchartData}
+              />
+            </TabsContent>
+
+            <TabsContent value="drawing" className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label htmlFor="drawing-edit-term">Question / Topic *</Label>
+                <Input
+                  id="drawing-edit-term"
+                  placeholder="e.g., Draw the cell membrane structure"
+                  value={formData.term}
+                  onChange={(e) => setFormData({ ...formData, term: e.target.value })}
+                  disabled={isLoading}
+                  required={flashcardType === "drawing"}
+                />
+              </div>
+
+              <DrawingCanvasEditor
+                drawingData={drawingData}
+                onChange={setDrawingData}
               />
             </TabsContent>
           </Tabs>

@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InteractiveFlashcardEditor } from "./InteractiveFlashcardEditor";
 import { FlowchartCanvasEditor } from "./FlowchartCanvasEditor";
+import { DrawingCanvasEditor } from "./DrawingCanvasEditor";
 import { ImageUploader } from "./ImageUploader";
 
 
@@ -21,7 +22,7 @@ interface CreateFlashcardDialogProps {
 
 export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: CreateFlashcardDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [flashcardType, setFlashcardType] = useState<"standard" | "interactive" | "flowchart">("standard");
+  const [flashcardType, setFlashcardType] = useState<"standard" | "interactive" | "flowchart" | "drawing">("standard");
   const [formData, setFormData] = useState({
     term: "",
     definition: "",
@@ -37,6 +38,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
     textBoxes: [],
   });
   const [flowchartData, setFlowchartData] = useState({ nodes: [], edges: [] });
+  const [drawingData, setDrawingData] = useState({ strokes: [], width: 0, height: 0 });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,6 +72,15 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
       }
       if (!flowchartData.nodes || flowchartData.nodes.length === 0) {
         toast.error("Please create a flowchart diagram");
+        return;
+      }
+    } else if (flashcardType === "drawing") {
+      if (!formData.term.trim()) {
+        toast.error("Please provide a question/term");
+        return;
+      }
+      if (!drawingData.strokes || drawingData.strokes.length === 0) {
+        toast.error("Please create a drawing");
         return;
       }
     }
@@ -115,6 +126,13 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
           definition: "Flowchart diagram",
           interactive_data: flowchartData,
         };
+      } else if (flashcardType === "drawing") {
+        insertData = {
+          ...insertData,
+          term: formData.term.trim(),
+          definition: "Drawing",
+          interactive_data: drawingData,
+        };
       }
 
       const { error } = await supabase.from("flashcards").insert(insertData);
@@ -125,6 +143,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
       setFormData({ term: "", definition: "", imageUrl: "" });
       setInteractiveData({ imageUrl: "", term: "", textBoxes: [] });
       setFlowchartData({ nodes: [], edges: [] });
+      setDrawingData({ strokes: [], width: 0, height: 0 });
       setFlashcardType("standard");
       onOpenChange(false);
       onSuccess();
@@ -145,11 +164,12 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <Tabs value={flashcardType} onValueChange={(v) => setFlashcardType(v as "standard" | "interactive" | "flowchart")}>
-            <TabsList className="grid w-full grid-cols-3">
+          <Tabs value={flashcardType} onValueChange={(v) => setFlashcardType(v as "standard" | "interactive" | "flowchart" | "drawing")}>
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="standard">Standard</TabsTrigger>
               <TabsTrigger value="interactive">Interactive</TabsTrigger>
               <TabsTrigger value="flowchart">Flowchart</TabsTrigger>
+              <TabsTrigger value="drawing">Drawing</TabsTrigger>
             </TabsList>
 
             <TabsContent value="standard" className="space-y-4 mt-4">
@@ -243,6 +263,29 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
               />
 
             </TabsContent>
+
+            <TabsContent value="drawing" className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label htmlFor="drawing-term">Question / Topic *</Label>
+                <Input
+                  id="drawing-term"
+                  placeholder="e.g., Draw the cell membrane structure"
+                  value={formData.term}
+                  onChange={(e) => setFormData({ ...formData, term: e.target.value })}
+                  disabled={isLoading}
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  This will be shown on the question side of the flashcard
+                </p>
+              </div>
+
+              <DrawingCanvasEditor
+                drawingData={drawingData}
+                onChange={setDrawingData}
+              />
+
+            </TabsContent>
           </Tabs>
 
           <div className="flex gap-3 justify-end">
@@ -255,7 +298,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Creating..." : `Create ${flashcardType === "standard" ? "Flashcard" : flashcardType === "interactive" ? "Interactive Flashcard" : "Flowchart Flashcard"}`}
+              {isLoading ? "Creating..." : `Create ${flashcardType === "standard" ? "Flashcard" : flashcardType === "interactive" ? "Interactive Flashcard" : flashcardType === "flowchart" ? "Flowchart Flashcard" : "Drawing Flashcard"}`}
             </Button>
           </div>
         </form>
