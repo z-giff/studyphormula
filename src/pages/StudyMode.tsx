@@ -12,6 +12,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { getContrastColor } from "@/lib/utils";
 import { InteractiveFlashcardStudy } from "@/components/InteractiveFlashcardStudy";
 import { FlowchartCanvasDisplay } from "@/components/FlowchartCanvasDisplay";
+import { DrawingCanvasDisplay } from "@/components/DrawingCanvasDisplay";
 
 interface Flashcard {
   id: string;
@@ -243,6 +244,41 @@ const StudyMode = () => {
                       <p className="text-sm uppercase tracking-wide opacity-80 mb-4 text-center">Flowchart</p>
                       <FlowchartCanvasDisplay
                         flowchartData={currentCard.interactive_data}
+                      />
+                    </div>
+                  )}
+                </div>
+              </Card>
+            ) : currentCard.flashcard_type === "drawing" && currentCard.interactive_data ? (
+              <Card
+                className="relative min-h-[500px] cursor-pointer border-0 overflow-hidden flex flex-col"
+                style={{
+                  backgroundColor: cardColor,
+                  color: textColor,
+                  transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+                  transition: "transform 0.6s ease",
+                  transformStyle: "preserve-3d",
+                }}
+                onClick={handleFlip}
+              >
+                <div
+                  className="p-12 w-full h-full flex flex-col"
+                  style={{
+                    transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+                    transformStyle: "preserve-3d",
+                  }}
+                >
+                  {!isFlipped ? (
+                    <div className="text-center space-y-6 flex-1 flex flex-col items-center justify-center">
+                      <p className="text-sm uppercase tracking-wide opacity-80">Question</p>
+                      <h2 className="text-4xl font-bold break-words">{currentCard.term}</h2>
+                      <p className="text-sm opacity-70 mt-8">Click to reveal drawing</p>
+                    </div>
+                  ) : (
+                    <div className="flex-1 flex flex-col">
+                      <p className="text-sm uppercase tracking-wide opacity-80 mb-4 text-center">Drawing</p>
+                      <DrawingCanvasDisplay
+                        drawingData={currentCard.interactive_data}
                       />
                     </div>
                   )}

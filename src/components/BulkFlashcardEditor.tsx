@@ -5,15 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, GripVertical, Image, Layers, GitBranch, FileText, X } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, GripVertical, Image, Layers, GitBranch, FileText, X, Pencil } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import LogoOrb from "@/components/LogoOrb";
 import { InteractiveFlashcardEditor } from "@/components/InteractiveFlashcardEditor";
 import { FlowchartCanvasEditor } from "@/components/FlowchartCanvasEditor";
+import { DrawingCanvasEditor } from "@/components/DrawingCanvasEditor";
 import { ImageUploader } from "@/components/ImageUploader";
 import { cn } from "@/lib/utils";
 
-type FlashcardType = "standard" | "interactive" | "flowchart";
+type FlashcardType = "standard" | "interactive" | "flowchart" | "drawing";
 
 interface TextBox {
   id: string;
@@ -27,6 +28,16 @@ interface TextBox {
   fontColor?: string;
 }
 
+interface DrawingData {
+  strokes: Array<{
+    points: Array<{ x: number; y: number }>;
+    color: string;
+    width: number;
+  }>;
+  width: number;
+  height: number;
+}
+
 interface BulkCardRow {
   id: string;
   dbId?: string; // ID from database if existing
@@ -38,6 +49,7 @@ interface BulkCardRow {
     textBoxes: TextBox[];
   };
   flowchartData: { nodes: any[]; edges: any[] };
+  drawingData: DrawingData;
   isNew: boolean;
   isDeleted: boolean;
 }
@@ -85,6 +97,9 @@ export const BulkFlashcardEditor = ({
       flowchartData: card.flashcard_type === "flowchart" && card.interactive_data
         ? card.interactive_data
         : { nodes: [], edges: [] },
+      drawingData: card.flashcard_type === "drawing" && card.interactive_data
+        ? card.interactive_data
+        : { strokes: [], width: 0, height: 0 },
       isNew: false,
       isDeleted: false,
     }));
@@ -105,6 +120,7 @@ export const BulkFlashcardEditor = ({
     imageUrl: "",
     interactiveData: { textBoxes: [] },
     flowchartData: { nodes: [], edges: [] },
+    drawingData: { strokes: [], width: 0, height: 0 },
     isNew: true,
     isDeleted: false,
   });
@@ -197,7 +213,7 @@ export const BulkFlashcardEditor = ({
   };
 
   const validateRows = (): boolean => {
-    const activeRows = rows.filter((r) => !r.isDeleted && (r.term.trim() || r.definition.trim() || r.imageUrl));
+    const activeRows = rows.filter((r) => !r.isDeleted && (r.term.trim() || r.definition.trim() || r.imageUrl || r.drawingData.strokes.length > 0));
     
     for (const row of activeRows) {
       if (row.type === "standard") {
@@ -225,6 +241,15 @@ export const BulkFlashcardEditor = ({
         }
         if (!row.flowchartData.nodes || row.flowchartData.nodes.length === 0) {
           toast.error("Flowchart cards require at least one node");
+          return false;
+        }
+      } else if (row.type === "drawing") {
+        if (!row.term.trim()) {
+          toast.error("Drawing cards require a term/question");
+          return false;
+        }
+        if (!row.drawingData.strokes || row.drawingData.strokes.length === 0) {
+          toast.error("Drawing cards require at least one stroke");
           return false;
         }
       }
@@ -267,6 +292,10 @@ export const BulkFlashcardEditor = ({
           updateData.definition = "Flowchart diagram";
           updateData.image_url = null;
           updateData.interactive_data = row.flowchartData;
+        } else if (row.type === "drawing") {
+          updateData.definition = "Drawing";
+          updateData.image_url = null;
+          updateData.interactive_data = row.drawingData;
         }
 
         const { error } = await supabase
@@ -278,7 +307,7 @@ export const BulkFlashcardEditor = ({
 
       // 3. Insert new rows
       const newRows = rows.filter(
-        (r) => r.isNew && !r.isDeleted && (r.term.trim() || r.definition.trim())
+        (r) => r.isNew && !r.isDeleted && (r.term.trim() || r.definition.trim() || r.drawingData.strokes.length > 0)
       );
       
       if (newRows.length > 0) {
@@ -310,6 +339,9 @@ export const BulkFlashcardEditor = ({
           } else if (row.type === "flowchart") {
             insertData.definition = "Flowchart diagram";
             insertData.interactive_data = row.flowchartData;
+          } else if (row.type === "drawing") {
+            insertData.definition = "Drawing";
+            insertData.interactive_data = row.drawingData;
           }
 
           const { error } = await supabase.from("flashcards").insert(insertData);
@@ -410,6 +442,19 @@ export const BulkFlashcardEditor = ({
                       title="Flowchart"
                     >
                       <GitBranch className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleTypeChange(row.id, "drawing")}
+                      className={cn(
+                        "p-2 rounded-lg transition-colors",
+                        row.type === "drawing"
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-muted text-muted-foreground"
+                      )}
+                      title="Drawing"
+                    >
+                      <Pencil className="h-4 w-4" />
                     </button>
                   </div>
 
@@ -601,6 +646,54 @@ export const BulkFlashcardEditor = ({
                           <FlowchartCanvasEditor
                             flowchartData={row.flowchartData}
                             onChange={(data) => handleRowChange(row.id, "flowchartData", data)}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Drawing Card Layout */}
+                  {row.type === "drawing" && (
+                    <div className="space-y-4">
+                      <div className="space-y-1">
+                        <Input
+                          ref={(el) => {
+                            if (el) inputRefs.current.set(`term-${row.id}`, el);
+                          }}
+                          placeholder="Enter question/topic"
+                          value={row.term}
+                          onChange={(e) => handleRowChange(row.id, "term", e.target.value)}
+                          className="bg-muted/50 border-0 focus-visible:ring-1"
+                        />
+                        <span className="text-xs text-muted-foreground uppercase tracking-wide">Term</span>
+                      </div>
+                      
+                      {!isExpanded ? (
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => setExpandedRow(row.id)}
+                        >
+                          <Pencil className="h-4 w-4 mr-2" />
+                          {row.drawingData.strokes?.length > 0
+                            ? `Edit Drawing (${row.drawingData.strokes.length} strokes)`
+                            : "Create Drawing"}
+                        </Button>
+                      ) : (
+                        <div className="border rounded-lg p-4 space-y-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-medium">Drawing Editor</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setExpandedRow(null)}
+                            >
+                              Collapse
+                            </Button>
+                          </div>
+                          <DrawingCanvasEditor
+                            drawingData={row.drawingData}
+                            onChange={(data) => handleRowChange(row.id, "drawingData", data)}
                           />
                         </div>
                       )}
