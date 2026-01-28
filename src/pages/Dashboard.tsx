@@ -341,6 +341,47 @@ const Dashboard = () => {
           </div>
         </section>
 
+        {/* Bookmarks Banner */}
+        {bookmarkedCount > 0 && (
+          <section className="mb-10">
+            <Link to="/set/bookmarks" className="block">
+              <div 
+                className="relative overflow-hidden rounded-2xl h-20 cursor-pointer hover:shadow-lg transition-all bg-gradient-to-r from-yellow-500/10 via-amber-500/15 to-yellow-500/10 dark:from-yellow-500/20 dark:via-amber-500/25 dark:to-yellow-500/20 border border-yellow-500/30 hover:border-yellow-500/50 group"
+              >
+                {/* Decorative background elements */}
+                <div className="absolute inset-0 opacity-30">
+                  <div className="absolute -right-8 -top-8 w-32 h-32 bg-yellow-400/20 rounded-full blur-2xl" />
+                  <div className="absolute -left-4 -bottom-4 w-24 h-24 bg-amber-400/20 rounded-full blur-xl" />
+                </div>
+                
+                <div className="relative h-full flex items-center justify-between px-6">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-yellow-500/20 group-hover:bg-yellow-500/30 transition-colors">
+                      <Bookmark className="h-6 w-6 text-yellow-500 fill-yellow-500" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">Bookmarks</h3>
+                      <p className="text-sm text-muted-foreground">Your saved flashcards for quick review</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <BookOpen className="h-4 w-4" />
+                      <span className="font-medium">{bookmarkedCount} {bookmarkedCount === 1 ? 'card' : 'cards'}</span>
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center group-hover:bg-yellow-500/30 transition-colors">
+                      <svg className="w-4 h-4 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </section>
+        )}
+
         {/* Sets */}
         <section>
           <div className="flex items-center justify-between gap-4 mb-4">
@@ -360,32 +401,6 @@ const Dashboard = () => {
             </div>
           </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Bookmarks Set Card */}
-          {bookmarkedCount > 0 && (
-            <Link to="/set/bookmarks">
-              <Card className="h-48 cursor-pointer hover:shadow-lg transition-all overflow-hidden group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-black/10 dark:border-white/10" style={{
-                borderTop: "6px solid #eab308",
-                background: "linear-gradient(to bottom, rgba(234, 179, 8, 0.15), rgba(255,255,255,0.8))"
-              }}>
-                <CardHeader>
-                  <CardTitle className="text-foreground flex items-center gap-2">
-                    <Bookmark className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-                    <span className="truncate">Bookmarks</span>
-                  </CardTitle>
-                  <CardDescription className="line-clamp-2">
-                    All your bookmarked flashcards
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <BookOpen className="h-4 w-4" />
-                    <span>{bookmarkedCount} cards</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          )}
-
           {/* Create New Set Card */}
           <Card className="border-2 border-dashed border-black/20 dark:border-white/20 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all bg-white/80 dark:bg-gray-800/80 backdrop-blur-md" onClick={() => setIsCreateDialogOpen(true)}>
             <CardContent className="flex flex-col items-center justify-center h-48 text-center">
