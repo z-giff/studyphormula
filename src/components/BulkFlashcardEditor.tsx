@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, GripVertical, Image, Layers, GitBranch, FileText, X, Pencil } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, GripVertical, Image, Layers, GitBranch, FileText, X, Pencil, Bookmark } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import LogoOrb from "@/components/LogoOrb";
 import { InteractiveFlashcardEditor } from "@/components/InteractiveFlashcardEditor";
@@ -52,6 +52,7 @@ interface BulkCardRow {
   drawingData: DrawingData;
   isNew: boolean;
   isDeleted: boolean;
+  isBookmarked: boolean;
 }
 
 interface BulkFlashcardEditorProps {
@@ -65,6 +66,7 @@ interface BulkFlashcardEditorProps {
     position: number;
     flashcard_type?: string;
     interactive_data?: any;
+    is_bookmarked?: boolean;
   }>;
   onClose: () => void;
   onSuccess: () => void;
@@ -102,6 +104,7 @@ export const BulkFlashcardEditor = ({
         : { strokes: [], width: 0, height: 0 },
       isNew: false,
       isDeleted: false,
+      isBookmarked: card.is_bookmarked || false,
     }));
 
     // Always have at least one empty row
@@ -123,6 +126,7 @@ export const BulkFlashcardEditor = ({
     drawingData: { strokes: [], width: 0, height: 0 },
     isNew: true,
     isDeleted: false,
+    isBookmarked: false,
   });
 
   const addNewRow = () => {
@@ -278,6 +282,7 @@ export const BulkFlashcardEditor = ({
         const updateData: any = {
           term: row.term.trim(),
           flashcard_type: row.type,
+          is_bookmarked: row.isBookmarked,
         };
 
         if (row.type === "standard") {
@@ -327,6 +332,7 @@ export const BulkFlashcardEditor = ({
             position: nextPosition++,
             term: row.term.trim(),
             flashcard_type: row.type,
+            is_bookmarked: row.isBookmarked,
           };
 
           if (row.type === "standard") {
@@ -459,6 +465,20 @@ export const BulkFlashcardEditor = ({
                   </div>
 
                   <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={cn(
+                        "h-8 w-8",
+                        row.isBookmarked
+                          ? "text-yellow-500 hover:text-yellow-600"
+                          : "text-muted-foreground hover:text-yellow-500"
+                      )}
+                      onClick={() => handleRowChange(row.id, "isBookmarked", !row.isBookmarked)}
+                      title={row.isBookmarked ? "Remove bookmark" : "Add bookmark"}
+                    >
+                      <Bookmark className={cn("h-4 w-4", row.isBookmarked && "fill-current")} />
+                    </Button>
                     <GripVertical className="h-4 w-4 text-muted-foreground/50" />
                     <Button
                       variant="ghost"

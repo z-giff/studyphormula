@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import FlashcardSetPage from "./pages/FlashcardSet";
 import StudyMode from "./pages/StudyMode";
 import FilePage from "./pages/File";
+import BookmarksSet from "./pages/BookmarksSet";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/file/:id" element={<FilePage />} />
+              <Route path="/set/bookmarks" element={<BookmarksSet />} />
               <Route path="/set/:id" element={<FlashcardSetPage />} />
               <Route path="/study/:id" element={<StudyMode />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Shuffle, RotateCcw } from "lucide-react";
+import { ArrowLeft, Shuffle, RotateCcw, Bookmark } from "lucide-react";
 import LogoOrb from "@/components/LogoOrb";
 import phormulaLogo from "@/assets/phormula-text-logo.png";
 import { toast } from "sonner";
@@ -39,6 +39,8 @@ const StudyMode = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const isBookmarkMode = id === "bookmarks";
 
   useEffect(() => {
     if (!loading && !user) {
@@ -48,12 +50,17 @@ const StudyMode = () => {
 
   useEffect(() => {
     if (user && id) {
-      fetchData();
-      void markSetAccessed();
+      if (isBookmarkMode) {
+        fetchBookmarkedData();
+      } else {
+        fetchData();
+        void markSetAccessed();
+      }
     }
-  }, [user, id]);
+  }, [user, id, isBookmarkMode]);
 
   const markSetAccessed = async () => {
+    if (isBookmarkMode) return;
     try {
       const payload: any = {};
       payload.last_accessed_at = new Date().toISOString();
@@ -63,6 +70,33 @@ const StudyMode = () => {
         .eq("id", id);
     } catch {
       // no-op
+    }
+  };
+
+  const fetchBookmarkedData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("flashcards")
+        .select("*, flashcard_sets!inner(user_id)")
+        .eq("is_bookmarked", true)
+        .order("updated_at", { ascending: false });
+
+      if (error) throw error;
+
+      setSet({
+        id: "bookmarks",
+        title: "Bookmarks",
+        color: "#eab308",
+      });
+      setFlashcards((data || []).map(card => ({
+        ...card,
+        interactive_data: card.interactive_data as any,
+      })));
+    } catch (error: any) {
+      toast.error(error.message || "Failed to load bookmarked flashcards");
+      navigate("/set/bookmarks");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -118,8 +152,14 @@ const StudyMode = () => {
   const handleRestart = () => {
     setCurrentIndex(0);
     setIsFlipped(false);
-    fetchData();
+    if (isBookmarkMode) {
+      fetchBookmarkedData();
+    } else {
+      fetchData();
+    }
   };
+
+  const backToSetLink = isBookmarkMode ? "/set/bookmarks" : `/set/${id}`;
 
   if (loading || isLoading) {
     return (
@@ -137,7 +177,7 @@ const StudyMode = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-xl text-muted-foreground mb-4">No flashcards to study</p>
-          <Link to={`/set/${id}`}>
+          <Link to={backToSetLink}>
             <Button>Back to Set</Button>
           </Link>
         </div>
@@ -161,7 +201,7 @@ const StudyMode = () => {
       <main className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
-            <Link to={`/set/${id}`}>
+            <Link to={backToSetLink}>
               <Button variant="ghost" className="mb-4">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Set
@@ -170,10 +210,14 @@ const StudyMode = () => {
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div
-                  className="w-6 h-6 rounded-full"
-                  style={{ backgroundColor: set.color }}
-                />
+                {isBookmarkMode ? (
+                  <Bookmark className="h-6 w-6 text-yellow-500 fill-yellow-500" />
+                ) : (
+                  <div
+                    className="w-6 h-6 rounded-full"
+                    style={{ backgroundColor: set.color }}
+                  />
+                )}
                 <h1 className="text-3xl font-bold">{set.title}</h1>
               </div>
 
