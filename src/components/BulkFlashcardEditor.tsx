@@ -82,7 +82,68 @@ export const BulkFlashcardEditor = ({
   const [rows, setRows] = useState<BulkCardRow[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [draggedRowId, setDraggedRowId] = useState<string | null>(null);
+  const [dragOverRowId, setDragOverRowId] = useState<string | null>(null);
   const inputRefs = useRef<Map<string, HTMLInputElement | HTMLTextAreaElement>>(new Map());
+
+  // Drag and drop handlers
+  const handleDragStart = (e: React.DragEvent, rowId: string) => {
+    setDraggedRowId(rowId);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", rowId);
+    // Add a slight delay to allow the drag image to be set
+    setTimeout(() => {
+      const element = document.querySelector(`[data-row-id="${rowId}"]`);
+      if (element) {
+        element.classList.add("opacity-50");
+      }
+    }, 0);
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    const element = document.querySelector(`[data-row-id="${draggedRowId}"]`);
+    if (element) {
+      element.classList.remove("opacity-50");
+    }
+    setDraggedRowId(null);
+    setDragOverRowId(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent, rowId: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (rowId !== draggedRowId) {
+      setDragOverRowId(rowId);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    setDragOverRowId(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, targetRowId: string) => {
+    e.preventDefault();
+    if (!draggedRowId || draggedRowId === targetRowId) {
+      setDragOverRowId(null);
+      return;
+    }
+
+    setRows((prev) => {
+      const newRows = [...prev];
+      const draggedIndex = newRows.findIndex((r) => r.id === draggedRowId);
+      const targetIndex = newRows.findIndex((r) => r.id === targetRowId);
+
+      if (draggedIndex === -1 || targetIndex === -1) return prev;
+
+      // Remove dragged item and insert at target position
+      const [draggedItem] = newRows.splice(draggedIndex, 1);
+      newRows.splice(targetIndex, 0, draggedItem);
+
+      return newRows;
+    });
+
+    setDragOverRowId(null);
+  };
 
   // Initialize rows from existing flashcards
   useEffect(() => {
@@ -276,13 +337,17 @@ export const BulkFlashcardEditor = ({
         if (deleteError) throw deleteError;
       }
 
-      // 2. Update existing rows
+      // 2. Update existing rows with new positions
       const existingRows = rows.filter((r) => !r.isDeleted && r.dbId);
+      const visibleRowsForPosition = rows.filter((r) => !r.isDeleted);
+      
       for (const row of existingRows) {
+        const newPosition = visibleRowsForPosition.findIndex((r) => r.id === row.id);
         const updateData: any = {
           term: row.term.trim(),
           flashcard_type: row.type,
           is_bookmarked: row.isBookmarked,
+          position: newPosition,
         };
 
         if (row.type === "standard") {
@@ -316,20 +381,11 @@ export const BulkFlashcardEditor = ({
       );
       
       if (newRows.length > 0) {
-        // Get max position
-        const { data: maxPosData } = await supabase
-          .from("flashcards")
-          .select("position")
-          .eq("set_id", setId)
-          .order("position", { ascending: false })
-          .limit(1);
-        
-        let nextPosition = (maxPosData?.[0]?.position ?? -1) + 1;
-
         for (const row of newRows) {
+          const newPosition = visibleRowsForPosition.findIndex((r) => r.id === row.id);
           const insertData: any = {
             set_id: setId,
-            position: nextPosition++,
+            position: newPosition,
             term: row.term.trim(),
             flashcard_type: row.type,
             is_bookmarked: row.isBookmarked,
@@ -402,7 +458,16 @@ export const BulkFlashcardEditor = ({
             return (
               <div
                 key={row.id}
-                className="bg-card border rounded-xl overflow-hidden"
+                data-row-id={row.id}
+                draggable={false}
+                onDragOver={(e) => handleDragOver(e, row.id)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, row.id)}
+                className={cn(
+                  "bg-card border rounded-xl overflow-hidden transition-all duration-200",
+                  dragOverRowId === row.id && draggedRowId !== row.id && "border-primary border-2 scale-[1.01]",
+                  draggedRowId === row.id && "opacity-50"
+                )}
               >
                 {/* Row Header with Number and Actions */}
                 <div className="flex items-center justify-between px-4 py-3 bg-muted/30 border-b">
@@ -479,7 +544,15 @@ export const BulkFlashcardEditor = ({
                     >
                       <Bookmark className={cn("h-4 w-4", row.isBookmarked && "fill-current")} />
                     </Button>
-                    <GripVertical className="h-4 w-4 text-muted-foreground/50" />
+                    <div
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, row.id)}
+                      onDragEnd={handleDragEnd}
+                      className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded transition-colors"
+                      title="Drag to reorder"
+                    >
+                      <GripVertical className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                    </div>
                     <Button
                       variant="ghost"
                       size="icon"
