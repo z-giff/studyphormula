@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, GripVertical, Image, Layers, GitBranch, FileText, X, Pencil, Bookmark } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, GripVertical, Image, Layers, GitBranch, FileText, X, Pencil, Bookmark, Check, Loader2 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import LogoOrb from "@/components/LogoOrb";
 import { InteractiveFlashcardEditor } from "@/components/InteractiveFlashcardEditor";
@@ -81,10 +81,15 @@ export const BulkFlashcardEditor = ({
 }: BulkFlashcardEditorProps) => {
   const [rows, setRows] = useState<BulkCardRow[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [draggedRowId, setDraggedRowId] = useState<string | null>(null);
   const [dragOverRowId, setDragOverRowId] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const inputRefs = useRef<Map<string, HTMLInputElement | HTMLTextAreaElement>>(new Map());
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSavedRowsRef = useRef<string>("");
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, rowId: string) => {
@@ -174,7 +179,156 @@ export const BulkFlashcardEditor = ({
     }
 
     setRows(initialRows);
+    lastSavedRowsRef.current = JSON.stringify(initialRows);
+    // Mark as initialized after a short delay to prevent immediate auto-save
+    setTimeout(() => setIsInitialized(true), 100);
   }, [initialFlashcards]);
+
+  // Auto-save function (doesn't close or show success toast)
+  const performAutoSave = useCallback(async (rowsToSave: BulkCardRow[]) => {
+    // Skip if nothing changed
+    const currentRowsJson = JSON.stringify(rowsToSave);
+    if (currentRowsJson === lastSavedRowsRef.current) {
+      return;
+    }
+
+    // Check if there are any valid rows to save
+    const hasValidContent = rowsToSave.some(
+      (r) => !r.isDeleted && (r.term.trim() || r.definition.trim() || r.drawingData?.strokes?.length > 0)
+    );
+    
+    if (!hasValidContent && !rowsToSave.some(r => r.isDeleted && r.dbId)) {
+      return;
+    }
+
+    setIsAutoSaving(true);
+    setAutoSaveStatus("saving");
+    
+    try {
+      // 1. Delete marked rows
+      const deletedRows = rowsToSave.filter((r) => r.isDeleted && r.dbId);
+      if (deletedRows.length > 0) {
+        const { error: deleteError } = await supabase
+          .from("flashcards")
+          .delete()
+          .in("id", deletedRows.map((r) => r.dbId!));
+        if (deleteError) throw deleteError;
+      }
+
+      // 2. Update existing rows with new positions
+      const existingRows = rowsToSave.filter((r) => !r.isDeleted && r.dbId);
+      const visibleRowsForPosition = rowsToSave.filter((r) => !r.isDeleted);
+      
+      for (const row of existingRows) {
+        const newPosition = visibleRowsForPosition.findIndex((r) => r.id === row.id);
+        const updateData: any = {
+          term: row.term.trim(),
+          flashcard_type: row.type,
+          is_bookmarked: row.isBookmarked,
+          position: newPosition,
+        };
+
+        if (row.type === "standard") {
+          updateData.definition = row.definition.trim();
+          updateData.image_url = row.imageUrl || null;
+          updateData.interactive_data = null;
+        } else if (row.type === "interactive") {
+          updateData.definition = "Fill in the blanks";
+          updateData.image_url = row.imageUrl;
+          updateData.interactive_data = row.interactiveData;
+        } else if (row.type === "flowchart") {
+          updateData.definition = "Flowchart diagram";
+          updateData.image_url = null;
+          updateData.interactive_data = row.flowchartData;
+        } else if (row.type === "drawing") {
+          updateData.definition = "Drawing";
+          updateData.image_url = null;
+          updateData.interactive_data = row.drawingData;
+        }
+
+        const { error } = await supabase
+          .from("flashcards")
+          .update(updateData)
+          .eq("id", row.dbId!);
+        if (error) throw error;
+      }
+
+      // 3. Insert new rows that have content
+      const newRows = rowsToSave.filter(
+        (r) => r.isNew && !r.isDeleted && (r.term.trim() || r.definition.trim() || r.drawingData?.strokes?.length > 0)
+      );
+      
+      if (newRows.length > 0) {
+        for (const row of newRows) {
+          const newPosition = visibleRowsForPosition.findIndex((r) => r.id === row.id);
+          const insertData: any = {
+            set_id: setId,
+            position: newPosition,
+            term: row.term.trim() || "Untitled",
+            flashcard_type: row.type,
+            is_bookmarked: row.isBookmarked,
+          };
+
+          if (row.type === "standard") {
+            insertData.definition = row.definition.trim() || "";
+            insertData.image_url = row.imageUrl || null;
+          } else if (row.type === "interactive") {
+            insertData.definition = "Fill in the blanks";
+            insertData.image_url = row.imageUrl;
+            insertData.interactive_data = row.interactiveData;
+          } else if (row.type === "flowchart") {
+            insertData.definition = "Flowchart diagram";
+            insertData.interactive_data = row.flowchartData;
+          } else if (row.type === "drawing") {
+            insertData.definition = "Drawing";
+            insertData.interactive_data = row.drawingData;
+          }
+
+          const { data, error } = await supabase.from("flashcards").insert(insertData).select().single();
+          if (error) throw error;
+          
+          // Update the row to mark it as no longer new and store the dbId
+          if (data) {
+            setRows(prev => prev.map(r => 
+              r.id === row.id ? { ...r, isNew: false, dbId: data.id } : r
+            ));
+          }
+        }
+      }
+
+      lastSavedRowsRef.current = currentRowsJson;
+      setAutoSaveStatus("saved");
+      
+      // Reset status after a delay
+      setTimeout(() => setAutoSaveStatus("idle"), 2000);
+    } catch (error: any) {
+      console.error("Auto-save failed:", error);
+      setAutoSaveStatus("idle");
+    } finally {
+      setIsAutoSaving(false);
+    }
+  }, [setId]);
+
+  // Debounced auto-save effect
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    // Clear existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Set new timeout for auto-save (1.5 seconds after last change)
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      performAutoSave(rows);
+    }, 1500);
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [rows, isInitialized, performAutoSave]);
 
   const createEmptyRow = (): BulkCardRow => ({
     id: `new-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -440,8 +594,23 @@ export const BulkFlashcardEditor = ({
             </div>
           </div>
           <div className="flex items-center gap-3">
+            {/* Auto-save status indicator */}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              {autoSaveStatus === "saving" && (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Saving...</span>
+                </>
+              )}
+              {autoSaveStatus === "saved" && (
+                <>
+                  <Check className="h-4 w-4 text-green-500" />
+                  <span className="text-green-500">Saved</span>
+                </>
+              )}
+            </div>
             <ThemeToggle />
-            <Button onClick={handleSave} disabled={isSaving}>
+            <Button onClick={handleSave} disabled={isSaving || isAutoSaving}>
               {isSaving ? "Saving..." : "Done"}
             </Button>
           </div>
