@@ -23,6 +23,7 @@ interface StackedFlashcardDeckProps {
   onDelete: (flashcardId: string) => void;
   onToggleBookmark: (flashcardId: string, currentStatus: boolean) => void;
   onCopy: (flashcardId: string) => void;
+  isBookmarkSet?: boolean;
 }
 
 // Helper function to determine contrasting text color
@@ -46,6 +47,7 @@ export const StackedFlashcardDeck = ({
   onDelete,
   onToggleBookmark,
   onCopy,
+  isBookmarkSet = false,
 }: StackedFlashcardDeckProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flippedCards, setFlippedCards] = useState<Set<number>>(new Set());
@@ -236,18 +238,22 @@ export const StackedFlashcardDeck = ({
             />
             {currentCard.is_bookmarked ? "Bookmarked" : "Bookmark"}
           </Button>
-          <Button variant="outline" size="sm" onClick={() => onEdit(currentCard)}>
-            <Pencil className="h-4 w-4 mr-1" />
-            Edit
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => onCopy(currentCard.id)}>
-            <Copy className="h-4 w-4 mr-1" />
-            Copy
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => onDelete(currentCard.id)}>
-            <Trash2 className="h-4 w-4 mr-1" />
-            Delete
-          </Button>
+          {!isBookmarkSet && (
+            <>
+              <Button variant="outline" size="sm" onClick={() => onEdit(currentCard)}>
+                <Pencil className="h-4 w-4 mr-1" />
+                Edit
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => onCopy(currentCard.id)}>
+                <Copy className="h-4 w-4 mr-1" />
+                Copy
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => onDelete(currentCard.id)}>
+                <Trash2 className="h-4 w-4 mr-1" />
+                Delete
+              </Button>
+            </>
+          )}
         </div>
       )}
 

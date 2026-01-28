@@ -4,7 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, BookOpen, User, MoreHorizontal, Trash2, Folder, ArrowRightLeft } from "lucide-react";
+import { Plus, BookOpen, User, MoreHorizontal, Trash2, Folder, ArrowRightLeft, Bookmark } from "lucide-react";
 import { toast } from "sonner";
 import { CreateSetDialog } from "@/components/CreateSetDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -38,6 +38,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [sets, setSets] = useState<FlashcardSet[]>([]);
   const [files, setFiles] = useState<FlashcardFile[]>([]);
+  const [bookmarkedCount, setBookmarkedCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCreateFileDialogOpen, setIsCreateFileDialogOpen] = useState(false);
@@ -55,7 +56,7 @@ const Dashboard = () => {
   }, [user, loading, navigate]);
   useEffect(() => {
     if (user) {
-      void Promise.all([fetchSets(), fetchFiles()]);
+      void Promise.all([fetchSets(), fetchFiles(), fetchBookmarkedCount()]);
     }
   }, [user]);
 
@@ -70,6 +71,20 @@ const Dashboard = () => {
       setFiles((data || []) as FlashcardFile[]);
     } catch (error: any) {
       toast.error(error.message || "Failed to fetch files");
+    }
+  };
+
+  const fetchBookmarkedCount = async () => {
+    try {
+      const { count, error } = await supabase
+        .from("flashcards")
+        .select("*", { count: "exact", head: true })
+        .eq("is_bookmarked", true);
+
+      if (error) throw error;
+      setBookmarkedCount(count || 0);
+    } catch (error: any) {
+      console.error("Failed to fetch bookmarked count:", error);
     }
   };
 
@@ -345,6 +360,32 @@ const Dashboard = () => {
             </div>
           </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Bookmarks Set Card */}
+          {bookmarkedCount > 0 && (
+            <Link to="/set/bookmarks">
+              <Card className="h-48 cursor-pointer hover:shadow-lg transition-all overflow-hidden group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-black/10 dark:border-white/10" style={{
+                borderTop: "6px solid #eab308",
+                background: "linear-gradient(to bottom, rgba(234, 179, 8, 0.15), rgba(255,255,255,0.8))"
+              }}>
+                <CardHeader>
+                  <CardTitle className="text-foreground flex items-center gap-2">
+                    <Bookmark className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+                    <span className="truncate">Bookmarks</span>
+                  </CardTitle>
+                  <CardDescription className="line-clamp-2">
+                    All your bookmarked flashcards
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <BookOpen className="h-4 w-4" />
+                    <span>{bookmarkedCount} cards</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          )}
+
           {/* Create New Set Card */}
           <Card className="border-2 border-dashed border-black/20 dark:border-white/20 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all bg-white/80 dark:bg-gray-800/80 backdrop-blur-md" onClick={() => setIsCreateDialogOpen(true)}>
             <CardContent className="flex flex-col items-center justify-center h-48 text-center">
