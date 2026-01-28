@@ -400,15 +400,15 @@ const Dashboard = () => {
               </Select>
             </div>
           </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {/* Create New Set Card */}
           <Card className="border-2 border-dashed border-black/20 dark:border-white/20 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all bg-white/80 dark:bg-gray-800/80 backdrop-blur-md" onClick={() => setIsCreateDialogOpen(true)}>
-            <CardContent className="flex flex-col items-center justify-center h-48 text-center">
-              <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-                <Plus className="h-8 w-8 text-primary" />
+            <CardContent className="flex flex-col items-center justify-center h-40 text-center">
+              <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-3">
+                <Plus className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground">Create New Set</h3>
-              <p className="text-sm text-muted-foreground">Start a new flashcard collection</p>
+              <h3 className="text-base font-semibold text-foreground">Create New Set</h3>
+              <p className="text-xs text-muted-foreground">Start a new collection</p>
             </CardContent>
           </Card>
 
@@ -423,21 +423,21 @@ const Dashboard = () => {
               }}
             >
               <Link to={`/set/${set.id}`}>
-                <Card className="h-48 cursor-pointer hover:shadow-lg transition-all overflow-hidden group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-black/10 dark:border-white/10" style={{
-              borderTop: `6px solid ${set.displayColor}`,
+                <Card className="h-40 cursor-pointer hover:shadow-lg transition-all overflow-hidden group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-black/10 dark:border-white/10" style={{
+              borderTop: `4px solid ${set.displayColor}`,
               background: `linear-gradient(to bottom, ${set.displayColor}15, rgba(255,255,255,0.8))`
             }}>
-                  <CardHeader className="pr-12">
-                    <CardTitle className="text-foreground">
-                      <span className="truncate">{set.title}</span>
+                  <CardHeader className="pr-10 pb-2 pt-4">
+                    <CardTitle className="text-foreground text-base">
+                      <span className="truncate block">{set.title}</span>
                     </CardTitle>
-                    <CardDescription className="line-clamp-2">
+                    <CardDescription className="line-clamp-1 text-xs">
                       {set.description || "No description"}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <BookOpen className="h-4 w-4" />
+                  <CardContent className="pt-0">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <BookOpen className="h-3.5 w-3.5" />
                       <span>{set._count?.flashcards || 0} cards</span>
                     </div>
                   </CardContent>
