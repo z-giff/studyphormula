@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { Plus } from "lucide-react";
-
 const PRESET_COLORS = [
   "#000000", // Black
   "#a6a6a6", // Grey
@@ -28,6 +28,7 @@ interface CreateSetDialogProps {
 
 export const CreateSetDialog = ({ open, onOpenChange, onSuccess }: CreateSetDialogProps) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -51,12 +52,12 @@ export const CreateSetDialog = ({ open, onOpenChange, onSuccess }: CreateSetDial
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.from("flashcard_sets").insert({
+      const { data, error } = await supabase.from("flashcard_sets").insert({
         user_id: user.id,
         title: formData.title.trim(),
         description: formData.description.trim() || null,
         color: formData.color,
-      });
+      }).select().single();
 
       if (error) throw error;
 
@@ -64,6 +65,8 @@ export const CreateSetDialog = ({ open, onOpenChange, onSuccess }: CreateSetDial
       setFormData({ title: "", description: "", color: PRESET_COLORS[0] });
       onOpenChange(false);
       onSuccess();
+      // Navigate to the new set with bulk editor open
+      navigate(`/set/${data.id}?bulkEdit=true`);
     } catch (error: any) {
       toast.error(error.message || "Failed to create flashcard set");
     } finally {

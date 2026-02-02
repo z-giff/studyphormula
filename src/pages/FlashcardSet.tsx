@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -50,6 +50,7 @@ interface FlashcardSet {
 
 const FlashcardSetPage = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [set, setSet] = useState<FlashcardSet | null>(null);
@@ -61,6 +62,16 @@ const FlashcardSetPage = () => {
   const [editingFlashcard, setEditingFlashcard] = useState<Flashcard | null>(null);
   const [copyingFlashcard, setCopyingFlashcard] = useState<{ id: string; setId: string } | null>(null);
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+
+  // Open bulk editor if URL has bulkEdit=true query param
+  useEffect(() => {
+    if (searchParams.get("bulkEdit") === "true" && !isLoading && set) {
+      setIsBulkEditorOpen(true);
+      // Remove the query param to prevent re-opening on refresh
+      searchParams.delete("bulkEdit");
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, isLoading, set]);
 
   useEffect(() => {
     if (!loading && !user) {
