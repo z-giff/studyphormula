@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Plus, ArrowLeft, Play, Palette, Edit } from "lucide-react";
+import { GraduationCap, Plus, ArrowLeft, Play, Palette, Edit, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { CreateFlashcardDialog } from "@/components/CreateFlashcardDialog";
 import { EditFlashcardDialog } from "@/components/EditFlashcardDialog";
@@ -15,6 +15,7 @@ import { StackedFlashcardDeck } from "@/components/StackedFlashcardDeck";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import LogoOrb from "@/components/LogoOrb";
 import phormulaLogo from "@/assets/phormula-text-logo.png";
+import { RenameSetDialog } from "@/components/RenameSetDialog";
 
 const PRESET_COLORS = [
   "#000000", // Black
@@ -59,6 +60,7 @@ const FlashcardSetPage = () => {
   const [isBulkEditorOpen, setIsBulkEditorOpen] = useState(false);
   const [editingFlashcard, setEditingFlashcard] = useState<Flashcard | null>(null);
   const [copyingFlashcard, setCopyingFlashcard] = useState<{ id: string; setId: string } | null>(null);
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -254,6 +256,15 @@ const FlashcardSetPage = () => {
                   );
                 })()}
                 <h1 className="text-4xl font-bold">{set.title}</h1>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 ml-2"
+                  onClick={() => setIsRenameDialogOpen(true)}
+                  title="Rename set"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
               </div>
               {set.description && (
                 <p className="text-muted-foreground text-lg">{set.description}</p>
@@ -334,6 +345,14 @@ const FlashcardSetPage = () => {
           onSuccess={fetchFlashcards}
         />
       )}
+
+      <RenameSetDialog
+        open={isRenameDialogOpen}
+        onOpenChange={setIsRenameDialogOpen}
+        setId={id!}
+        currentTitle={set.title}
+        onSuccess={fetchSetData}
+      />
 
       {copyingFlashcard && (
         <CopyFlashcardDialog
