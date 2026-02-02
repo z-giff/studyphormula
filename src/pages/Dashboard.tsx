@@ -4,7 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, BookOpen, User, MoreHorizontal, Trash2, Folder, ArrowRightLeft, Bookmark } from "lucide-react";
+import { Plus, BookOpen, User, MoreHorizontal, Trash2, Folder, ArrowRightLeft, Bookmark, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { CreateSetDialog } from "@/components/CreateSetDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -16,6 +16,7 @@ import phormulaBackground from "@/assets/phormula-background.png";
 import { CreateFileDialog } from "@/components/CreateFileDialog";
 import { FlashcardFile, MoveSetToFileDialog } from "@/components/MoveSetToFileDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RenameSetDialog } from "@/components/RenameSetDialog";
 interface FlashcardSet {
   id: string;
   title: string;
@@ -49,6 +50,7 @@ const Dashboard = () => {
   const [isMoving, setIsMoving] = useState(false);
   const [sortMode, setSortMode] = useState<"used" | "recent" | "least" | "alpha">("used");
   const [dragOverFileId, setDragOverFileId] = useState<string | null>(null);
+  const [renameSetId, setRenameSetId] = useState<string | null>(null);
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
@@ -457,6 +459,16 @@ const Dashboard = () => {
                     className="cursor-pointer"
                     onClick={e => {
                       e.preventDefault();
+                      setRenameSetId(set.id);
+                    }}
+                  >
+                    <Pencil className="h-4 w-4 mr-2" />
+                    Rename
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={e => {
+                      e.preventDefault();
                       openMoveDialogForSet(set.id);
                     }}
                   >
@@ -492,6 +504,14 @@ const Dashboard = () => {
 
       <CreateSetDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} onSuccess={fetchSets} />
       <CreateFileDialog open={isCreateFileDialogOpen} onOpenChange={setIsCreateFileDialogOpen} onSuccess={fetchFiles} />
+
+      <RenameSetDialog
+        open={!!renameSetId}
+        onOpenChange={(open) => !open && setRenameSetId(null)}
+        setId={renameSetId || ""}
+        currentTitle={sets.find((s) => s.id === renameSetId)?.title || ""}
+        onSuccess={fetchSets}
+      />
 
       <MoveSetToFileDialog
         open={!!moveSetId}
