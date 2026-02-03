@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import FlashcardSetPage from "./pages/FlashcardSet";
 import StudyMode from "./pages/StudyMode";
+import QuizMode from "./pages/QuizMode";
 import FilePage from "./pages/File";
 import BookmarksSet from "./pages/BookmarksSet";
 import NotFound from "./pages/NotFound";
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/set/bookmarks" element={<BookmarksSet />} />
               <Route path="/set/:id" element={<FlashcardSetPage />} />
               <Route path="/study/:id" element={<StudyMode />} />
+              <Route path="/quiz/:id" element={<QuizMode />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

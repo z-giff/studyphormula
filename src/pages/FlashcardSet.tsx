@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom"
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Plus, ArrowLeft, Play, Palette, Edit, Pencil } from "lucide-react";
+import { GraduationCap, Plus, ArrowLeft, Play, Palette, Edit, Pencil, Crown, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { CreateFlashcardDialog } from "@/components/CreateFlashcardDialog";
 import { EditFlashcardDialog } from "@/components/EditFlashcardDialog";
@@ -283,12 +283,24 @@ const FlashcardSetPage = () => {
             </div>
 
             {flashcards.length > 0 && (
-              <Link to={`/study/${id}`}>
-                <Button size="lg">
-                  <Play className="h-5 w-5 mr-2" />
-                  Study Mode
-                </Button>
-              </Link>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link to={`/quiz/${id}`}>
+                  <Button
+                    size="lg"
+                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-amber-500/25"
+                  >
+                    <Crown className="h-5 w-5 mr-2" />
+                    Generate MC Quiz
+                    <span className="ml-2 text-xs bg-white/20 px-2 py-0.5 rounded-full">Premium</span>
+                  </Button>
+                </Link>
+                <Link to={`/study/${id}`}>
+                  <Button size="lg" variant="outline">
+                    <Play className="h-5 w-5 mr-2" />
+                    Study Mode
+                  </Button>
+                </Link>
+              </div>
             )}
           </div>
         </div>
