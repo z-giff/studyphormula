@@ -650,7 +650,7 @@ export const BulkFlashcardEditor = ({
                       className={cn(
                         "p-1.5 transition-colors",
                         row.type === "standard"
-                          ? "text-primary"
+                          ? "text-foreground"
                           : "text-muted-foreground hover:text-foreground"
                       )}
                       title="Standard"
@@ -663,7 +663,7 @@ export const BulkFlashcardEditor = ({
                       className={cn(
                         "p-1.5 transition-colors",
                         row.type === "interactive"
-                          ? "text-primary"
+                          ? "text-foreground"
                           : "text-muted-foreground hover:text-foreground"
                       )}
                       title="Interactive"
@@ -676,7 +676,7 @@ export const BulkFlashcardEditor = ({
                       className={cn(
                         "p-1.5 transition-colors",
                         row.type === "flowchart"
-                          ? "text-primary"
+                          ? "text-foreground"
                           : "text-muted-foreground hover:text-foreground"
                       )}
                       title="Flowchart"
@@ -689,7 +689,7 @@ export const BulkFlashcardEditor = ({
                       className={cn(
                         "p-1.5 transition-colors",
                         row.type === "drawing"
-                          ? "text-primary"
+                          ? "text-foreground"
                           : "text-muted-foreground hover:text-foreground"
                       )}
                       title="Drawing"
