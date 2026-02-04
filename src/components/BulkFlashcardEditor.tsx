@@ -687,14 +687,14 @@ export const BulkFlashcardEditor = ({
                       type="button"
                       onClick={() => handleTypeChange(row.id, "drawing")}
                       className={cn(
-                        "p-2 rounded-lg transition-colors",
+                        "p-1.5 transition-colors",
                         row.type === "drawing"
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-muted text-muted-foreground"
+                          ? "text-primary"
+                          : "text-muted-foreground hover:text-foreground"
                       )}
                       title="Drawing"
                     >
-                      <Pencil className="h-4 w-4" />
+                      <Pencil className="h-4 w-4 rotate-[-45deg]" />
                     </button>
                   </div>
 
