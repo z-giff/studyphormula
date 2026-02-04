@@ -429,11 +429,11 @@ const Dashboard = () => {
               borderTop: `6px solid ${set.displayColor}`,
               background: `linear-gradient(to bottom, ${set.displayColor}15, rgba(255,255,255,0.8))`
             }}>
-                  <CardHeader className="pr-12">
-                    <CardTitle className="text-foreground">
-                      <span className="truncate">{set.title}</span>
+                <CardHeader className="pr-12 pb-2">
+                    <CardTitle className="text-foreground text-lg leading-tight line-clamp-2 break-words">
+                      {set.title}
                     </CardTitle>
-                    <CardDescription className="line-clamp-2">
+                    <CardDescription className="line-clamp-2 text-sm">
                       {set.description || "No description"}
                     </CardDescription>
                   </CardHeader>
