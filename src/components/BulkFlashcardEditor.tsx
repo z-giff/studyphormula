@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, GripVertical, Image, Layers, GitBranch, FileText, X, PenLine, Bookmark, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, GripVertical, Image, Layers, GitBranch, FileText, X, Signature, Bookmark, Check, Loader2 } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import LogoOrb from "@/components/LogoOrb";
 import { InteractiveFlashcardEditor } from "@/components/InteractiveFlashcardEditor";
@@ -694,7 +694,7 @@ export const BulkFlashcardEditor = ({
                       )}
                       title="Drawing"
                     >
-                      <PenLine className="h-4 w-4" />
+                      <Signature className="h-4 w-4" />
                     </button>
                   </div>
 
@@ -936,7 +936,7 @@ export const BulkFlashcardEditor = ({
                           className="w-full"
                           onClick={() => setExpandedRow(row.id)}
                         >
-                          <PenLine className="h-4 w-4 mr-2" />
+                          <Signature className="h-4 w-4 mr-2" />
                           {row.drawingData.strokes?.length > 0
                             ? `Edit Drawing (${row.drawingData.strokes.length} strokes)`
                             : "Create Drawing"}
