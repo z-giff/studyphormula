@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Pencil, Trash2, Bookmark, Copy } from "lucide-react";
+import { DrawingCanvasDisplay } from "@/components/DrawingCanvasDisplay";
 
 interface Flashcard {
   id: string;
@@ -191,7 +192,16 @@ export const StackedFlashcardDeck = ({
                         }}
                       >
                         <CardContent className="flex flex-col items-center justify-center h-full p-6 text-center">
-                          <p className="text-lg" style={{ color: textColor }}>{card.definition}</p>
+                          {card.flashcard_type === "drawing" && card.interactive_data?.drawingData ? (
+                            <div className="w-full max-h-48">
+                              <DrawingCanvasDisplay 
+                                drawingData={card.interactive_data.drawingData}
+                                className="rounded-lg shadow-sm"
+                              />
+                            </div>
+                          ) : (
+                            <p className="text-lg" style={{ color: textColor }}>{card.definition}</p>
+                          )}
                           {isTop && (
                             <p className="text-sm mt-4" style={{ color: textColor, opacity: 0.7 }}>
                               Click to flip back
