@@ -643,15 +643,15 @@ export const BulkFlashcardEditor = ({
                   <span className="font-medium text-foreground">{rowNumber}</span>
                   
                   {/* Type Selector Icons */}
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => handleTypeChange(row.id, "standard")}
                       className={cn(
-                        "p-2 rounded-lg transition-colors",
+                        "p-1.5 transition-colors",
                         row.type === "standard"
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-muted text-muted-foreground"
+                          ? "text-primary"
+                          : "text-muted-foreground hover:text-foreground"
                       )}
                       title="Standard"
                     >
@@ -661,10 +661,10 @@ export const BulkFlashcardEditor = ({
                       type="button"
                       onClick={() => handleTypeChange(row.id, "interactive")}
                       className={cn(
-                        "p-2 rounded-lg transition-colors",
+                        "p-1.5 transition-colors",
                         row.type === "interactive"
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-muted text-muted-foreground"
+                          ? "text-primary"
+                          : "text-muted-foreground hover:text-foreground"
                       )}
                       title="Interactive"
                     >
@@ -674,10 +674,10 @@ export const BulkFlashcardEditor = ({
                       type="button"
                       onClick={() => handleTypeChange(row.id, "flowchart")}
                       className={cn(
-                        "p-2 rounded-lg transition-colors",
+                        "p-1.5 transition-colors",
                         row.type === "flowchart"
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-muted text-muted-foreground"
+                          ? "text-primary"
+                          : "text-muted-foreground hover:text-foreground"
                       )}
                       title="Flowchart"
                     >
