@@ -390,7 +390,7 @@ const Dashboard = () => {
         {/* Sets */}
         <section>
            {/* Action Buttons */}
-           <div className="flex flex-wrap justify-center gap-4 mb-6">
+           <div className="flex flex-wrap gap-4 mb-6">
              {/* Create New Set Button */}
              <Button
                onClick={() => setIsCreateDialogOpen(true)}
