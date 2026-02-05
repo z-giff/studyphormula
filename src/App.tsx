@@ -14,6 +14,7 @@ import QuizMode from "./pages/QuizMode";
 import FilePage from "./pages/File";
 import BookmarksSet from "./pages/BookmarksSet";
 import NotFound from "./pages/NotFound";
+ import SwipeStudy from "./pages/SwipeStudy";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="/set/:id" element={<FlashcardSetPage />} />
               <Route path="/study/:id" element={<StudyMode />} />
               <Route path="/quiz/:id" element={<QuizMode />} />
+               <Route path="/swipe/:id" element={<SwipeStudy />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
