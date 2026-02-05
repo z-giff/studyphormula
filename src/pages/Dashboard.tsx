@@ -17,6 +17,8 @@ import { CreateFileDialog } from "@/components/CreateFileDialog";
 import { FlashcardFile, MoveSetToFileDialog } from "@/components/MoveSetToFileDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RenameSetDialog } from "@/components/RenameSetDialog";
+ import { AutoFlashcardDialog } from "@/components/AutoFlashcardDialog";
+ import { Sparkles } from "lucide-react";
 interface FlashcardSet {
   id: string;
   title: string;
@@ -51,6 +53,7 @@ const Dashboard = () => {
   const [sortMode, setSortMode] = useState<"used" | "recent" | "least" | "alpha">("used");
   const [dragOverFileId, setDragOverFileId] = useState<string | null>(null);
   const [renameSetId, setRenameSetId] = useState<string | null>(null);
+   const [isAutoFlashcardDialogOpen, setIsAutoFlashcardDialogOpen] = useState(false);
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
@@ -386,6 +389,41 @@ const Dashboard = () => {
 
         {/* Sets */}
         <section>
+           {/* Action Buttons */}
+           <div className="flex flex-wrap gap-4 mb-6">
+             {/* Create New Set Button */}
+             <Button
+               onClick={() => setIsCreateDialogOpen(true)}
+               variant="outline"
+               className="h-14 px-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-black/20 dark:border-white/20 hover:border-primary hover:bg-primary/5 transition-all"
+             >
+               <div className="flex items-center gap-3">
+                 <div className="bg-primary/10 w-10 h-10 rounded-full flex items-center justify-center">
+                   <Plus className="h-5 w-5 text-primary" />
+                 </div>
+                 <div className="text-left">
+                   <span className="font-semibold text-foreground">Create New Set</span>
+                 </div>
+               </div>
+             </Button>
+ 
+             {/* Auto-Flashcard Button */}
+             <Button
+               onClick={() => setIsAutoFlashcardDialogOpen(true)}
+               variant="outline"
+               className="h-14 px-6 bg-gradient-to-r from-primary/5 to-purple-500/5 dark:from-primary/10 dark:to-purple-500/10 backdrop-blur-md border-primary/30 hover:border-primary hover:from-primary/10 hover:to-purple-500/10 transition-all"
+             >
+               <div className="flex items-center gap-3">
+                 <div className="bg-gradient-to-br from-primary to-purple-500 w-10 h-10 rounded-full flex items-center justify-center">
+                   <Sparkles className="h-5 w-5 text-white" />
+                 </div>
+                 <div className="text-left">
+                   <span className="font-semibold text-foreground">Auto-Flashcard</span>
+                 </div>
+               </div>
+             </Button>
+           </div>
+ 
           <div className="flex items-center justify-between gap-4 mb-4">
             <h2 className="text-lg font-semibold text-foreground">Sets</h2>
             <div className="flex items-center gap-2">
@@ -403,17 +441,6 @@ const Dashboard = () => {
             </div>
           </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Create New Set Card */}
-          <Card className="border-2 border-dashed border-black/20 dark:border-white/20 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all bg-white/80 dark:bg-gray-800/80 backdrop-blur-md" onClick={() => setIsCreateDialogOpen(true)}>
-            <CardContent className="flex flex-col items-center justify-center h-48 text-center">
-              <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-                <Plus className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground">Create New Set</h3>
-              <p className="text-sm text-muted-foreground">Start a new flashcard collection</p>
-            </CardContent>
-          </Card>
-
           {/* Existing Sets */}
           {sortedSets.map(set => <div
               key={set.id}
@@ -504,6 +531,11 @@ const Dashboard = () => {
 
       <CreateSetDialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen} onSuccess={fetchSets} />
       <CreateFileDialog open={isCreateFileDialogOpen} onOpenChange={setIsCreateFileDialogOpen} onSuccess={fetchFiles} />
+       <AutoFlashcardDialog 
+         open={isAutoFlashcardDialogOpen} 
+         onOpenChange={setIsAutoFlashcardDialogOpen} 
+         onSuccess={fetchSets} 
+       />
 
       <RenameSetDialog
         open={!!renameSetId}

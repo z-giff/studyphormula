@@ -13,6 +13,8 @@ import { FlowchartCanvasEditor } from "@/components/FlowchartCanvasEditor";
 import { DrawingCanvasEditor } from "@/components/DrawingCanvasEditor";
 import { ImageUploader } from "@/components/ImageUploader";
 import { cn } from "@/lib/utils";
+ import { AutoFlashcardDialog } from "@/components/AutoFlashcardDialog";
+ import { Sparkles } from "lucide-react";
 
 type FlashcardType = "standard" | "interactive" | "flowchart" | "drawing";
 
@@ -87,6 +89,7 @@ export const BulkFlashcardEditor = ({
   const [draggedRowId, setDraggedRowId] = useState<string | null>(null);
   const [dragOverRowId, setDragOverRowId] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+   const [isAutoFlashcardOpen, setIsAutoFlashcardOpen] = useState(false);
   const inputRefs = useRef<Map<string, HTMLInputElement | HTMLTextAreaElement>>(new Map());
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedRowsRef = useRef<string>("");
@@ -610,6 +613,14 @@ export const BulkFlashcardEditor = ({
               )}
             </div>
             <ThemeToggle />
+             <Button 
+               variant="outline" 
+               onClick={() => setIsAutoFlashcardOpen(true)}
+               className="gap-2"
+             >
+               <Sparkles className="h-4 w-4" />
+               Auto-Flashcard
+             </Button>
             <Button onClick={handleSave} disabled={isSaving || isAutoSaving}>
               {isSaving ? "Saving..." : "Done"}
             </Button>
@@ -980,6 +991,18 @@ export const BulkFlashcardEditor = ({
           </Button>
         </div>
       </main>
+       
+       {/* Auto-Flashcard Dialog */}
+       <AutoFlashcardDialog
+         open={isAutoFlashcardOpen}
+         onOpenChange={setIsAutoFlashcardOpen}
+         onSuccess={() => {
+           // Refresh the set data after appending new flashcards
+           onSuccess();
+         }}
+         existingSetId={setId}
+         existingSetTitle={setTitle}
+       />
     </div>
   );
 };
