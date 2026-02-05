@@ -13,7 +13,15 @@ const ALLOWED_HOSTS = [
   'awvwrdjtptjyalmsyejt.supabase.co',
 ];
 
-function isValidImageUrl(urlString: string): boolean {
+function isValidImageSource(urlString: string): boolean {
+  // Allow data URLs (base64 encoded images)
+  if (urlString.startsWith('data:image/')) {
+    // Validate it's a proper data URL with base64 content
+    const dataUrlRegex = /^data:image\/(png|jpeg|jpg|gif|webp);base64,[A-Za-z0-9+/]+=*$/;
+    return dataUrlRegex.test(urlString);
+  }
+  
+  // For regular URLs, validate protocol and host
   try {
     const url = new URL(urlString);
     
@@ -79,7 +87,7 @@ serve(async (req) => {
     }
 
     // Validate URL format and allowed domains
-    if (!isValidImageUrl(imageUrl)) {
+    if (!isValidImageSource(imageUrl)) {
       console.error('URL validation failed for:', imageUrl);
       return new Response(JSON.stringify({ error: 'Invalid request: URL not allowed' }), {
         status: 400,
