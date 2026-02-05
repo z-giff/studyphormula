@@ -125,7 +125,7 @@
  
    return (
      <motion.div
-       className="absolute w-full max-w-sm cursor-grab active:cursor-grabbing"
+       className="absolute w-full max-w-xl cursor-grab active:cursor-grabbing"
        style={{ x, rotate, opacity }}
        drag="x"
        dragConstraints={{ left: 0, right: 0 }}
@@ -140,7 +140,7 @@
        onClick={handleFlip}
      >
        <Card
-         className="relative h-[400px] md:h-[450px] border-0 shadow-xl overflow-hidden select-none"
+         className="relative h-[320px] border-0 shadow-xl overflow-hidden select-none"
          style={{
            backgroundColor: cardColor,
            color: textColor,
