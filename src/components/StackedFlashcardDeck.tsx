@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Pencil, Trash2, Bookmark, Copy } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, Trash2, Bookmark, Copy, Maximize2 } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { DrawingCanvasDisplay } from "@/components/DrawingCanvasDisplay";
+import { FlowchartCanvasDisplay } from "@/components/FlowchartCanvasDisplay";
 
 interface Flashcard {
   id: string;
@@ -52,6 +54,7 @@ export const StackedFlashcardDeck = ({
 }: StackedFlashcardDeckProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [flippedCards, setFlippedCards] = useState<Set<number>>(new Set());
+  const [expandedFlowchartData, setExpandedFlowchartData] = useState<{ nodes: any[]; edges: any[] } | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [animationDirection, setAnimationDirection] = useState<"next" | "prev" | null>(null);
 
@@ -199,6 +202,28 @@ export const StackedFlashcardDeck = ({
                                 className="rounded-lg shadow-sm"
                               />
                             </div>
+                          ) : card.flashcard_type === "flowchart" && card.interactive_data ? (
+                            <div 
+                              className="relative w-full h-48 bg-white rounded-lg border border-border shadow-sm overflow-hidden"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div className="w-full h-full flowchart-preview">
+                                <FlowchartCanvasDisplay
+                                  flowchartData={card.interactive_data.flowchartData || card.interactive_data}
+                                  showControls={false}
+                                />
+                              </div>
+                              <button
+                                className="absolute bottom-2 right-2 p-1.5 bg-background/90 hover:bg-background border border-border rounded-md shadow-sm transition-colors z-10"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setExpandedFlowchartData(card.interactive_data.flowchartData || card.interactive_data);
+                                }}
+                                title="Expand flowchart"
+                              >
+                                <Maximize2 className="h-4 w-4 text-foreground" />
+                              </button>
+                            </div>
                           ) : (
                             <p className="text-lg" style={{ color: textColor }}>{card.definition}</p>
                           )}
@@ -320,6 +345,17 @@ export const StackedFlashcardDeck = ({
           animation: whoosh-in 0.4s ease-in-out forwards;
         }
       `}</style>
+
+      {/* Flowchart Expanded Modal */}
+      <Dialog open={!!expandedFlowchartData} onOpenChange={() => setExpandedFlowchartData(null)}>
+        <DialogContent className="max-w-4xl w-[90vw] h-[70vh] p-0 overflow-hidden">
+          <div className="w-full h-full bg-white rounded-lg">
+            {expandedFlowchartData && (
+              <FlowchartCanvasDisplay flowchartData={expandedFlowchartData} />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
