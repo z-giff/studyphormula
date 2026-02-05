@@ -1,4 +1,7 @@
 project_id = "awvwrdjtptjyalmsyejt"
 
 [functions.detect-text]
-verify_jwt = true
+ verify_jwt = true
+ 
+ [functions.generate-flashcards]
+ verify_jwt = false
