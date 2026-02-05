@@ -121,27 +121,42 @@
        });
      }
  
-     const data = await response.json();
-     console.log('AI response received');
-     
-     // Extract flashcards from tool call response
-     let flashcards: Array<{ term: string; definition: string }> = [];
-     
-     const toolCalls = data.choices?.[0]?.message?.tool_calls;
-     if (toolCalls && toolCalls.length > 0) {
-       const args = JSON.parse(toolCalls[0].function.arguments);
-       flashcards = args.flashcards || [];
-     } else {
-       // Fallback: try to parse from content
-       const content = data.choices?.[0]?.message?.content;
-       if (content) {
-         try {
-           flashcards = JSON.parse(content);
-         } catch {
-           console.error('Failed to parse AI response as JSON');
-         }
-       }
-     }
+      const data = await response.json();
+      console.log('AI response received:', JSON.stringify(data, null, 2));
+      
+      // Extract flashcards from tool call response
+      let flashcards: Array<{ term: string; definition: string }> = [];
+      
+      const toolCalls = data.choices?.[0]?.message?.tool_calls;
+      console.log('Tool calls found:', toolCalls ? toolCalls.length : 0);
+      
+      if (toolCalls && toolCalls.length > 0) {
+        try {
+          const args = JSON.parse(toolCalls[0].function.arguments);
+          console.log('Parsed tool arguments:', JSON.stringify(args, null, 2));
+          flashcards = args.flashcards || [];
+        } catch (parseError) {
+          console.error('Failed to parse tool call arguments:', parseError);
+        }
+      }
+      
+      // Fallback: try to parse from content if no tool calls
+      if (flashcards.length === 0) {
+        const messageContent = data.choices?.[0]?.message?.content;
+        console.log('Fallback - message content:', messageContent);
+        if (messageContent) {
+          try {
+            // Try to extract JSON from the content (might be wrapped in markdown)
+            const jsonMatch = messageContent.match(/\[[\s\S]*\]/);
+            if (jsonMatch) {
+              flashcards = JSON.parse(jsonMatch[0]);
+              console.log('Parsed flashcards from content:', flashcards.length);
+            }
+          } catch (parseError) {
+            console.error('Failed to parse AI response content as JSON:', parseError);
+          }
+        }
+      }
  
      if (!Array.isArray(flashcards) || flashcards.length === 0) {
        return new Response(JSON.stringify({ error: 'No flashcards could be generated from this content' }), {
