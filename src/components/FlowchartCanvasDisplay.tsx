@@ -3,6 +3,8 @@ import "@xyflow/react/dist/style.css";
 
 interface FlowchartCanvasDisplayProps {
   flowchartData: { nodes: Node[]; edges: Edge[] };
+  className?: string;
+  showControls?: boolean;
 }
 
 const nodeTypes = {
@@ -121,7 +123,7 @@ const nodeTypes = {
   ),
 };
 
-export const FlowchartCanvasDisplay = ({ flowchartData }: FlowchartCanvasDisplayProps) => {
+export const FlowchartCanvasDisplay = ({ flowchartData, className, showControls = true }: FlowchartCanvasDisplayProps) => {
   // Convert edges to solid static lines and normalize legacy handle ids (null can prevent rendering)
   const solidEdges = flowchartData.edges.map((edge) => {
     const normalized: any = {
@@ -140,7 +142,7 @@ export const FlowchartCanvasDisplay = ({ flowchartData }: FlowchartCanvasDisplay
   });
 
   return (
-    <div className="border rounded-lg bg-background flowchart-display" style={{ height: "500px" }}>
+    <div className={`border rounded-lg bg-white flowchart-display h-full ${className || ""}`}>
       <style>{`
         .flowchart-display .react-flow__node {
           padding: 0 !important;
@@ -158,10 +160,12 @@ export const FlowchartCanvasDisplay = ({ flowchartData }: FlowchartCanvasDisplay
         nodesDraggable={false}
         nodesConnectable={false}
         elementsSelectable={false}
+        panOnDrag={true}
+        zoomOnScroll={true}
         fitView
       >
         <Background />
-        <Controls showInteractive={false} />
+        {showControls && <Controls showInteractive={false} />}
       </ReactFlow>
     </div>
   );
