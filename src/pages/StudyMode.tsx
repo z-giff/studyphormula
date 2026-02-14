@@ -330,7 +330,7 @@ const StudyMode = () => {
               </Card>
             ) : (
               <Card
-                className="relative min-h-[500px] cursor-pointer border-0 overflow-hidden flex items-center justify-center"
+                className="relative min-h-[500px] cursor-pointer border-0 overflow-hidden flex items-stretch"
                 style={{
                   backgroundColor: cardColor,
                   color: textColor,
@@ -341,7 +341,7 @@ const StudyMode = () => {
                 onClick={handleFlip}
               >
                 <div
-                  className="p-12 w-full max-w-3xl mx-auto text-center space-y-6 flex flex-col items-center justify-center"
+                  className="p-12 w-full max-w-3xl mx-auto text-center space-y-6 flex flex-col items-center justify-center flex-1"
                   style={{
                     transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
                     transformStyle: "preserve-3d",
