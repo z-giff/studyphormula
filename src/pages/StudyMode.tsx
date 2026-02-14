@@ -271,7 +271,7 @@ const StudyMode = () => {
                 onClick={handleFlip}
               >
                 <div
-                  className="p-12 w-full h-full flex flex-col"
+                  className="p-12 w-full flex-1 flex flex-col"
                   style={{
                     transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
                     transformStyle: "preserve-3d",
@@ -306,7 +306,7 @@ const StudyMode = () => {
                 onClick={handleFlip}
               >
                 <div
-                  className="p-12 w-full h-full flex flex-col"
+                  className="p-12 w-full flex-1 flex flex-col"
                   style={{
                     transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
                     transformStyle: "preserve-3d",
