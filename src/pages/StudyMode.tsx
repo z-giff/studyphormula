@@ -341,7 +341,7 @@ const StudyMode = () => {
                 onClick={handleFlip}
               >
                 <div
-                  className="p-12 w-full max-w-3xl mx-auto text-center space-y-6"
+                  className="p-12 w-full max-w-3xl mx-auto text-center space-y-6 flex flex-col items-center justify-center"
                   style={{
                     transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
                     transformStyle: "preserve-3d",
