@@ -26,7 +26,8 @@ interface FlowchartCanvasEditorProps {
   onChange: (data: { nodes: Node[]; edges: Edge[] }) => void;
 }
 
-const DEFAULT_COLORS = ["#3b82f6", "#22c55e", "#ef4444"];
+const DEFAULT_SHAPE_COLOR = "#2563EB";
+const DEFAULT_COLORS = [DEFAULT_SHAPE_COLOR, "#22c55e", "#ef4444"];
 
 const TEMPLATES = {
   blank: { nodes: [], edges: [] },
