@@ -142,7 +142,7 @@ Be precise with coordinates and include all visible text, even small labels.`
               {
                 type: "image_url",
                 image_url: {
-                  url: imageUrl
+                  url: resolvedImageUrl
                 }
               }
             ]
