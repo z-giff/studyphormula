@@ -178,11 +178,6 @@ export const StackedFlashcardDeck = ({
                             />
                           )}
                           <h3 className="text-2xl font-bold" style={{ color: textColor }}>{card.term}</h3>
-                          {isTop && (
-                            <p className="text-sm mt-4" style={{ color: textColor, opacity: 0.7 }}>
-                              Click to flip
-                            </p>
-                          )}
                         </CardContent>
                       </Card>
 
