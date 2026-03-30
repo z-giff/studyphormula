@@ -64,7 +64,7 @@ const FlashcardSequence = () => {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [pulsePhase, setPulsePhase] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const autoAdvanceRef = useRef<NodeJS.Timeout | null>(null);
+  const autoAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasAutoAdvanced = useRef(false);
 
   // Reduced motion preference
@@ -90,7 +90,7 @@ const FlashcardSequence = () => {
   // Scroll handling for manual navigation with snap behavior
   useEffect(() => {
     let isSnapping = false;
-    let snapTimeout: NodeJS.Timeout | null = null;
+    let snapTimeout: ReturnType<typeof setTimeout> | null = null;
     let lastScrollTime = Date.now();
     const snapToScreen = (targetScreen: number) => {
       if (!containerRef.current || isSnapping) return;
