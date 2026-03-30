@@ -441,7 +441,7 @@ const FlowchartCanvasEditorInner = ({ flowchartData, onChange }: FlowchartCanvas
   const [nodes, setNodes, onNodesChange] = useNodesState(flowchartData.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(flowchartData.edges);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
-  const [nodeColor, setNodeColor] = useState("#3b82f6");
+  const [nodeColor, setNodeColor] = useState(DEFAULT_SHAPE_COLOR);
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
   
   const [lastNodeId, setLastNodeId] = useState<string | null>(
