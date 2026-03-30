@@ -13,6 +13,7 @@ import { FlowchartCanvasEditor } from "@/components/FlowchartCanvasEditor";
 import { DrawingCanvasEditor } from "@/components/DrawingCanvasEditor";
 import { ImageUploader } from "@/components/ImageUploader";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
  import { AutoFlashcardDialog } from "@/components/AutoFlashcardDialog";
  import { Sparkles } from "lucide-react";
 
@@ -655,58 +656,76 @@ export const BulkFlashcardEditor = ({
                   
                   {/* Type Selector Icons */}
                   <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleTypeChange(row.id, "standard")}
-                      className={cn(
-                        "p-1.5 transition-colors",
-                        row.type === "standard"
-                          ? "text-foreground"
-                          : "text-muted-foreground hover:text-foreground"
-                      )}
-                      title="Standard"
-                    >
-                      <FileText className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleTypeChange(row.id, "interactive")}
-                      className={cn(
-                        "p-1.5 transition-colors",
-                        row.type === "interactive"
-                          ? "text-foreground"
-                          : "text-muted-foreground hover:text-foreground"
-                      )}
-                      title="Interactive"
-                    >
-                      <Layers className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleTypeChange(row.id, "flowchart")}
-                      className={cn(
-                        "p-1.5 transition-colors",
-                        row.type === "flowchart"
-                          ? "text-foreground"
-                          : "text-muted-foreground hover:text-foreground"
-                      )}
-                      title="Flowchart"
-                    >
-                      <GitBranch className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleTypeChange(row.id, "drawing")}
-                      className={cn(
-                        "p-1.5 transition-colors",
-                        row.type === "drawing"
-                          ? "text-foreground"
-                          : "text-muted-foreground hover:text-foreground"
-                      )}
-                      title="Drawing"
-                    >
-                      <Signature className="h-4 w-4" />
-                    </button>
+                    <TooltipProvider delayDuration={150}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={() => handleTypeChange(row.id, "standard")}
+                            className={cn(
+                              "p-1.5 transition-colors",
+                              row.type === "standard"
+                                ? "text-foreground"
+                                : "text-muted-foreground hover:text-foreground"
+                            )}
+                          >
+                            <FileText className="h-4 w-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">Standard Mode</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={() => handleTypeChange(row.id, "interactive")}
+                            className={cn(
+                              "p-1.5 transition-colors",
+                              row.type === "interactive"
+                                ? "text-foreground"
+                                : "text-muted-foreground hover:text-foreground"
+                            )}
+                          >
+                            <Layers className="h-4 w-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">Interactive Mode</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={() => handleTypeChange(row.id, "flowchart")}
+                            className={cn(
+                              "p-1.5 transition-colors",
+                              row.type === "flowchart"
+                                ? "text-foreground"
+                                : "text-muted-foreground hover:text-foreground"
+                            )}
+                          >
+                            <GitBranch className="h-4 w-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">Flowchart Mode</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={() => handleTypeChange(row.id, "drawing")}
+                            className={cn(
+                              "p-1.5 transition-colors",
+                              row.type === "drawing"
+                                ? "text-foreground"
+                                : "text-muted-foreground hover:text-foreground"
+                            )}
+                          >
+                            <Signature className="h-4 w-4" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" className="text-xs">Drawing Mode</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </div>
 
                   <div className="flex items-center gap-2">
