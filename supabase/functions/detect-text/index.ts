@@ -16,29 +16,31 @@ const ALLOWED_HOSTS = [
 function isValidImageSource(urlString: string): boolean {
   // Allow data URLs (base64 encoded images)
   if (urlString.startsWith('data:image/')) {
-    // Validate it's a proper data URL with base64 content
-    const dataUrlRegex = /^data:image\/(png|jpeg|jpg|gif|webp);base64,[A-Za-z0-9+/]+=*$/;
-    return dataUrlRegex.test(urlString);
+    return true;
   }
   
-  // For regular URLs, validate protocol and host
+  // For regular URLs, validate protocol is https
   try {
     const url = new URL(urlString);
-    
-    // Check if protocol is https
-    if (url.protocol !== 'https:') {
-      return false;
-    }
-    
-    // Check if host is allowed
-    const isAllowed = ALLOWED_HOSTS.some(host => 
-      url.hostname === host || url.hostname.endsWith('.' + host)
-    );
-    
-    return isAllowed;
+    return url.protocol === 'https:';
   } catch {
     return false;
   }
+}
+
+// Fetch an image URL and convert to base64 data URL for the AI API
+async function imageUrlToDataUrl(urlString: string): Promise<string> {
+  if (urlString.startsWith('data:')) {
+    return urlString;
+  }
+  const resp = await fetch(urlString);
+  if (!resp.ok) {
+    throw new Error(`Failed to fetch image: ${resp.status}`);
+  }
+  const contentType = resp.headers.get('content-type') || 'image/jpeg';
+  const buffer = await resp.arrayBuffer();
+  const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+  return `data:${contentType};base64,${base64}`;
 }
 
 serve(async (req) => {
