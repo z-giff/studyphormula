@@ -177,7 +177,7 @@ const EditableBoxNode = ({ id, data, isEditing, onStartEdit, onFinishEdit, onHan
         style={{
           padding: "12px 24px",
           borderRadius: "12px",
-          background: data.color || "#3b82f6",
+          background: data.color || DEFAULT_SHAPE_COLOR,
           color: "white",
           minWidth: "120px",
           textAlign: "center",
