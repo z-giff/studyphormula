@@ -510,7 +510,7 @@ const FlowchartCanvasEditorInner = ({ flowchartData, onChange }: FlowchartCanvas
     const newNode: Node = {
       id: newId,
       type: shape,
-      data: { label: "New Node", color: shape === "diamond" ? "#f59e0b" : "#3b82f6" },
+      data: { label: "New Node", color: shape === "diamond" ? "#f59e0b" : DEFAULT_SHAPE_COLOR },
       position: { 
         x: lastNode ? lastNode.position.x : 150, 
         y: lastNode ? lastNode.position.y + 150 : 50 
