@@ -258,7 +258,7 @@ const EditableCircleNode = ({ id, data, isEditing, onStartEdit, onFinishEdit, on
         style={{
           padding: "20px",
           borderRadius: "50%",
-          background: data.color || "#3b82f6",
+          background: data.color || DEFAULT_SHAPE_COLOR,
           color: "white",
           width: "120px",
           height: "120px",
