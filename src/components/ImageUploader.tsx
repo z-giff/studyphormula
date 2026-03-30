@@ -206,7 +206,7 @@ export const ImageUploader = ({
             <div className="flex gap-2">
               <Input
                 type="url"
-                placeholder="https://example.com/image.jpg"
+                placeholder=""
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
                 onKeyDown={(e) => {
