@@ -91,7 +91,7 @@ export const BulkFlashcardEditor = ({
   const [isInitialized, setIsInitialized] = useState(false);
    const [isAutoFlashcardOpen, setIsAutoFlashcardOpen] = useState(false);
   const inputRefs = useRef<Map<string, HTMLInputElement | HTMLTextAreaElement>>(new Map());
-  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedRowsRef = useRef<string>("");
 
   // Drag and drop handlers

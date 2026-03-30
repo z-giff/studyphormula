@@ -64,7 +64,7 @@ const FlashcardSequence = () => {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [pulsePhase, setPulsePhase] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const autoAdvanceRef = useRef<NodeJS.Timeout | null>(null);
+  const autoAdvanceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasAutoAdvanced = useRef(false);
 
   // Reduced motion preference

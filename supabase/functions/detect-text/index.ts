@@ -6,12 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Allowed domains for image URLs (Supabase storage and common image hosts)
-const ALLOWED_HOSTS = [
-  'supabase.co',
-  'supabase.com',
-  'awvwrdjtptjyalmsyejt.supabase.co',
-];
 
 function isValidImageSource(urlString: string): boolean {
   // Allow data URLs (base64 encoded images)
