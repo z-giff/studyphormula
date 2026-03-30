@@ -13,6 +13,7 @@ import { FlowchartCanvasEditor } from "@/components/FlowchartCanvasEditor";
 import { DrawingCanvasEditor } from "@/components/DrawingCanvasEditor";
 import { ImageUploader } from "@/components/ImageUploader";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
  import { AutoFlashcardDialog } from "@/components/AutoFlashcardDialog";
  import { Sparkles } from "lucide-react";
 
