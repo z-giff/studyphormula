@@ -90,7 +90,7 @@ const FlashcardSequence = () => {
   // Scroll handling for manual navigation with snap behavior
   useEffect(() => {
     let isSnapping = false;
-    let snapTimeout: NodeJS.Timeout | null = null;
+    let snapTimeout: ReturnType<typeof setTimeout> | null = null;
     let lastScrollTime = Date.now();
     const snapToScreen = (targetScreen: number) => {
       if (!containerRef.current || isSnapping) return;
