@@ -570,7 +570,7 @@ const FlowchartCanvasEditorInner = ({ flowchartData, onChange }: FlowchartCanvas
 
   const onNodeClick = useCallback((_: any, node: Node) => {
     setSelectedNode(node.id);
-    setNodeColor(String(node.data.color || "#3b82f6"));
+    setNodeColor(String(node.data.color || DEFAULT_SHAPE_COLOR));
   }, []);
 
   const onPaneClick = useCallback(() => {
