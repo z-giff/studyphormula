@@ -26,7 +26,8 @@ interface FlowchartCanvasEditorProps {
   onChange: (data: { nodes: Node[]; edges: Edge[] }) => void;
 }
 
-const DEFAULT_COLORS = ["#3b82f6", "#22c55e", "#ef4444"];
+const DEFAULT_SHAPE_COLOR = "#2563EB";
+const DEFAULT_COLORS = [DEFAULT_SHAPE_COLOR, "#22c55e", "#ef4444"];
 
 const TEMPLATES = {
   blank: { nodes: [], edges: [] },
@@ -176,7 +177,7 @@ const EditableBoxNode = ({ id, data, isEditing, onStartEdit, onFinishEdit, onHan
         style={{
           padding: "12px 24px",
           borderRadius: "12px",
-          background: data.color || "#3b82f6",
+          background: data.color || DEFAULT_SHAPE_COLOR,
           color: "white",
           minWidth: "120px",
           textAlign: "center",
@@ -257,7 +258,7 @@ const EditableCircleNode = ({ id, data, isEditing, onStartEdit, onFinishEdit, on
         style={{
           padding: "20px",
           borderRadius: "50%",
-          background: data.color || "#3b82f6",
+          background: data.color || DEFAULT_SHAPE_COLOR,
           color: "white",
           width: "120px",
           height: "120px",
@@ -440,7 +441,7 @@ const FlowchartCanvasEditorInner = ({ flowchartData, onChange }: FlowchartCanvas
   const [nodes, setNodes, onNodesChange] = useNodesState(flowchartData.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(flowchartData.edges);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
-  const [nodeColor, setNodeColor] = useState("#3b82f6");
+  const [nodeColor, setNodeColor] = useState(DEFAULT_SHAPE_COLOR);
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
   
   const [lastNodeId, setLastNodeId] = useState<string | null>(
@@ -509,7 +510,7 @@ const FlowchartCanvasEditorInner = ({ flowchartData, onChange }: FlowchartCanvas
     const newNode: Node = {
       id: newId,
       type: shape,
-      data: { label: "New Node", color: shape === "diamond" ? "#f59e0b" : "#3b82f6" },
+      data: { label: "New Node", color: shape === "diamond" ? "#f59e0b" : DEFAULT_SHAPE_COLOR },
       position: { 
         x: lastNode ? lastNode.position.x : 150, 
         y: lastNode ? lastNode.position.y + 150 : 50 
@@ -569,7 +570,7 @@ const FlowchartCanvasEditorInner = ({ flowchartData, onChange }: FlowchartCanvas
 
   const onNodeClick = useCallback((_: any, node: Node) => {
     setSelectedNode(node.id);
-    setNodeColor(String(node.data.color || "#3b82f6"));
+    setNodeColor(String(node.data.color || DEFAULT_SHAPE_COLOR));
   }, []);
 
   const onPaneClick = useCallback(() => {
