@@ -103,6 +103,9 @@ serve(async (req) => {
 
     console.log('Detecting text in image for user:', user.id);
 
+    // Convert external URLs to data URLs so the AI gateway can access them
+    const resolvedImageUrl = await imageUrlToDataUrl(imageUrl);
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
