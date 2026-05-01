@@ -471,8 +471,6 @@ export const BulkFlashcardEditor = ({
           toast.error("Drawing cards require a term/question");
           return false;
         }
-          return false;
-        }
       }
     }
     return true;
