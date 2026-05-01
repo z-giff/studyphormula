@@ -232,22 +232,22 @@ const Dashboard = () => {
   };
 
   if (loading || isLoading) {
-    return <div className="min-h-screen bg-[#e8eef4] dark:bg-[#2d3748] flex items-center justify-center">
+    return <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
           <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>;
   }
-  return <div className="min-h-screen bg-[#e8eef4] dark:bg-[#2d3748] relative overflow-hidden">
+  return <div className="min-h-screen bg-background relative">
 
-      <nav className="relative z-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-black/10 dark:border-white/10">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+      <nav className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border">
+        <div className="container mx-auto px-6 py-3.5 flex items-center justify-between">
           <LogoOrb size="md" showWordmark={true} linkTo="/" />
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <ProfileSheet>
-              <Button variant="ghost" className="hover:bg-black/10 dark:hover:bg-white/10">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
                 <User className="h-4 w-4 mr-2" />
                 Profile
               </Button>
@@ -256,32 +256,32 @@ const Dashboard = () => {
         </div>
       </nav>
 
-      <main className="container mx-auto px-4 py-12 relative z-10">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2 text-foreground">Your Phormula to Studying</h1>
-          <p className="text-muted-foreground">Create and manage your study materials</p>
+      <main className="container mx-auto px-6 py-12 max-w-6xl">
+        <div className="mb-12">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2 text-foreground">Your Phormula to Studying</h1>
+          <p className="text-sm text-muted-foreground">Create and manage your study materials</p>
         </div>
 
         {/* Files */}
-        <section className="mb-10">
-          <div className="flex items-center gap-2 mb-4">
-            <Folder className="h-5 w-5 text-muted-foreground" />
-            <h2 className="text-lg font-semibold text-foreground">Files</h2>
+        <section className="mb-12">
+          <div className="flex items-center gap-2 mb-5">
+            <Folder className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
+            <h2 className="text-base font-semibold tracking-tight text-foreground">Files</h2>
           </div>
 
-          <div className="flex flex-wrap gap-6">
+          <div className="flex flex-wrap gap-7">
             {/* Create File circle button */}
             <button
               type="button"
               onClick={() => setIsCreateFileDialogOpen(true)}
               className="flex flex-col items-center group focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-lg"
             >
-              <div className="relative w-20 h-16 flex items-center justify-center transition-transform group-hover:scale-105">
-                <div className="w-14 h-14 rounded-full border-2 border-dashed border-muted-foreground/40 group-hover:border-primary flex items-center justify-center transition-colors bg-background/50">
-                  <Plus className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
+              <div className="relative w-20 h-16 flex items-center justify-center transition-transform group-hover:scale-[1.03]">
+                <div className="w-14 h-14 rounded-full border border-dashed border-border group-hover:border-primary flex items-center justify-center transition-colors bg-card">
+                  <Plus className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" strokeWidth={1.75} />
                 </div>
               </div>
-              <span className="mt-2 text-sm text-muted-foreground group-hover:text-foreground text-center transition-colors">
+              <span className="mt-2 text-xs font-medium text-muted-foreground group-hover:text-foreground text-center transition-colors">
                 New File
               </span>
             </button>
@@ -311,8 +311,8 @@ const Dashboard = () => {
                 <Link to={`/file/${file.id}`} className="flex flex-col items-center group">
                   <div
                     className={
-                      "relative w-20 h-16 transition-transform group-hover:scale-105 " +
-                      (dragOverFileId === file.id ? "scale-110" : "")
+                      "relative w-20 h-16 transition-transform group-hover:scale-[1.03] " +
+                      (dragOverFileId === file.id ? "scale-[1.08]" : "")
                     }
                   >
                     {/* Folder icon shape */}
@@ -322,11 +322,11 @@ const Dashboard = () => {
                         "w-full h-full transition-colors " +
                         (dragOverFileId === file.id
                           ? "text-primary"
-                          : "text-muted-foreground/60 group-hover:text-muted-foreground")
+                          : "text-muted-foreground/50 group-hover:text-foreground/70")
                       }
                       fill="none"
                       stroke="currentColor"
-                      strokeWidth="2.5"
+                      strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     >
@@ -334,7 +334,7 @@ const Dashboard = () => {
                       <path d="M4 16 L4 8 Q4 4 8 4 L28 4 L34 12 L72 12 Q76 12 76 16 L76 56 Q76 60 72 60 L8 60 Q4 60 4 56 Z" />
                     </svg>
                   </div>
-                  <span className="mt-2 text-sm text-foreground text-center max-w-24 truncate">
+                  <span className="mt-2 text-xs font-medium text-foreground text-center max-w-24 truncate">
                     {file.name}
                   </span>
                   <span className="text-xs text-muted-foreground">
@@ -348,38 +348,27 @@ const Dashboard = () => {
 
         {/* Bookmarks Banner */}
         {bookmarkedCount > 0 && (
-          <section className="mb-10">
+          <section className="mb-12">
             <Link to="/set/bookmarks" className="block">
-              <div 
-                className="relative overflow-hidden rounded-2xl h-20 cursor-pointer hover:shadow-lg transition-all bg-gradient-to-r from-yellow-500/10 via-amber-500/15 to-yellow-500/10 dark:from-yellow-500/20 dark:via-amber-500/25 dark:to-yellow-500/20 border border-yellow-500/30 hover:border-yellow-500/50 group"
-              >
-                {/* Decorative background elements */}
-                <div className="absolute inset-0 opacity-30">
-                  <div className="absolute -right-8 -top-8 w-32 h-32 bg-yellow-400/20 rounded-full blur-2xl" />
-                  <div className="absolute -left-4 -bottom-4 w-24 h-24 bg-amber-400/20 rounded-full blur-xl" />
-                </div>
-                
+              <div className="group relative overflow-hidden rounded-xl h-20 cursor-pointer bg-card border border-border hover:border-foreground/20 hover:shadow-[var(--shadow-card-hover)] transition-all">
                 <div className="relative h-full flex items-center justify-between px-6">
                   <div className="flex items-center gap-4">
-                    <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-yellow-500/20 group-hover:bg-yellow-500/30 transition-colors">
-                      <Bookmark className="h-6 w-6 text-yellow-500 fill-yellow-500" />
+                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-500/10">
+                      <Bookmark className="h-5 w-5 text-amber-500 fill-amber-500" strokeWidth={1.75} />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-foreground">Bookmarks</h3>
-                      <p className="text-sm text-muted-foreground">Your saved flashcards for quick review</p>
+                      <h3 className="text-sm font-semibold text-foreground tracking-tight">Bookmarks</h3>
+                      <p className="text-xs text-muted-foreground">Your saved flashcards for quick review</p>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <BookOpen className="h-4 w-4" />
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <BookOpen className="h-3.5 w-3.5" strokeWidth={1.75} />
                       <span className="font-medium">{bookmarkedCount} {bookmarkedCount === 1 ? 'card' : 'cards'}</span>
                     </div>
-                    <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center group-hover:bg-yellow-500/30 transition-colors">
-                      <svg className="w-4 h-4 text-yellow-600 dark:text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
+                    <svg className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
                   </div>
                 </div>
               </div>
@@ -390,46 +379,34 @@ const Dashboard = () => {
         {/* Sets */}
         <section>
            {/* Action Buttons */}
-           <div className="flex flex-wrap gap-4 mb-6">
-             {/* Create New Set Button */}
+           <div className="flex flex-wrap gap-3 mb-8">
+             {/* Primary CTA — gradient accent */}
              <Button
                onClick={() => setIsCreateDialogOpen(true)}
-               variant="outline"
-               className="h-14 px-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-black/20 dark:border-white/20 hover:border-primary hover:bg-primary/5 transition-all"
+               className="h-11 px-5 text-sm font-medium text-white shadow-sm hover:shadow-md transition-all hover:-translate-y-px"
+               style={{ backgroundImage: "var(--gradient-primary)" }}
              >
-               <div className="flex items-center gap-3">
-                 <div className="bg-primary/10 w-10 h-10 rounded-full flex items-center justify-center">
-                   <Plus className="h-5 w-5 text-primary" />
-                 </div>
-                 <div className="text-left">
-                   <span className="font-semibold text-foreground">Create New Set</span>
-                 </div>
-               </div>
+               <Plus className="h-4 w-4 mr-2" strokeWidth={2} />
+               Create New Set
              </Button>
- 
-             {/* Auto-Flashcard Button */}
+
+             {/* Secondary — subtle */}
              <Button
                onClick={() => setIsAutoFlashcardDialogOpen(true)}
                variant="outline"
-               className="h-14 px-6 bg-gradient-to-r from-primary/5 to-purple-500/5 dark:from-primary/10 dark:to-purple-500/10 backdrop-blur-md border-primary/30 hover:border-primary hover:from-primary/10 hover:to-purple-500/10 transition-all"
+               className="h-11 px-5 text-sm font-medium bg-card border-border hover:bg-secondary hover:border-foreground/20 transition-all"
              >
-               <div className="flex items-center gap-3">
-                 <div className="bg-gradient-to-br from-primary to-purple-500 w-10 h-10 rounded-full flex items-center justify-center">
-                   <Sparkles className="h-5 w-5 text-white" />
-                 </div>
-                 <div className="text-left">
-                   <span className="font-semibold text-foreground">Auto-Flashcard</span>
-                 </div>
-               </div>
+               <Sparkles className="h-4 w-4 mr-2 text-primary" strokeWidth={1.75} />
+               Auto-Flashcard
              </Button>
            </div>
- 
-          <div className="flex items-center justify-between gap-4 mb-4">
-            <h2 className="text-lg font-semibold text-foreground">Sets</h2>
+
+          <div className="flex items-center justify-between gap-4 mb-5">
+            <h2 className="text-base font-semibold tracking-tight text-foreground">Sets</h2>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Sort</span>
+              <span className="text-xs text-muted-foreground">Sort</span>
               <Select value={sortMode === "used" ? "" : sortMode} onValueChange={(v) => setSortMode(v as any)}>
-                <SelectTrigger className="w-[220px]">
+                <SelectTrigger className="w-[200px] h-9 text-sm bg-card">
                   <SelectValue placeholder="Most recently used" />
                 </SelectTrigger>
                 <SelectContent className="bg-popover">
@@ -440,7 +417,7 @@ const Dashboard = () => {
               </Select>
             </div>
           </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {/* Existing Sets */}
           {sortedSets.map(set => <div
               key={set.id}
@@ -452,21 +429,21 @@ const Dashboard = () => {
               }}
             >
               <Link to={`/set/${set.id}`}>
-                <Card className="h-48 cursor-pointer hover:shadow-lg transition-all overflow-hidden group relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-black/10 dark:border-white/10" style={{
-              borderTop: `6px solid ${set.displayColor}`,
-              background: `linear-gradient(to bottom, ${set.displayColor}15, rgba(255,255,255,0.8))`
-            }}>
+                <Card
+                  className="h-44 cursor-pointer overflow-hidden group relative bg-card border-border shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] hover:-translate-y-0.5 transition-all"
+                  style={{ borderLeft: `3px solid ${set.displayColor}` }}
+                >
                 <CardHeader className="pr-12 pb-2">
-                    <CardTitle className="text-foreground text-lg leading-tight line-clamp-2 break-words">
+                    <CardTitle className="text-foreground text-base font-semibold tracking-tight leading-snug line-clamp-2 break-words">
                       {set.title}
                     </CardTitle>
-                    <CardDescription className="line-clamp-2 text-sm">
+                    <CardDescription className="line-clamp-2 text-xs font-light">
                       {set.description || "No description"}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <BookOpen className="h-4 w-4" />
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <BookOpen className="h-3.5 w-3.5" strokeWidth={1.75} />
                       <span>{set._count?.flashcards || 0} cards</span>
                     </div>
                   </CardContent>
@@ -476,7 +453,7 @@ const Dashboard = () => {
               {/* More Options Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-8 w-8 hover:bg-black/10 dark:hover:bg-white/10 z-10" onClick={e => e.preventDefault()}>
+                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-secondary z-10 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.preventDefault()}>
                     <MoreHorizontal className="h-4 w-4" />
                     <span className="sr-only">More options</span>
                   </Button>
@@ -517,12 +494,16 @@ const Dashboard = () => {
         </section>
 
         {sets.length === 0 && <div className="text-center py-16">
-            <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
-              <BookOpen className="h-12 w-12 text-muted-foreground" />
+            <div className="bg-secondary w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-5">
+              <BookOpen className="h-9 w-9 text-muted-foreground" strokeWidth={1.5} />
             </div>
-            <h3 className="text-2xl font-semibold mb-2 text-foreground">No flashcard sets yet</h3>
-            <p className="text-muted-foreground mb-6">Create your first set to start studying</p>
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <h3 className="text-xl font-semibold tracking-tight mb-1.5 text-foreground">No flashcard sets yet</h3>
+            <p className="text-sm text-muted-foreground mb-6">Create your first set to start studying</p>
+            <Button
+              onClick={() => setIsCreateDialogOpen(true)}
+              className="h-11 px-5 text-sm font-medium text-white"
+              style={{ backgroundImage: "var(--gradient-primary)" }}
+            >
               <Plus className="h-4 w-4 mr-2" />
               Create Your First Set
             </Button>
