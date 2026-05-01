@@ -795,46 +795,6 @@ export const BulkFlashcardEditor = ({
                         />
                         <span className="text-xs text-muted-foreground uppercase tracking-wide">Definition</span>
                       </div>
-                      {/* Image slot */}
-                      <div className="w-24 flex-shrink-0">
-                        {row.imageUrl ? (
-                          <div className="relative w-full aspect-square border rounded-lg overflow-hidden bg-muted/50">
-                            <img
-                              src={row.imageUrl}
-                              alt=""
-                              className="w-full h-full object-cover"
-                            />
-                            <Button
-                              variant="destructive"
-                              size="icon"
-                              className="absolute top-1 right-1 h-6 w-6"
-                              onClick={() => handleRowChange(row.id, "imageUrl", "")}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <label className="w-full aspect-square border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors text-muted-foreground hover:text-foreground">
-                            <Image className="h-5 w-5 mb-1" />
-                            <span className="text-xs">Image</span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  const reader = new FileReader();
-                                  reader.onloadend = () => {
-                                    handleRowChange(row.id, "imageUrl", reader.result as string);
-                                  };
-                                  reader.readAsDataURL(file);
-                                }
-                              }}
-                            />
-                          </label>
-                        )}
-                      </div>
                     </div>
                   )}
 
