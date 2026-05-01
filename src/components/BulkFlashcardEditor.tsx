@@ -471,8 +471,6 @@ export const BulkFlashcardEditor = ({
           toast.error("Drawing cards require a term/question");
           return false;
         }
-        if (!row.drawingData.strokes || row.drawingData.strokes.length === 0) {
-          toast.error("Drawing cards require at least one stroke");
           return false;
         }
       }
