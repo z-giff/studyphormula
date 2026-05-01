@@ -191,10 +191,10 @@ export const StackedFlashcardDeck = ({
                       >
                         <CardContent className="flex flex-col items-center justify-center h-full p-6 text-center">
                           {card.flashcard_type === "drawing" && card.interactive_data ? (
-                            <div className="w-full max-h-48">
+                            <div className="w-full flex items-center justify-center px-4">
                               <DrawingCanvasDisplay 
                                 drawingData={card.interactive_data.drawingData || card.interactive_data}
-                                className="rounded-lg shadow-sm"
+                                className="rounded-lg shadow-sm max-w-full mx-auto"
                               />
                             </div>
                           ) : card.flashcard_type === "flowchart" && card.interactive_data ? (
