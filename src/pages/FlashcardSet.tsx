@@ -3,7 +3,13 @@ import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom"
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Plus, ArrowLeft, Play, Palette, Edit, Pencil, Crown, Sparkles } from "lucide-react";
+import { GraduationCap, Plus, ArrowLeft, Play, Palette, Edit, Pencil, Crown, Sparkles, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
  import { Repeat } from "lucide-react";
 import { toast } from "sonner";
 import { CreateFlashcardDialog } from "@/components/CreateFlashcardDialog";
@@ -284,27 +290,36 @@ const FlashcardSetPage = () => {
             </div>
 
             {flashcards.length > 0 && (
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Link to={`/quiz/${id}`}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
                   <Button size="lg" variant="outline">
-                    <Crown className="h-5 w-5 mr-2" />
-                    Generate MC Quiz
-                    <span className="ml-2 text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">Premium</span>
+                    <GraduationCap className="h-5 w-5 mr-2" />
+                    Study Modes
+                    <ChevronDown className="h-4 w-4 ml-2 opacity-70" />
                   </Button>
-                </Link>
-                 <Link to={`/swipe/${id}`}>
-                   <Button size="lg" variant="outline">
-                     <Repeat className="h-5 w-5 mr-2" />
-                     Swipe Study
-                   </Button>
-                 </Link>
-                <Link to={`/study/${id}`}>
-                  <Button size="lg" variant="outline">
-                    <Play className="h-5 w-5 mr-2" />
-                    Memorize
-                  </Button>
-                </Link>
-              </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem asChild>
+                    <Link to={`/study/${id}`}>
+                      <Play className="h-4 w-4 mr-2" />
+                      Memorize
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to={`/swipe/${id}`}>
+                      <Repeat className="h-4 w-4 mr-2" />
+                      Swipe Study
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to={`/quiz/${id}`}>
+                      <Crown className="h-4 w-4 mr-2" />
+                      MC Quiz
+                      <span className="ml-auto text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">Premium</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
         </div>
