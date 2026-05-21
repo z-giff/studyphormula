@@ -45,7 +45,7 @@ const faqs = [
   {
     question: "How do I study my flashcards?",
     answer:
-      "Open any flashcard set and click 'Study Mode'. You can flip cards, mark them as known or unknown, and track your progress.",
+      "Open any flashcard set and click 'Memorize'. You can flip cards, mark them as known or unknown, and track your progress.",
   },
   {
     question: "Can I share my flashcard sets?",

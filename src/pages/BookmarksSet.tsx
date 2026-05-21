@@ -119,7 +119,7 @@ const BookmarksSet = () => {
               <Link to="/study/bookmarks">
                 <Button size="lg">
                   <Play className="h-5 w-5 mr-2" />
-                  Study Mode
+                  Memorize
                 </Button>
               </Link>
             )}
