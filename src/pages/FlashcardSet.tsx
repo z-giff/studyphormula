@@ -301,7 +301,7 @@ const FlashcardSetPage = () => {
                 <Link to={`/study/${id}`}>
                   <Button size="lg" variant="outline">
                     <Play className="h-5 w-5 mr-2" />
-                    Study Mode
+                    Memorize
                   </Button>
                 </Link>
               </div>
