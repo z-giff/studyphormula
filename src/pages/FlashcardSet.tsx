@@ -286,17 +286,14 @@ const FlashcardSetPage = () => {
             {flashcards.length > 0 && (
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link to={`/quiz/${id}`}>
-                  <Button
-                    size="lg"
-                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-amber-500/25"
-                  >
+                  <Button size="lg" variant="outline">
                     <Crown className="h-5 w-5 mr-2" />
                     Generate MC Quiz
-                    <span className="ml-2 text-xs bg-white/20 px-2 py-0.5 rounded-full">Premium</span>
+                    <span className="ml-2 text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">Premium</span>
                   </Button>
                 </Link>
                  <Link to={`/swipe/${id}`}>
-                   <Button size="lg" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg shadow-purple-500/25">
+                   <Button size="lg" variant="outline">
                      <Repeat className="h-5 w-5 mr-2" />
                      Swipe Study
                    </Button>
