@@ -156,149 +156,151 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Create New Flashcard</DialogTitle>
-          <DialogDescription>
-            Choose between a standard flashcard or an interactive fill-in-the-blanks flashcard.
+      <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto p-0 gap-0 rounded-2xl">
+        <DialogHeader className="px-8 pt-8 pb-5">
+          <DialogTitle className="text-xl font-semibold tracking-tight">New flashcard</DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
+            Pick a format and fill in the details.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <Tabs value={flashcardType} onValueChange={(v) => setFlashcardType(v as "standard" | "interactive" | "flowchart" | "drawing")}>
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="standard">Standard</TabsTrigger>
-              <TabsTrigger value="interactive">Interactive</TabsTrigger>
-              <TabsTrigger value="flowchart">Flowchart</TabsTrigger>
-              <TabsTrigger value="drawing">Drawing</TabsTrigger>
-            </TabsList>
 
-            <TabsContent value="standard" className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label htmlFor="term">Term / Question *</Label>
-                <Input
-                  id="term"
-                  placeholder="e.g., What is the mitochondria?"
-                  value={formData.term}
-                  onChange={(e) => setFormData({ ...formData, term: e.target.value })}
-                  disabled={isLoading}
-                  required
+        <form onSubmit={handleSubmit} className="flex flex-col">
+          <div className="px-8 pb-6 space-y-7">
+            <Tabs value={flashcardType} onValueChange={(v) => setFlashcardType(v as "standard" | "interactive" | "flowchart" | "drawing")}>
+              <TabsList className="grid w-full grid-cols-4 h-10 bg-muted/60 p-1 rounded-lg">
+                <TabsTrigger value="standard" className="rounded-md text-sm font-medium">Standard</TabsTrigger>
+                <TabsTrigger value="interactive" className="rounded-md text-sm font-medium">Interactive</TabsTrigger>
+                <TabsTrigger value="flowchart" className="rounded-md text-sm font-medium">Flowchart</TabsTrigger>
+                <TabsTrigger value="drawing" className="rounded-md text-sm font-medium">Drawing</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="standard" className="space-y-5 mt-6">
+                <div className="space-y-1.5">
+                  <Label htmlFor="term" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Term</Label>
+                  <Input
+                    id="term"
+                    placeholder="What is the mitochondria?"
+                    value={formData.term}
+                    onChange={(e) => setFormData({ ...formData, term: e.target.value })}
+                    disabled={isLoading}
+                    required
+                    className="h-11"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="definition" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Definition</Label>
+                  <Textarea
+                    id="definition"
+                    placeholder="The powerhouse of the cell…"
+                    value={formData.definition}
+                    onChange={(e) => setFormData({ ...formData, definition: e.target.value })}
+                    disabled={isLoading}
+                    rows={4}
+                    required
+                    className="resize-none"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Image <span className="normal-case font-normal text-muted-foreground/70">— optional</span></Label>
+                  <ImageUploader
+                    imageUrl={formData.imageUrl}
+                    onImageChange={(imageUrl) => setFormData({ ...formData, imageUrl })}
+                    disabled={isLoading}
+                    required={false}
+                    label=""
+                  />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="interactive" className="space-y-5 mt-6">
+                <div className="space-y-1.5">
+                  <Label htmlFor="interactive-term" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Term</Label>
+                  <Input
+                    id="interactive-term"
+                    placeholder="Label the parts of the cell"
+                    value={interactiveData.term}
+                    onChange={(e) => setInteractiveData({ ...interactiveData, term: e.target.value })}
+                    disabled={isLoading}
+                    required
+                    className="h-11"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Image</Label>
+                  <ImageUploader
+                    imageUrl={interactiveData.imageUrl}
+                    onImageChange={(imageUrl) => setInteractiveData({ ...interactiveData, imageUrl })}
+                    disabled={isLoading}
+                    label=""
+                  />
+                </div>
+
+                {interactiveData.imageUrl && (
+                  <InteractiveFlashcardEditor
+                    imageUrl={interactiveData.imageUrl}
+                    textBoxes={interactiveData.textBoxes}
+                    onChange={(textBoxes) => setInteractiveData({ ...interactiveData, textBoxes })}
+                    onImageChange={(imageUrl) => setInteractiveData({ ...interactiveData, imageUrl })}
+                  />
+                )}
+              </TabsContent>
+
+              <TabsContent value="flowchart" className="space-y-5 mt-6">
+                <div className="space-y-1.5">
+                  <Label htmlFor="flowchart-term" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Topic</Label>
+                  <Input
+                    id="flowchart-term"
+                    placeholder="Photosynthesis process"
+                    value={formData.term}
+                    onChange={(e) => setFormData({ ...formData, term: e.target.value })}
+                    disabled={isLoading}
+                    required
+                    className="h-11"
+                  />
+                </div>
+
+                <FlowchartCanvasEditor
+                  flowchartData={flowchartData}
+                  onChange={setFlowchartData}
                 />
-              </div>
+              </TabsContent>
 
-              <div className="space-y-2">
-                <Label htmlFor="definition">Definition / Answer *</Label>
-                <Textarea
-                  id="definition"
-                  placeholder="The powerhouse of the cell..."
-                  value={formData.definition}
-                  onChange={(e) => setFormData({ ...formData, definition: e.target.value })}
-                  disabled={isLoading}
-                  rows={4}
-                  required
+              <TabsContent value="drawing" className="space-y-5 mt-6">
+                <div className="space-y-1.5">
+                  <Label htmlFor="drawing-term" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Topic</Label>
+                  <Input
+                    id="drawing-term"
+                    placeholder="Draw the cell membrane structure"
+                    value={formData.term}
+                    onChange={(e) => setFormData({ ...formData, term: e.target.value })}
+                    disabled={isLoading}
+                    required
+                    className="h-11"
+                  />
+                </div>
+
+                <DrawingCanvasEditor
+                  drawingData={drawingData}
+                  onChange={setDrawingData}
                 />
-              </div>
+              </TabsContent>
+            </Tabs>
+          </div>
 
-              <ImageUploader
-                imageUrl={formData.imageUrl}
-                onImageChange={(imageUrl) => setFormData({ ...formData, imageUrl })}
-                disabled={isLoading}
-                required={false}
-                label="Image"
-              />
-
-            </TabsContent>
-
-            <TabsContent value="interactive" className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label htmlFor="interactive-term">Term / Question *</Label>
-                <Input
-                  id="interactive-term"
-                  placeholder="e.g., Label the parts of the cell"
-                  value={interactiveData.term}
-                  onChange={(e) => setInteractiveData({ ...interactiveData, term: e.target.value })}
-                  disabled={isLoading}
-                  required
-                />
-                <p className="text-xs text-muted-foreground">
-                  This will be shown as the flashcard title
-                </p>
-              </div>
-
-              <ImageUploader
-                imageUrl={interactiveData.imageUrl}
-                onImageChange={(imageUrl) => setInteractiveData({ ...interactiveData, imageUrl })}
-                disabled={isLoading}
-              />
-
-              {interactiveData.imageUrl && (
-                <InteractiveFlashcardEditor
-                  imageUrl={interactiveData.imageUrl}
-                  textBoxes={interactiveData.textBoxes}
-                  onChange={(textBoxes) => setInteractiveData({ ...interactiveData, textBoxes })}
-                  onImageChange={(imageUrl) => setInteractiveData({ ...interactiveData, imageUrl })}
-                />
-              )}
-
-            </TabsContent>
-
-            <TabsContent value="flowchart" className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label htmlFor="flowchart-term">Question / Topic *</Label>
-                <Input
-                  id="flowchart-term"
-                  placeholder="e.g., Photosynthesis Process"
-                  value={formData.term}
-                  onChange={(e) => setFormData({ ...formData, term: e.target.value })}
-                  disabled={isLoading}
-                  required
-                />
-                <p className="text-xs text-muted-foreground">
-                  This will be shown on the question side of the flashcard
-                </p>
-              </div>
-
-              <FlowchartCanvasEditor
-                flowchartData={flowchartData}
-                onChange={setFlowchartData}
-              />
-
-            </TabsContent>
-
-            <TabsContent value="drawing" className="space-y-4 mt-4">
-              <div className="space-y-2">
-                <Label htmlFor="drawing-term">Question / Topic *</Label>
-                <Input
-                  id="drawing-term"
-                  placeholder="e.g., Draw the cell membrane structure"
-                  value={formData.term}
-                  onChange={(e) => setFormData({ ...formData, term: e.target.value })}
-                  disabled={isLoading}
-                  required
-                />
-                <p className="text-xs text-muted-foreground">
-                  This will be shown on the question side of the flashcard
-                </p>
-              </div>
-
-              <DrawingCanvasEditor
-                drawingData={drawingData}
-                onChange={setDrawingData}
-              />
-
-            </TabsContent>
-          </Tabs>
-
-          <div className="flex gap-3 justify-end">
+          <div className="flex gap-2 justify-end px-8 py-4 border-t border-border/60 bg-muted/20">
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               onClick={() => onOpenChange(false)}
               disabled={isLoading}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Creating..." : `Create ${flashcardType === "standard" ? "Flashcard" : flashcardType === "interactive" ? "Interactive Flashcard" : flashcardType === "flowchart" ? "Flowchart Flashcard" : "Drawing Flashcard"}`}
+            <Button type="submit" disabled={isLoading} className="min-w-[120px]">
+              {isLoading ? "Creating…" : "Create"}
             </Button>
           </div>
         </form>
