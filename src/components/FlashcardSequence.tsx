@@ -5,33 +5,24 @@ import { Button } from "@/components/ui/button";
 import phormulaTextLogo from "@/assets/phormula-text-logo.png";
 import GlowSphere from "./GlowSphere";
 
-// Card color palette - cream/white aesthetic
-const CARD_COLORS = ["hsl(40, 33%, 96%)",
-// warm white/cream for hero
-"hsl(40, 33%, 96%)",
-// warm white for features
-"hsl(40, 33%, 96%)" // warm white for about
-];
+// Unified soft off-white card surface — same across all screens for cohesion
+const CARD_COLOR = "hsl(0, 0%, 100%)";
 const features = [{
   icon: Palette,
   title: "Colour-Coded Organization",
-  description: "Organize flashcards by colour that help group related content and reinforce memory through visually associated.",
-  bgColor: "bg-rose-50/80 dark:bg-rose-900/15 border-rose-200/50 dark:border-rose-800/30"
+  description: "Organize flashcards by colour to group related content and reinforce memory through visual association."
 }, {
   icon: ImageIcon,
   title: "Visual Learning",
-  description: "Add images, diagrams, and annotations for complex topics.",
-  bgColor: "bg-emerald-50/80 dark:bg-emerald-900/15 border-emerald-200/50 dark:border-emerald-800/30"
+  description: "Add images, diagrams, and annotations for complex topics."
 }, {
   icon: Network,
   title: "Process-Based",
-  description: "Create diagrams and flowcharts directly within definition terms, allowing complex processes and relationships to be learned structurally.",
-  bgColor: "bg-violet-50/80 dark:bg-violet-900/15 border-violet-200/50 dark:border-violet-800/30"
+  description: "Build diagrams and flowcharts within definitions so complex processes are learned structurally."
 }, {
   icon: Brain,
   title: "Smart Study",
-  description: "Engage with intelligent learning tools such as auto-read text on diagrams and interactive fill-in-the-blank testing to actively reinforce knowledge and identify gaps in understanding.",
-  bgColor: "bg-amber-50/80 dark:bg-amber-900/15 border-amber-200/50 dark:border-amber-800/30"
+  description: "Intelligent tools like auto-read diagrams and interactive fill-in-the-blank testing reinforce knowledge."
 }];
 type FlashcardScreenProps = {
   isVisible: boolean;
@@ -45,14 +36,11 @@ const FlashcardScreen = ({
   children,
   cardColor
 }: FlashcardScreenProps) => {
-  return <div className={`absolute inset-4 sm:inset-6 md:inset-8 lg:inset-12 rounded-2xl transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isVisible && !isExiting ? "opacity-100 translate-x-0 rotate-0 scale-100" : isExiting ? "opacity-0 -translate-x-[120%] -rotate-6 scale-95" : "opacity-0 translate-x-[120%] rotate-6 scale-95"}`} style={{
+  return <div className={`absolute inset-4 sm:inset-8 md:inset-12 lg:inset-16 rounded-[28px] transition-all duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isVisible && !isExiting ? "opacity-100 translate-x-0 rotate-0 scale-100" : isExiting ? "opacity-0 -translate-x-[110%] -rotate-3 scale-[0.97]" : "opacity-0 translate-x-[110%] rotate-3 scale-[0.97]"}`} style={{
     perspective: "1000px",
     backgroundColor: cardColor,
-    border: "1px solid hsl(220, 13%, 75%)",
-    boxShadow: `
-          0 4px 20px -4px rgba(0, 0, 0, 0.08),
-          0 8px 40px -8px rgba(0, 0, 0, 0.05)
-        `
+    border: "1px solid hsl(220, 13%, 93%)",
+    boxShadow: "0 1px 2px hsl(220 15% 20% / 0.04), 0 12px 40px -12px hsl(220 15% 20% / 0.08)"
   }}>
       {/* Card content */}
       <div className="relative z-10 w-full h-full flex items-center justify-center">{children}</div>
@@ -160,59 +148,42 @@ const FlashcardSequence = () => {
     height: "300vh"
   }}>
       <div className="sticky top-0 h-screen overflow-hidden bg-background">
-        {/* Gradient bubbles background */}
+        {/* Calm ambient wash — subtle lavender + cool grey, no vibrant bubbles */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {/* Top-left bubble - vibrant pink/coral */}
-          <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-60 blur-3xl animate-float-1" style={{
-          background: "radial-gradient(circle, hsl(340, 95%, 65%) 0%, transparent 70%)"
-        }} />
-          {/* Top-right bubble - vibrant blue */}
-          <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-55 blur-3xl animate-float-2" style={{
-          background: "radial-gradient(circle, hsl(210, 90%, 65%) 0%, transparent 70%)",
-          animationDelay: "2s"
-        }} />
-          {/* Bottom-left bubble - vibrant green/teal */}
-          <div className="absolute -bottom-40 -left-20 w-72 h-72 rounded-full opacity-50 blur-3xl animate-float-3" style={{
-          background: "radial-gradient(circle, hsl(170, 85%, 55%) 0%, transparent 70%)",
-          animationDelay: "4s"
-        }} />
-          {/* Bottom-right bubble - vibrant purple */}
-          <div className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full opacity-55 blur-3xl animate-float-1" style={{
-          background: "radial-gradient(circle, hsl(280, 85%, 65%) 0%, transparent 70%)",
-          animationDelay: "1s"
-        }} />
-          {/* Center accent bubble - vibrant yellow/orange */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full opacity-35 blur-3xl animate-float-2" style={{
-          background: "radial-gradient(circle, hsl(35, 95%, 60%) 0%, transparent 70%)",
-          animationDelay: "3s"
-        }} />
+          <div className="absolute -top-40 -left-40 w-[36rem] h-[36rem] rounded-full opacity-50 blur-3xl animate-float" style={{
+            background: "radial-gradient(circle, hsl(260, 60%, 90%) 0%, transparent 70%)"
+          }} />
+          <div className="absolute -bottom-40 -right-40 w-[36rem] h-[36rem] rounded-full opacity-40 blur-3xl animate-float" style={{
+            background: "radial-gradient(circle, hsl(220, 40%, 92%) 0%, transparent 70%)",
+            animationDelay: "4s"
+          }} />
         </div>
 
         {/* Screen 0: Hero / Intro */}
-        <FlashcardScreen isVisible={currentScreen === 0} isExiting={exitingScreen === 0} cardColor={CARD_COLORS[0]}>
+        <FlashcardScreen isVisible={currentScreen === 0} isExiting={exitingScreen === 0} cardColor={CARD_COLOR}>
           <div className="flex flex-col items-center justify-center text-center px-4 relative">
             {/* Glow sphere behind title */}
             <GlowSphere />
             
-            {/* Logo with gradient */}
-            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight relative z-10 text-foreground">
+            {/* Wordmark */}
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-semibold tracking-[-0.04em] relative z-10 text-foreground">
               Phormula
             </h1>
 
             {/* Slogan */}
-            <p className="text-xl sm:text-2xl md:text-3xl text-foreground/60 font-light tracking-widest mt-4 relative z-10">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground font-light tracking-[0.2em] uppercase mt-6 relative z-10">
               simplify memorization.
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex items-center gap-3 mt-8 relative z-10">
+            <div className="flex items-center gap-3 mt-10 relative z-10">
               <Link to="/auth">
-                <Button variant="outline" className="bg-foreground/10 border-foreground/20 text-foreground hover:bg-foreground/20 font-light tracking-wide text-sm">
+                <Button variant="ghost" className="text-foreground/70 hover:text-foreground hover:bg-foreground/5 font-light tracking-wide text-sm rounded-full px-5">
                   Sign In
                 </Button>
               </Link>
               <Link to="/auth">
-                <Button className="bg-foreground text-background hover:bg-foreground/90 rounded-lg font-light tracking-wide text-sm">
+                <Button className="bg-foreground text-background hover:bg-foreground/90 rounded-full font-light tracking-wide text-sm px-6">
                   Get Started
                 </Button>
               </Link>
@@ -221,22 +192,23 @@ const FlashcardSequence = () => {
         </FlashcardScreen>
 
         {/* Screen 1: Features Overview */}
-        <FlashcardScreen isVisible={currentScreen === 1} isExiting={exitingScreen === 1} cardColor={CARD_COLORS[1]}>
-          <div className="flex flex-col items-center justify-center text-center px-4 sm:px-8 max-w-5xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-8 sm:mb-12 text-foreground">
-              Everything You Need to Study Smarter.
+        <FlashcardScreen isVisible={currentScreen === 1} isExiting={exitingScreen === 1} cardColor={CARD_COLOR}>
+          <div className="flex flex-col items-center justify-center text-center px-6 sm:px-12 max-w-5xl mx-auto">
+            <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground mb-4">Features</p>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-[-0.02em] mb-12 sm:mb-16 text-foreground max-w-2xl">
+              Everything you need to study smarter.
             </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 w-full">
               {features.map((feature, index) => {
                 const Icon = feature.icon;
                 return (
-                  <div key={index} className={`group rounded-2xl p-4 sm:p-6 border transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${feature.bgColor}`}>
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center mb-3 sm:mb-4 bg-foreground/10">
-                      <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-foreground/80" />
+                  <div key={index} className="group text-left transition-all duration-300">
+                    <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-5 bg-muted/60">
+                      <Icon className="w-4 h-4 text-foreground/70" strokeWidth={1.5} />
                     </div>
-                    <h3 className="text-base sm:text-lg font-semibold mb-2 text-foreground">{feature.title}</h3>
-                    <p className="text-foreground/70 text-xs sm:text-sm">{feature.description}</p>
+                    <h3 className="text-[15px] font-medium mb-2 text-foreground tracking-tight">{feature.title}</h3>
+                    <p className="text-muted-foreground text-[13px] leading-relaxed">{feature.description}</p>
                   </div>
                 );
               })}
@@ -245,12 +217,12 @@ const FlashcardSequence = () => {
         </FlashcardScreen>
 
         {/* Screen 2: About */}
-        <FlashcardScreen isVisible={currentScreen === 2} isExiting={exitingScreen === 2} cardColor={CARD_COLORS[2]}>
-          <div className="flex flex-col items-center justify-start text-center px-4 sm:px-8 md:px-12 py-8 max-w-4xl mx-auto h-full overflow-y-auto">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground">About</h2>
-            <p className="text-base sm:text-lg md:text-xl text-foreground/60 font-light mt-2 mb-6">A personal message from the founder</p>
-            
-            <div className="text-left space-y-4 text-sm sm:text-base text-foreground/80 leading-relaxed italic">
+        <FlashcardScreen isVisible={currentScreen === 2} isExiting={exitingScreen === 2} cardColor={CARD_COLOR}>
+          <div className="flex flex-col items-center justify-start text-center px-6 sm:px-10 md:px-16 py-12 sm:py-16 max-w-2xl mx-auto h-full overflow-y-auto">
+            <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground mb-3">About</p>
+            <h2 className="text-3xl sm:text-4xl font-semibold tracking-[-0.02em] text-foreground">A note from the founder</h2>
+
+            <div className="text-left space-y-6 text-[15px] text-foreground/75 leading-[1.8] mt-10">
               <p>
                 Phormula was born from a personal journey rooted in challenge, adaptation, and discovery. As a student transitioning from a highly creative undergraduate program into a demanding STEM pathway, I quickly realized that traditional study methods were no longer sufficient. The shift came with significant academic pressure, particularly the challenge of mastering large volumes of information while striving for excellence.
               </p>
@@ -267,18 +239,18 @@ const FlashcardSequence = () => {
                 Built at the intersection of science, design, and education, Phormula empowers learners to study smarter by leveraging visual reinforcement, thoughtful organization, and intuitive design. Our mission is to make memorization more accessible, less intimidating, and genuinely effective—especially for those who learn best by seeing, not just reading.
               </p>
               
-              <p className="mt-6 italic font-medium text-foreground">
+              <p className="mt-8 text-foreground not-italic">
                 Built with purpose,<br />
                 Zoha S<br />
-                Founder, Phormula
+                <span className="text-muted-foreground font-light">Founder, Phormula</span>
               </p>
             </div>
           </div>
         </FlashcardScreen>
 
         {/* Navigation dots */}
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-40">
-          {[0, 1, 2].map(index => <button key={index} onClick={() => goToScreen(index)} className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${currentScreen === index ? "bg-foreground scale-125" : "bg-foreground/30 hover:bg-foreground/50"}`} aria-label={`Go to screen ${index + 1}`} />)}
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 flex gap-2 z-40">
+          {[0, 1, 2].map(index => <button key={index} onClick={() => goToScreen(index)} className={`h-1.5 rounded-full transition-all duration-500 ${currentScreen === index ? "w-6 bg-foreground/70" : "w-1.5 bg-foreground/20 hover:bg-foreground/40"}`} aria-label={`Go to screen ${index + 1}`} />)}
         </div>
       </div>
     </div>;
