@@ -5,33 +5,24 @@ import { Button } from "@/components/ui/button";
 import phormulaTextLogo from "@/assets/phormula-text-logo.png";
 import GlowSphere from "./GlowSphere";
 
-// Card color palette - cream/white aesthetic
-const CARD_COLORS = ["hsl(40, 33%, 96%)",
-// warm white/cream for hero
-"hsl(40, 33%, 96%)",
-// warm white for features
-"hsl(40, 33%, 96%)" // warm white for about
-];
+// Unified soft off-white card surface — same across all screens for cohesion
+const CARD_COLOR = "hsl(0, 0%, 100%)";
 const features = [{
   icon: Palette,
   title: "Colour-Coded Organization",
-  description: "Organize flashcards by colour that help group related content and reinforce memory through visually associated.",
-  bgColor: "bg-rose-50/80 dark:bg-rose-900/15 border-rose-200/50 dark:border-rose-800/30"
+  description: "Organize flashcards by colour to group related content and reinforce memory through visual association."
 }, {
   icon: ImageIcon,
   title: "Visual Learning",
-  description: "Add images, diagrams, and annotations for complex topics.",
-  bgColor: "bg-emerald-50/80 dark:bg-emerald-900/15 border-emerald-200/50 dark:border-emerald-800/30"
+  description: "Add images, diagrams, and annotations for complex topics."
 }, {
   icon: Network,
   title: "Process-Based",
-  description: "Create diagrams and flowcharts directly within definition terms, allowing complex processes and relationships to be learned structurally.",
-  bgColor: "bg-violet-50/80 dark:bg-violet-900/15 border-violet-200/50 dark:border-violet-800/30"
+  description: "Build diagrams and flowcharts within definitions so complex processes are learned structurally."
 }, {
   icon: Brain,
   title: "Smart Study",
-  description: "Engage with intelligent learning tools such as auto-read text on diagrams and interactive fill-in-the-blank testing to actively reinforce knowledge and identify gaps in understanding.",
-  bgColor: "bg-amber-50/80 dark:bg-amber-900/15 border-amber-200/50 dark:border-amber-800/30"
+  description: "Intelligent tools like auto-read diagrams and interactive fill-in-the-blank testing reinforce knowledge."
 }];
 type FlashcardScreenProps = {
   isVisible: boolean;
@@ -45,14 +36,11 @@ const FlashcardScreen = ({
   children,
   cardColor
 }: FlashcardScreenProps) => {
-  return <div className={`absolute inset-4 sm:inset-6 md:inset-8 lg:inset-12 rounded-2xl transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] ${isVisible && !isExiting ? "opacity-100 translate-x-0 rotate-0 scale-100" : isExiting ? "opacity-0 -translate-x-[120%] -rotate-6 scale-95" : "opacity-0 translate-x-[120%] rotate-6 scale-95"}`} style={{
+  return <div className={`absolute inset-4 sm:inset-8 md:inset-12 lg:inset-16 rounded-[28px] transition-all duration-[600ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isVisible && !isExiting ? "opacity-100 translate-x-0 rotate-0 scale-100" : isExiting ? "opacity-0 -translate-x-[110%] -rotate-3 scale-[0.97]" : "opacity-0 translate-x-[110%] rotate-3 scale-[0.97]"}`} style={{
     perspective: "1000px",
     backgroundColor: cardColor,
-    border: "1px solid hsl(220, 13%, 75%)",
-    boxShadow: `
-          0 4px 20px -4px rgba(0, 0, 0, 0.08),
-          0 8px 40px -8px rgba(0, 0, 0, 0.05)
-        `
+    border: "1px solid hsl(220, 13%, 93%)",
+    boxShadow: "0 1px 2px hsl(220 15% 20% / 0.04), 0 12px 40px -12px hsl(220 15% 20% / 0.08)"
   }}>
       {/* Card content */}
       <div className="relative z-10 w-full h-full flex items-center justify-center">{children}</div>
