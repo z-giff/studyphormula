@@ -7,6 +7,7 @@ const corsHeaders = {
 };
 
 const OCR_CONFIDENCE_THRESHOLD = 0.86;
+const OCR_VERIFICATION_THRESHOLD = 0.9;
 
 interface DetectedTextBox {
   text: string;
@@ -70,6 +71,76 @@ function sanitizeTextBoxes(rawBoxes: unknown): DetectedTextBox[] {
       confidence,
     }];
   });
+}
+
+async function verifyTextBoxes(
+  imageUrl: string,
+  candidates: DetectedTextBox[],
+  lovableApiKey: string,
+): Promise<DetectedTextBox[]> {
+  if (candidates.length === 0) return [];
+
+  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${lovableApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-flash",
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `Verify these OCR bounding boxes against the image. Keep only boxes where the proposed rectangle is directly on top of real visible text matching the candidate text.
+
+Reject a candidate if the box is blank, mostly blank, on an illustration/line/organ instead of text, far from the visible source text, too uncertain, or if the text inside the box does not match the candidate.
+
+Do not add new boxes. Do not move boxes. Only verify or reject the provided candidates.
+
+Return ONLY a JSON array, no prose, no markdown:
+[
+  { "index": 0, "verified": true, "confidence": 0.95 },
+  { "index": 1, "verified": false, "confidence": 0.2 }
+]
+
+Candidates:
+${JSON.stringify(candidates.map((box, index) => ({ index, ...box })))}`,
+            },
+            {
+              type: "image_url",
+              image_url: { url: imageUrl },
+            },
+          ],
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("AI verification error:", response.status, errorText);
+    return [];
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
+  const verifications = typeof content === 'string' ? parseJsonArray(content) : null;
+  if (!verifications) return [];
+
+  const approvedIndexes = new Set(
+    verifications.flatMap((item: any) => {
+      const index = Number(item?.index);
+      const confidence = Number(item?.confidence);
+      return item?.verified === true && Number.isInteger(index) && confidence >= OCR_VERIFICATION_THRESHOLD
+        ? [index]
+        : [];
+    })
+  );
+
+  return candidates.filter((_, index) => approvedIndexes.has(index));
 }
 
 
