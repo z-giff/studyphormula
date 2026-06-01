@@ -207,9 +207,22 @@ const FlashcardSequence = () => {
               {features.map((feature, index) => {
                 const Icon = feature.icon;
                 return (
-                  <div key={index} className="group text-left transition-all duration-300">
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-5 bg-muted/60">
-                      <Icon className="w-4 h-4 text-foreground/70" strokeWidth={1.5} />
+                  <div key={index} className="group text-left">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center mb-5 transition-all duration-500 ease-out group-hover:scale-110"
+                      style={{
+                        backgroundColor: `color-mix(in hsl, ${feature.color} 10%, transparent)`,
+                        boxShadow: `0 0 0 1px color-mix(in hsl, ${feature.color} 12%, transparent)`
+                      }}
+                    >
+                      <Icon
+                        className="w-[18px] h-[18px] transition-all duration-500 ease-out"
+                        strokeWidth={1.75}
+                        style={{
+                          color: feature.color,
+                          opacity: 0.75
+                        }}
+                      />
                     </div>
                     <h3 className="text-[15px] font-medium mb-2 text-foreground tracking-tight">{feature.title}</h3>
                     <p className="text-muted-foreground text-[13px] leading-relaxed">{feature.description}</p>
