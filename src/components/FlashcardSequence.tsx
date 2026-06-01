@@ -79,64 +79,37 @@ const FlashcardSequence = () => {
 
   // Removed auto-advance - user controls navigation via scroll
 
-  // Scroll handling for manual navigation with snap behavior
+  // Scroll handling — native scroll, screen derived from scroll position.
+  // No snapping, no scroll hijacking — feels smooth on trackpad, wheel, and touch.
   useEffect(() => {
-    let isSnapping = false;
-    let snapTimeout: ReturnType<typeof setTimeout> | null = null;
-    let lastScrollTime = Date.now();
-    const snapToScreen = (targetScreen: number) => {
-      if (!containerRef.current || isSnapping) return;
-      isSnapping = true;
-      const viewportHeight = window.innerHeight;
-      const containerTop = containerRef.current.offsetTop;
-      const targetScrollY = containerTop + targetScreen * viewportHeight;
-      window.scrollTo({
-        top: targetScrollY,
-        behavior: "smooth"
-      });
-
-      // Reset snapping flag after animation
-      setTimeout(() => {
-        isSnapping = false;
-      }, 600);
-    };
-    const handleScroll = () => {
-      if (!containerRef.current || isSnapping) return;
+    let rafId: number | null = null;
+    const update = () => {
+      rafId = null;
+      if (!containerRef.current) return;
       const scrollY = window.scrollY;
       const containerTop = containerRef.current.offsetTop;
       const containerHeight = containerRef.current.offsetHeight;
       const viewportHeight = window.innerHeight;
-
-      // Calculate scroll progress within the flashcard sequence area
       const scrollInContainer = scrollY - containerTop;
-      const maxScroll = containerHeight - viewportHeight;
-      if (scrollInContainer < 0) return;
+      const maxScroll = Math.max(1, containerHeight - viewportHeight);
+      if (scrollInContainer < 0) {
+        if (currentScreen !== 0 && exitingScreen === null) goToScreen(0);
+        return;
+      }
       const progress = Math.max(0, Math.min(1, scrollInContainer / maxScroll));
-
-      // Determine target screen based on progress
-      const targetScreen = progress < 0.33 ? 0 : progress < 0.66 ? 1 : 2;
+      const targetScreen = progress < 0.34 ? 0 : progress < 0.67 ? 1 : 2;
       if (targetScreen !== currentScreen && exitingScreen === null) {
-        if (autoAdvanceRef.current) clearTimeout(autoAdvanceRef.current);
-        hasAutoAdvanced.current = true;
         goToScreen(targetScreen);
       }
-
-      // Debounced snap after scroll stops
-      lastScrollTime = Date.now();
-      if (snapTimeout) clearTimeout(snapTimeout);
-      snapTimeout = setTimeout(() => {
-        // Only snap if user stopped scrolling
-        if (Date.now() - lastScrollTime >= 150) {
-          snapToScreen(targetScreen);
-        }
-      }, 150);
     };
-    window.addEventListener("scroll", handleScroll, {
-      passive: true
-    });
+    const handleScroll = () => {
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(update);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      if (snapTimeout) clearTimeout(snapTimeout);
+      if (rafId !== null) cancelAnimationFrame(rafId);
     };
   }, [currentScreen, exitingScreen]);
   const goToScreen = (targetScreen: number) => {
@@ -263,7 +236,12 @@ const FlashcardSequence = () => {
 
         {/* Navigation dots */}
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 flex gap-2 z-40">
-          {[0, 1, 2].map(index => <button key={index} onClick={() => goToScreen(index)} className={`h-1.5 rounded-full transition-all duration-500 ${currentScreen === index ? "w-6 bg-foreground/70" : "w-1.5 bg-foreground/20 hover:bg-foreground/40"}`} aria-label={`Go to screen ${index + 1}`} />)}
+          {[0, 1, 2].map(index => <button key={index} onClick={() => {
+            if (!containerRef.current) return;
+            const containerTop = containerRef.current.offsetTop;
+            const viewportHeight = window.innerHeight;
+            window.scrollTo({ top: containerTop + index * viewportHeight, behavior: "smooth" });
+          }} className={`h-1.5 rounded-full transition-all duration-500 ${currentScreen === index ? "w-6 bg-foreground/70" : "w-1.5 bg-foreground/20 hover:bg-foreground/40"}`} aria-label={`Go to screen ${index + 1}`} />)}
         </div>
       </div>
     </div>;
