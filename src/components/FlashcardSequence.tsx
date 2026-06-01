@@ -207,21 +207,17 @@ const FlashcardSequence = () => {
               {features.map((feature, index) => {
                 const Icon = feature.icon;
                 return (
-                  <div key={index} className="group text-left">
+                  <div
+                    key={index}
+                    className="group text-left [--feat:theme(colors.foreground)]"
+                    style={{ ["--feat" as any]: feature.color }}
+                  >
                     <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center mb-5 transition-all duration-500 ease-out group-hover:scale-110"
-                      style={{
-                        backgroundColor: `color-mix(in hsl, ${feature.color} 10%, transparent)`,
-                        boxShadow: `0 0 0 1px color-mix(in hsl, ${feature.color} 12%, transparent)`
-                      }}
+                      className="w-10 h-10 rounded-xl flex items-center justify-center mb-5 transition-all duration-500 ease-out group-hover:scale-[1.08] bg-[color-mix(in_hsl,var(--feat)_8%,transparent)] ring-1 ring-[color-mix(in_hsl,var(--feat)_10%,transparent)] group-hover:bg-[color-mix(in_hsl,var(--feat)_14%,transparent)] group-hover:ring-[color-mix(in_hsl,var(--feat)_18%,transparent)] group-hover:shadow-[0_8px_24px_-8px_color-mix(in_hsl,var(--feat)_45%,transparent)]"
                     >
                       <Icon
-                        className="w-[18px] h-[18px] transition-all duration-500 ease-out"
+                        className="w-[18px] h-[18px] transition-all duration-500 ease-out opacity-80 group-hover:opacity-100 text-[var(--feat)]"
                         strokeWidth={1.75}
-                        style={{
-                          color: feature.color,
-                          opacity: 0.75
-                        }}
                       />
                     </div>
                     <h3 className="text-[15px] font-medium mb-2 text-foreground tracking-tight">{feature.title}</h3>
