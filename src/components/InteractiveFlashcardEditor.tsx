@@ -149,7 +149,7 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
 
         const validDetections = data.textBoxes.filter((box: any) => {
           const text = typeof box?.text === "string" ? box.text.trim() : "";
-          const confidence = Number(box?.confidence ?? 1);
+          const confidence = Number(box?.confidence ?? 0);
           const values = [box?.x, box?.y, box?.width, box?.height].map(Number);
 
           return (
