@@ -327,7 +327,8 @@ Return ONLY a JSON array, no prose, no markdown. Include confidence on every ite
       });
     }
 
-    const textBoxes = sanitizeTextBoxes(parsedBoxes);
+    const candidates = sanitizeTextBoxes(parsedBoxes);
+    const textBoxes = await verifyTextBoxes(resolvedImageUrl, candidates, LOVABLE_API_KEY);
     console.log('Detected high-confidence text boxes count:', textBoxes.length);
 
     return new Response(JSON.stringify({ textBoxes }), {
