@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useTheme } from "next-themes";
 import {
   Dialog,
   DialogContent,
@@ -19,8 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Settings, Sun, Moon, Monitor, BookOpen, Shuffle } from "lucide-react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Settings, BookOpen, Shuffle } from "lucide-react";
 
 interface PreferencesSettingsProps {
   open: boolean;
@@ -47,7 +45,6 @@ export const PreferencesSettings = ({
   open,
   onOpenChange,
 }: PreferencesSettingsProps) => {
-  const { theme, setTheme } = useTheme();
   const [studyPrefs, setStudyPrefs] = useState<StudyPrefs>(defaultStudyPrefs);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -84,64 +81,6 @@ export const PreferencesSettings = ({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Appearance */}
-          <div className="space-y-4">
-            <Label className="text-sm font-medium text-muted-foreground">
-              Appearance
-            </Label>
-
-            <RadioGroup
-              value={theme}
-              onValueChange={setTheme}
-              className="grid grid-cols-3 gap-2"
-            >
-              <div>
-                <RadioGroupItem
-                  value="light"
-                  id="theme-light"
-                  className="peer sr-only"
-                />
-                <Label
-                  htmlFor="theme-light"
-                  className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
-                >
-                  <Sun className="mb-2 h-5 w-5" />
-                  <span className="text-xs">Light</span>
-                </Label>
-              </div>
-              <div>
-                <RadioGroupItem
-                  value="dark"
-                  id="theme-dark"
-                  className="peer sr-only"
-                />
-                <Label
-                  htmlFor="theme-dark"
-                  className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
-                >
-                  <Moon className="mb-2 h-5 w-5" />
-                  <span className="text-xs">Dark</span>
-                </Label>
-              </div>
-              <div>
-                <RadioGroupItem
-                  value="system"
-                  id="theme-system"
-                  className="peer sr-only"
-                />
-                <Label
-                  htmlFor="theme-system"
-                  className="flex flex-col items-center justify-center rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
-                >
-                  <Monitor className="mb-2 h-5 w-5" />
-                  <span className="text-xs">System</span>
-                </Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          <Separator />
-
           {/* Study Settings */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
