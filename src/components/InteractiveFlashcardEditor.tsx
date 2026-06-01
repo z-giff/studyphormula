@@ -141,8 +141,14 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
       if (data?.textBoxes && Array.isArray(data.textBoxes)) {
         // Apply a small safety padding so the generated box fully covers the
         // underlying label even when the model's bounding box is slightly tight.
-        const PAD_X = 1.2; // % of image width per side
-        const PAD_Y = 1.0; // % of image height per side
+        // Expand detected boxes generously so they fully cover the original
+        // label underneath, including descenders/ascenders and any slight
+        // model under-estimation. Use both relative (per-box) and absolute
+        // (image-scale) padding so small labels still get a meaningful boost.
+        const REL_X = 0.25; // 25% of box width per side
+        const REL_Y = 0.45; // 45% of box height per side
+        const MIN_PAD_X = 1.5; // % of image width per side
+        const MIN_PAD_Y = 1.5; // % of image height per side
 
         const newBoxes: TextBox[] = data.textBoxes.map((box: any) => {
           const rawX = Number(box.x) || 0;
@@ -150,10 +156,13 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
           const rawW = Number(box.width) || 0;
           const rawH = Number(box.height) || 0;
 
-          const x = Math.max(0, rawX - PAD_X);
-          const y = Math.max(0, rawY - PAD_Y);
-          const width = Math.min(100 - x, rawW + PAD_X * 2);
-          const height = Math.min(100 - y, rawH + PAD_Y * 2);
+          const padX = Math.max(MIN_PAD_X, rawW * REL_X);
+          const padY = Math.max(MIN_PAD_Y, rawH * REL_Y);
+
+          const x = Math.max(0, rawX - padX);
+          const y = Math.max(0, rawY - padY);
+          const width = Math.min(100 - x, rawW + padX * 2);
+          const height = Math.min(100 - y, rawH + padY * 2);
 
           return {
             id: Math.random().toString(36).substr(2, 9),
