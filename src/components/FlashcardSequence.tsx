@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Palette, ImageIcon, Network, Brain } from "lucide-react";
+import { Palette, ImageIcon, Workflow, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import phormulaTextLogo from "@/assets/phormula-text-logo.png";
@@ -10,19 +10,23 @@ const CARD_COLOR = "hsl(0, 0%, 100%)";
 const features = [{
   icon: Palette,
   title: "Colour-Coded Organization",
-  description: "Organize flashcards by colour to group related content and reinforce memory through visual association."
+  description: "Organize flashcards by colour to group related content and reinforce memory through visual association.",
+  color: "hsl(346, 77%, 60%)"
 }, {
   icon: ImageIcon,
   title: "Visual Learning",
-  description: "Add images, diagrams, and annotations for complex topics."
+  description: "Add images, diagrams, and annotations for complex topics.",
+  color: "hsl(35, 92%, 55%)"
 }, {
-  icon: Network,
+  icon: Workflow,
   title: "Process-Based",
-  description: "Build diagrams and flowcharts within definitions so complex processes are learned structurally."
+  description: "Build diagrams and flowcharts within definitions so complex processes are learned structurally.",
+  color: "hsl(160, 60%, 42%)"
 }, {
-  icon: Brain,
+  icon: Sparkles,
   title: "Smart Study",
-  description: "Intelligent tools like auto-read diagrams and interactive fill-in-the-blank testing reinforce knowledge."
+  description: "Intelligent tools like auto-read diagrams and interactive fill-in-the-blank testing reinforce knowledge.",
+  color: "hsl(255, 70%, 62%)"
 }];
 type FlashcardScreenProps = {
   isVisible: boolean;
@@ -203,9 +207,18 @@ const FlashcardSequence = () => {
               {features.map((feature, index) => {
                 const Icon = feature.icon;
                 return (
-                  <div key={index} className="group text-left transition-all duration-300">
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-5 bg-muted/60">
-                      <Icon className="w-4 h-4 text-foreground/70" strokeWidth={1.5} />
+                  <div
+                    key={index}
+                    className="group text-left [--feat:theme(colors.foreground)]"
+                    style={{ ["--feat" as any]: feature.color }}
+                  >
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center mb-5 transition-all duration-500 ease-out group-hover:scale-[1.08] bg-[color-mix(in_hsl,var(--feat)_8%,transparent)] ring-1 ring-[color-mix(in_hsl,var(--feat)_10%,transparent)] group-hover:bg-[color-mix(in_hsl,var(--feat)_14%,transparent)] group-hover:ring-[color-mix(in_hsl,var(--feat)_18%,transparent)] group-hover:shadow-[0_8px_24px_-8px_color-mix(in_hsl,var(--feat)_45%,transparent)]"
+                    >
+                      <Icon
+                        className="w-[18px] h-[18px] transition-all duration-500 ease-out opacity-80 group-hover:opacity-100 text-[var(--feat)]"
+                        strokeWidth={1.75}
+                      />
                     </div>
                     <h3 className="text-[15px] font-medium mb-2 text-foreground tracking-tight">{feature.title}</h3>
                     <p className="text-muted-foreground text-[13px] leading-relaxed">{feature.description}</p>
