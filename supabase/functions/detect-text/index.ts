@@ -6,6 +6,72 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const OCR_CONFIDENCE_THRESHOLD = 0.86;
+
+interface DetectedTextBox {
+  text: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fontSize: number;
+  confidence: number;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function parseJsonArray(content: string): unknown[] | null {
+  const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  const jsonText = codeBlockMatch?.[1] ?? content.match(/\[[\s\S]*\]/)?.[0];
+
+  if (!jsonText) return null;
+
+  try {
+    const parsed = JSON.parse(jsonText);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function sanitizeTextBoxes(rawBoxes: unknown): DetectedTextBox[] {
+  if (!Array.isArray(rawBoxes)) return [];
+
+  return rawBoxes.flatMap((box: any) => {
+    const text = typeof box?.text === 'string' ? box.text.trim().replace(/\s+/g, ' ') : '';
+    const confidence = Number(box?.confidence);
+    const rawX = Number(box?.x);
+    const rawY = Number(box?.y);
+    const rawWidth = Number(box?.width);
+    const rawHeight = Number(box?.height);
+    const rawFontSize = Number(box?.fontSize);
+
+    if (!text || text.length < 2 || !/[A-Za-z0-9]/.test(text)) return [];
+    if (!Number.isFinite(confidence) || confidence < OCR_CONFIDENCE_THRESHOLD) return [];
+    if (![rawX, rawY, rawWidth, rawHeight].every(Number.isFinite)) return [];
+    if (rawWidth < 1.5 || rawHeight < 0.8 || rawWidth > 60 || rawHeight > 20) return [];
+
+    const x = clamp(rawX, 0, 100);
+    const y = clamp(rawY, 0, 100);
+    const width = clamp(rawWidth, 0, 100 - x);
+    const height = clamp(rawHeight, 0, 100 - y);
+
+    if (width < 1.5 || height < 0.8) return [];
+
+    return [{
+      text,
+      x,
+      y,
+      width,
+      height,
+      fontSize: clamp(Number.isFinite(rawFontSize) ? rawFontSize : 14, 8, 48),
+      confidence,
+    }];
+  });
+}
+
 
 function isValidImageSource(urlString: string): boolean {
   // Allow data URLs (base64 encoded images)
