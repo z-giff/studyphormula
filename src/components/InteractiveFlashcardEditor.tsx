@@ -139,17 +139,34 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
       if (error) throw error;
 
       if (data?.textBoxes && Array.isArray(data.textBoxes)) {
-        const newBoxes: TextBox[] = data.textBoxes.map((box: any) => ({
-          id: Math.random().toString(36).substr(2, 9),
-          x: box.x,
-          y: box.y,
-          width: box.width,
-          height: box.height,
-          answer: box.text,
-          fontSize: 14,
-          fontWeight: "normal",
-          fontColor: "#000000",
-        }));
+        // Apply a small safety padding so the generated box fully covers the
+        // underlying label even when the model's bounding box is slightly tight.
+        const PAD_X = 1.2; // % of image width per side
+        const PAD_Y = 1.0; // % of image height per side
+
+        const newBoxes: TextBox[] = data.textBoxes.map((box: any) => {
+          const rawX = Number(box.x) || 0;
+          const rawY = Number(box.y) || 0;
+          const rawW = Number(box.width) || 0;
+          const rawH = Number(box.height) || 0;
+
+          const x = Math.max(0, rawX - PAD_X);
+          const y = Math.max(0, rawY - PAD_Y);
+          const width = Math.min(100 - x, rawW + PAD_X * 2);
+          const height = Math.min(100 - y, rawH + PAD_Y * 2);
+
+          return {
+            id: Math.random().toString(36).substr(2, 9),
+            x,
+            y,
+            width,
+            height,
+            answer: box.text,
+            fontSize: 14,
+            fontWeight: "normal",
+            fontColor: "#000000",
+          };
+        });
 
         onChange([...textBoxes, ...newBoxes]);
         toast({

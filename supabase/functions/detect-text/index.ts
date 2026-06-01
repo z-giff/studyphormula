@@ -120,24 +120,24 @@ serve(async (req) => {
             content: [
               {
                 type: "text",
-                text: `Analyze this image and detect all visible text regions. For each text region, provide:
-1. The exact text content
-2. The bounding box coordinates as percentages (x, y, width, height) where (0,0) is top-left and (100,100) is bottom-right
-3. Estimated font size (8-48)
+                text: `You are a precise OCR bounding-box detector. Detect every visible text LABEL in this image (anatomy labels, diagram callouts, captions, titles, etc.).
 
-Return ONLY a JSON array with this structure:
+For each label, return a bounding box that COMPLETELY COVERS the entire phrase — from the very first character on the left to the very last character on the right, and from the top of the tallest glyph (including ascenders/caps) to the bottom of descenders. The box must fully enclose every letter so that an opaque rectangle placed at those coordinates would hide the original text entirely with no letters peeking out on any side.
+
+CRITICAL RULES:
+- GROUP multi-word phrases that visually belong to the same label into ONE single box (e.g. "Aortic valve", "Pulmonary artery", "Left ventricle" = one box each, NOT one per word).
+- If a label wraps onto two lines (e.g. "Pulmonary" above "artery"), return ONE box that spans BOTH lines vertically and is wide enough to cover the widest line.
+- Width must equal the FULL pixel width of the phrase (longest line if multi-line), not just one word.
+- Height must equal the FULL pixel height of the text including ascenders and descenders (and all lines if multi-line).
+- Coordinates are percentages of the full image: x,y = top-left corner of the box; (0,0) is top-left, (100,100) is bottom-right.
+- Add a tiny safety margin (~1% of image dimensions) on every side so the box slightly overshoots the glyphs rather than clipping them. Never undershoot.
+- Do NOT detect text that is part of the illustration itself (arrows, flow markers, watermarks) — only readable labels.
+- Estimate fontSize as the pixel height of a capital letter mapped to a 8–48 range.
+
+Return ONLY a JSON array, no prose, no markdown:
 [
-  {
-    "text": "detected text",
-    "x": 10.5,
-    "y": 20.3,
-    "width": 15.2,
-    "height": 5.1,
-    "fontSize": 14
-  }
-]
-
-Be precise with coordinates and include all visible text, even small labels.`
+  { "text": "Aortic valve", "x": 70.2, "y": 55.4, "width": 14.8, "height": 4.2, "fontSize": 18 }
+]`
               },
               {
                 type: "image_url",
