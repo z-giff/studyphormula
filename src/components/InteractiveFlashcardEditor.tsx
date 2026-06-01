@@ -139,25 +139,43 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
       if (error) throw error;
 
       if (data?.textBoxes && Array.isArray(data.textBoxes)) {
-        // Apply a small safety padding so the generated box fully covers the
-        // underlying label even when the model's bounding box is slightly tight.
-        // Expand detected boxes generously so they fully cover the original
-        // label underneath, including descenders/ascenders and any slight
-        // model under-estimation. Use both relative (per-box) and absolute
-        // (image-scale) padding so small labels still get a meaningful boost.
-        const REL_X = 0.25; // 25% of box width per side
-        const REL_Y = 0.45; // 45% of box height per side
-        const MIN_PAD_X = 1.5; // % of image width per side
-        const MIN_PAD_Y = 1.5; // % of image height per side
+        const MIN_CONFIDENCE = 0.86;
+        const REL_X = 0.08;
+        const REL_Y = 0.18;
+        const MIN_PAD_X = 0.35;
+        const MIN_PAD_Y = 0.25;
+        const MAX_PAD_X = 1.1;
+        const MAX_PAD_Y = 0.9;
 
-        const newBoxes: TextBox[] = data.textBoxes.map((box: any) => {
+        const validDetections = data.textBoxes.filter((box: any) => {
+          const text = typeof box?.text === "string" ? box.text.trim() : "";
+          const confidence = Number(box?.confidence ?? 0);
+          const values = [box?.x, box?.y, box?.width, box?.height].map(Number);
+
+          return (
+            text.length > 1 &&
+            /[A-Za-z0-9]/.test(text) &&
+            confidence >= MIN_CONFIDENCE &&
+            values.every(Number.isFinite) &&
+            values[0] >= 0 &&
+            values[1] >= 0 &&
+            values[0] <= 100 &&
+            values[1] <= 100 &&
+            values[2] >= 1.5 &&
+            values[3] >= 0.8 &&
+            values[2] <= 60 &&
+            values[3] <= 20
+          );
+        });
+
+        const newBoxes: TextBox[] = validDetections.map((box: any) => {
           const rawX = Number(box.x) || 0;
           const rawY = Number(box.y) || 0;
           const rawW = Number(box.width) || 0;
           const rawH = Number(box.height) || 0;
 
-          const padX = Math.max(MIN_PAD_X, rawW * REL_X);
-          const padY = Math.max(MIN_PAD_Y, rawH * REL_Y);
+          const padX = Math.min(MAX_PAD_X, Math.max(MIN_PAD_X, rawW * REL_X));
+          const padY = Math.min(MAX_PAD_Y, Math.max(MIN_PAD_Y, rawH * REL_Y));
 
           const x = Math.max(0, rawX - padX);
           const y = Math.max(0, rawY - padY);
@@ -177,10 +195,19 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
           };
         });
 
+        if (newBoxes.length === 0) {
+          toast({
+            title: "No reliable text found",
+            description: "Detection skipped low-confidence or unverified labels",
+            variant: "destructive",
+          });
+          return;
+        }
+
         onChange([...textBoxes, ...newBoxes]);
         toast({
           title: "Text detected",
-          description: `Found ${newBoxes.length} text region${newBoxes.length !== 1 ? 's' : ''}`,
+          description: `Found ${newBoxes.length} reliable text region${newBoxes.length !== 1 ? 's' : ''}`,
         });
       } else {
         toast({

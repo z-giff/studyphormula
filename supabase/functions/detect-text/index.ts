@@ -6,6 +6,143 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const OCR_CONFIDENCE_THRESHOLD = 0.86;
+const OCR_VERIFICATION_THRESHOLD = 0.9;
+
+interface DetectedTextBox {
+  text: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fontSize: number;
+  confidence: number;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function parseJsonArray(content: string): unknown[] | null {
+  const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+  const jsonText = codeBlockMatch?.[1] ?? content.match(/\[[\s\S]*\]/)?.[0];
+
+  if (!jsonText) return null;
+
+  try {
+    const parsed = JSON.parse(jsonText);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function sanitizeTextBoxes(rawBoxes: unknown): DetectedTextBox[] {
+  if (!Array.isArray(rawBoxes)) return [];
+
+  return rawBoxes.flatMap((box: any) => {
+    const text = typeof box?.text === 'string' ? box.text.trim().replace(/\s+/g, ' ') : '';
+    const confidence = Number(box?.confidence);
+    const rawX = Number(box?.x);
+    const rawY = Number(box?.y);
+    const rawWidth = Number(box?.width);
+    const rawHeight = Number(box?.height);
+    const rawFontSize = Number(box?.fontSize);
+
+    if (!text || text.length < 2 || !/[A-Za-z0-9]/.test(text)) return [];
+    if (!Number.isFinite(confidence) || confidence < OCR_CONFIDENCE_THRESHOLD) return [];
+    if (![rawX, rawY, rawWidth, rawHeight].every(Number.isFinite)) return [];
+    if (rawWidth < 1.5 || rawHeight < 0.8 || rawWidth > 60 || rawHeight > 20) return [];
+
+    const x = clamp(rawX, 0, 100);
+    const y = clamp(rawY, 0, 100);
+    const width = clamp(rawWidth, 0, 100 - x);
+    const height = clamp(rawHeight, 0, 100 - y);
+
+    if (width < 1.5 || height < 0.8) return [];
+
+    return [{
+      text,
+      x,
+      y,
+      width,
+      height,
+      fontSize: clamp(Number.isFinite(rawFontSize) ? rawFontSize : 14, 8, 48),
+      confidence,
+    }];
+  });
+}
+
+async function verifyTextBoxes(
+  imageUrl: string,
+  candidates: DetectedTextBox[],
+  lovableApiKey: string,
+): Promise<DetectedTextBox[]> {
+  if (candidates.length === 0) return [];
+
+  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${lovableApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-pro",
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: `Verify these OCR bounding boxes against the image. Keep only boxes where the proposed rectangle is directly on top of real visible text matching the candidate text.
+
+Reject a candidate if the box is blank, mostly blank, on an illustration/line/organ instead of text, far from the visible source text, too uncertain, or if the text inside the box does not match the candidate.
+
+Do not add new boxes. Do not move boxes. Only verify or reject the provided candidates.
+
+Return ONLY a JSON array, no prose, no markdown:
+[
+  { "index": 0, "verified": true, "confidence": 0.95 },
+  { "index": 1, "verified": false, "confidence": 0.2 }
+]
+
+Candidates:
+${JSON.stringify(candidates.map((box, index) => ({ index, ...box })))}`,
+            },
+            {
+              type: "image_url",
+              image_url: { url: imageUrl },
+            },
+          ],
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("AI verification error:", response.status, errorText);
+    return [];
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
+  const verifications = typeof content === 'string' ? parseJsonArray(content) : null;
+  if (!verifications) return [];
+
+  const approvedIndexes = new Set(
+    verifications.flatMap((item: any) => {
+      const index = Number(item?.index);
+      const confidence = Number(item?.confidence);
+      return item?.verified === true && Number.isInteger(index) && confidence >= OCR_VERIFICATION_THRESHOLD
+        ? [index]
+        : [];
+    })
+  );
+
+  return candidates.filter((_, index) => approvedIndexes.has(index));
+}
+
 
 function isValidImageSource(urlString: string): boolean {
   // Allow data URLs (base64 encoded images)
@@ -113,30 +250,39 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-2.5-pro",
         messages: [
           {
             role: "user",
             content: [
               {
                 type: "text",
-                text: `You are a precise OCR bounding-box detector. Detect every visible text LABEL in this image (anatomy labels, diagram callouts, captions, titles, etc.).
+                text: `You are a strict high-precision OCR verifier for study diagrams. Detect ONLY visible, readable text labels that you can localize with high confidence.
 
-For each label, return a bounding box that COMPLETELY COVERS the entire phrase — from the very first character on the left to the very last character on the right, and from the top of the tallest glyph (including ascenders/caps) to the bottom of descenders. The box must fully enclose every letter so that an opaque rectangle placed at those coordinates would hide the original text entirely with no letters peeking out on any side.
+Accuracy is more important than quantity. It is better to return 8 correct labels than 20 labels with any false positives.
+
+For each label, return a bounding box anchored directly to the real visible text. The box must be centered on the actual text location and match the actual text dimensions closely enough that an opaque rectangle placed there would cover the original label. Never invent labels and never place boxes in blank areas.
+
+MANDATORY VALIDATION BEFORE RETURNING EACH BOX:
+1. Confirm there are visible glyphs/letters inside the proposed box.
+2. Confirm the visible glyphs spell the returned text.
+3. Confirm the box overlaps the original text itself, not a pointer line, organ area, blank whitespace, or nearby region.
+4. If the text or its exact location is uncertain, REJECT it.
+5. Assign confidence from 0 to 1 based on both text readability and location accuracy. Only return boxes with confidence >= ${OCR_CONFIDENCE_THRESHOLD}.
 
 CRITICAL RULES:
-- GROUP multi-word phrases that visually belong to the same label into ONE single box (e.g. "Aortic valve", "Pulmonary artery", "Left ventricle" = one box each, NOT one per word).
-- If a label wraps onto two lines (e.g. "Pulmonary" above "artery"), return ONE box that spans BOTH lines vertically and is wide enough to cover the widest line.
-- Width must equal the FULL pixel width of the phrase (longest line if multi-line), not just one word.
-- Height must equal the FULL pixel height of the text including ascenders and descenders (and all lines if multi-line).
-- Coordinates are percentages of the full image: x,y = top-left corner of the box; (0,0) is top-left, (100,100) is bottom-right.
-- Add a tiny safety margin (~1% of image dimensions) on every side so the box slightly overshoots the glyphs rather than clipping them. Never undershoot.
-- Do NOT detect text that is part of the illustration itself (arrows, flow markers, watermarks) — only readable labels.
+- GROUP nearby words that visually belong to one label into ONE box (e.g. "Aortic valve", "Pulmonary artery", "Right ventricle", "Left atrium" = one box each, NOT separate words).
+- If a label wraps onto two lines, return ONE box spanning BOTH lines and only if both lines are clearly part of the same label.
+- Coordinates are percentages of the full image: x,y = top-left corner; (0,0) is top-left, (100,100) is bottom-right.
+- Width and height must match the actual text area with only a small margin. Do not use oversized boxes to compensate for uncertainty.
+- Do NOT detect text that is absent, partially guessed, hidden, decorative, a watermark, or part of the illustration/arrow/shape.
+- Do NOT infer common anatomy labels unless the exact words are visibly present at that exact location.
+- Reject any detection that would put a box far away from the source text.
 - Estimate fontSize as the pixel height of a capital letter mapped to a 8–48 range.
 
-Return ONLY a JSON array, no prose, no markdown:
+Return ONLY a JSON array, no prose, no markdown. Include confidence on every item:
 [
-  { "text": "Aortic valve", "x": 70.2, "y": 55.4, "width": 14.8, "height": 4.2, "fontSize": 18 }
+  { "text": "Aortic valve", "x": 70.2, "y": 55.4, "width": 14.8, "height": 4.2, "fontSize": 18, "confidence": 0.94 }
 ]`
               },
               {
@@ -171,17 +317,9 @@ Return ONLY a JSON array, no prose, no markdown:
       });
     }
 
-    // Extract JSON from the response (it might be wrapped in markdown code blocks)
-    let jsonMatch = content.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) {
-      // Try to find JSON in code blocks
-      jsonMatch = content.match(/```(?:json)?\s*(\[[\s\S]*?\])\s*```/);
-      if (jsonMatch) {
-        jsonMatch = [jsonMatch[1]];
-      }
-    }
+    const parsedBoxes = parseJsonArray(content);
 
-    if (!jsonMatch) {
+    if (!parsedBoxes) {
       console.error('Could not find JSON in response');
       return new Response(JSON.stringify({ error: 'Failed to process image' }), {
         status: 500,
@@ -189,8 +327,9 @@ Return ONLY a JSON array, no prose, no markdown:
       });
     }
 
-    const textBoxes = JSON.parse(jsonMatch[0]);
-    console.log('Detected text boxes count:', textBoxes.length);
+    const candidates = sanitizeTextBoxes(parsedBoxes);
+    const textBoxes = await verifyTextBoxes(resolvedImageUrl, candidates, LOVABLE_API_KEY);
+    console.log('Detected high-confidence text boxes count:', textBoxes.length);
 
     return new Response(JSON.stringify({ textBoxes }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
