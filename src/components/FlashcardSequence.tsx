@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Palette, ImageIcon, Network, Brain } from "lucide-react";
+import { Palette, ImageIcon, Workflow, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import phormulaTextLogo from "@/assets/phormula-text-logo.png";
@@ -10,19 +10,23 @@ const CARD_COLOR = "hsl(0, 0%, 100%)";
 const features = [{
   icon: Palette,
   title: "Colour-Coded Organization",
-  description: "Organize flashcards by colour to group related content and reinforce memory through visual association."
+  description: "Organize flashcards by colour to group related content and reinforce memory through visual association.",
+  color: "hsl(346, 77%, 60%)"
 }, {
   icon: ImageIcon,
   title: "Visual Learning",
-  description: "Add images, diagrams, and annotations for complex topics."
+  description: "Add images, diagrams, and annotations for complex topics.",
+  color: "hsl(35, 92%, 55%)"
 }, {
-  icon: Network,
+  icon: Workflow,
   title: "Process-Based",
-  description: "Build diagrams and flowcharts within definitions so complex processes are learned structurally."
+  description: "Build diagrams and flowcharts within definitions so complex processes are learned structurally.",
+  color: "hsl(160, 60%, 42%)"
 }, {
-  icon: Brain,
+  icon: Sparkles,
   title: "Smart Study",
-  description: "Intelligent tools like auto-read diagrams and interactive fill-in-the-blank testing reinforce knowledge."
+  description: "Intelligent tools like auto-read diagrams and interactive fill-in-the-blank testing reinforce knowledge.",
+  color: "hsl(255, 70%, 62%)"
 }];
 type FlashcardScreenProps = {
   isVisible: boolean;
