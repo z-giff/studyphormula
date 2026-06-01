@@ -236,7 +236,12 @@ const FlashcardSequence = () => {
 
         {/* Navigation dots */}
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 flex gap-2 z-40">
-          {[0, 1, 2].map(index => <button key={index} onClick={() => goToScreen(index)} className={`h-1.5 rounded-full transition-all duration-500 ${currentScreen === index ? "w-6 bg-foreground/70" : "w-1.5 bg-foreground/20 hover:bg-foreground/40"}`} aria-label={`Go to screen ${index + 1}`} />)}
+          {[0, 1, 2].map(index => <button key={index} onClick={() => {
+            if (!containerRef.current) return;
+            const containerTop = containerRef.current.offsetTop;
+            const viewportHeight = window.innerHeight;
+            window.scrollTo({ top: containerTop + index * viewportHeight, behavior: "smooth" });
+          }} className={`h-1.5 rounded-full transition-all duration-500 ${currentScreen === index ? "w-6 bg-foreground/70" : "w-1.5 bg-foreground/20 hover:bg-foreground/40"}`} aria-label={`Go to screen ${index + 1}`} />)}
         </div>
       </div>
     </div>;
