@@ -256,6 +256,7 @@ const FlashcardSetPage = () => {
                           ))}
                           <label
                             className="w-8 h-8 rounded-full border-2 border-dashed border-muted-foreground/50 transition-all hover:scale-110 hover:border-muted-foreground cursor-pointer flex items-center justify-center"
+                            aria-label="Pick a custom set color"
                             style={{
                               backgroundColor: displayColor && !PRESET_COLORS.includes(displayColor) ? displayColor : "transparent",
                               borderStyle: displayColor && !PRESET_COLORS.includes(displayColor) ? "solid" : "dashed",
