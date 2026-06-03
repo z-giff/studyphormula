@@ -145,6 +145,7 @@ const FlashcardSequence = () => {
             {/* Wordmark */}
             <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-semibold tracking-[-0.04em] relative z-10 text-foreground">
               Phormula
+              <span className="sr-only"> — Simplify Memorization</span>
             </h1>
 
             {/* Slogan */}
