@@ -236,6 +236,7 @@ const FlashcardSetPage = () => {
                             borderColor: displayColor === "#ffffff" ? "#d1d5db" : "transparent",
                           }}
                           title="Change set color"
+                          aria-label="Change set color"
                         />
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-3">
@@ -250,10 +251,12 @@ const FlashcardSetPage = () => {
                                 borderColor: displayColor === color ? "#000" : color === "#ffffff" ? "#d1d5db" : "transparent",
                               }}
                               onClick={() => handleUpdateSetColor(color)}
+                              aria-label={`Use color ${color}`}
                             />
                           ))}
                           <label
                             className="w-8 h-8 rounded-full border-2 border-dashed border-muted-foreground/50 transition-all hover:scale-110 hover:border-muted-foreground cursor-pointer flex items-center justify-center"
+                            aria-label="Pick a custom set color"
                             style={{
                               backgroundColor: displayColor && !PRESET_COLORS.includes(displayColor) ? displayColor : "transparent",
                               borderStyle: displayColor && !PRESET_COLORS.includes(displayColor) ? "solid" : "dashed",
@@ -280,6 +283,7 @@ const FlashcardSetPage = () => {
                   className="h-8 w-8 ml-2"
                   onClick={() => setIsRenameDialogOpen(true)}
                   title="Rename set"
+                  aria-label="Rename set"
                 >
                   <Pencil className="h-4 w-4" />
                 </Button>
@@ -343,7 +347,7 @@ const FlashcardSetPage = () => {
             <div className="bg-muted/50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
               <Plus className="h-12 w-12 text-muted-foreground/50" />
             </div>
-            <h3 className="text-2xl font-semibold mb-2">No flashcards yet</h3>
+            <h2 className="text-2xl font-semibold mb-2">No flashcards yet</h2>
             <p className="text-muted-foreground mb-6">Add your first flashcard to start studying</p>
             <Button onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />

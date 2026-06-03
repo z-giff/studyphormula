@@ -1,0 +1,10 @@
+# Phormula
+
+> Visual flashcards and smarter memorization — color-coded sets, interactive diagrams, and AI-generated study material.
+
+Phormula helps students and lifelong learners memorize faster with beautiful color-coded flashcards, interactive diagram labeling, flowcharts, and AI-assisted study modes.
+
+## Pages
+
+- [Home](/): Product overview and sign-up entry point.
+- [Sign in / Sign up](/auth): Create an account or sign in to access study tools.
