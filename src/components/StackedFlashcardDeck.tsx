@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Pencil, Trash2, Bookmark, Copy, Maximize2 } 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { DrawingCanvasDisplay } from "@/components/DrawingCanvasDisplay";
 import { FlowchartCanvasDisplay } from "@/components/FlowchartCanvasDisplay";
+import { InteractiveFlashcardStudy } from "@/components/InteractiveFlashcardStudy";
 
 interface Flashcard {
   id: string;
@@ -123,7 +124,11 @@ export const StackedFlashcardDeck = ({
   return (
     <div className="flex flex-col items-center gap-8">
       {/* Stacked deck container */}
-      <div className="relative w-full max-w-xl h-[320px] perspective-1000">
+      <div
+        className={`relative w-full max-w-xl perspective-1000 ${
+          currentCard?.flashcard_type === "interactive" ? "min-h-[320px]" : "h-[320px]"
+        }`}
+      >
         {stackedCards.map((card) => {
           const isTop = card.stackPosition === 0;
           const isFlipped = flippedCards.has(card.originalIndex);
@@ -133,6 +138,7 @@ export const StackedFlashcardDeck = ({
           // Animation styles for the top card
           const isAnimatingOut = isTop && animationDirection === "next";
           const isAnimatingIn = isTop && animationDirection === "prev";
+          const isInteractive = card.flashcard_type === "interactive";
 
           return (
             <div
@@ -149,16 +155,51 @@ export const StackedFlashcardDeck = ({
               }}
             >
               <div
-                className={`relative w-full h-full transition-transform duration-500 preserve-3d cursor-pointer ${
-                  isFlipped ? "rotate-y-180" : ""
+                className={`relative w-full h-full preserve-3d ${
+                  isInteractive
+                    ? ""
+                    : `transition-transform duration-500 cursor-pointer ${isFlipped ? "rotate-y-180" : ""}`
                 }`}
-                onClick={() => isTop && handleFlip(card.originalIndex)}
+                onClick={() => isTop && !isInteractive && handleFlip(card.originalIndex)}
               >
                 {(() => {
                   // Use first card's color for all cards
                   const firstCardColor = flashcards[0]?.color || setColor;
                   const cardColor = firstCardColor;
                   const textColor = getContrastColor(cardColor);
+
+                  if (isInteractive) {
+                    return (
+                      <Card
+                        className="absolute inset-0 shadow-lg border-2 overflow-hidden"
+                        style={{ borderColor: cardColor, backgroundColor: cardColor }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <CardContent className="flex flex-col h-full p-6 gap-4">
+                          <h3
+                            className="text-2xl font-bold text-center"
+                            style={{ color: textColor }}
+                          >
+                            {card.term}
+                          </h3>
+                          <div className="flex-1 overflow-auto bg-background rounded-lg p-3">
+                            {card.image_url && card.interactive_data?.textBoxes ? (
+                              <InteractiveFlashcardStudy
+                                imageUrl={card.image_url}
+                                textBoxes={card.interactive_data.textBoxes}
+                                cardColor={cardColor}
+                              />
+                            ) : (
+                              <p className="text-sm text-muted-foreground text-center">
+                                No interactive content available.
+                              </p>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  }
+
                   return (
                     <>
                       {/* Front of card */}
