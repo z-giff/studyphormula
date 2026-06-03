@@ -241,6 +241,7 @@
                  variant="outline"
                  className="h-16 w-16 rounded-full border-2 border-red-500 hover:bg-red-50 dark:hover:bg-red-950"
                  onClick={() => handleSwipe("left")}
+                  aria-label="Mark card as still learning"
                >
                  <X className="h-8 w-8 text-red-500" />
                </Button>
@@ -249,6 +250,7 @@
                  variant="outline"
                  className="h-16 w-16 rounded-full border-2 border-green-500 hover:bg-green-50 dark:hover:bg-green-950"
                  onClick={() => handleSwipe("right")}
+                  aria-label="Mark card as learned"
                >
                  <Check className="h-8 w-8 text-green-500" />
                </Button>
