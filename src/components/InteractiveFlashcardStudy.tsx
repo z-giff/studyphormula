@@ -24,34 +24,30 @@ interface InteractiveFlashcardStudyProps {
 export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: InteractiveFlashcardStudyProps) => {
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [validationState, setValidationState] = useState<Record<string, "correct" | "incorrect" | null>>({});
-  const [showAnswers, setShowAnswers] = useState(false);
+  const [checked, setChecked] = useState(false);
 
   const handleAnswerChange = (id: string, value: string) => {
     setUserAnswers(prev => ({ ...prev, [id]: value }));
-    setValidationState(prev => ({ ...prev, [id]: null }));
+    if (checked) {
+      setValidationState(prev => ({ ...prev, [id]: null }));
+    }
   };
 
-  const handleCheckAnswer = (id: string) => {
-    const box = textBoxes.find(b => b.id === id);
-    if (!box) return;
-
-    const userAnswer = userAnswers[id]?.trim().toLowerCase() || "";
-    const correctAnswer = box.answer.trim().toLowerCase();
-    
-    setValidationState(prev => ({
-      ...prev,
-      [id]: userAnswer === correctAnswer ? "correct" : "incorrect"
-    }));
+  const handleCheckAll = () => {
+    const newState: Record<string, "correct" | "incorrect"> = {};
+    textBoxes.forEach(box => {
+      const ua = (userAnswers[box.id] || "").trim().toLowerCase();
+      const ca = box.answer.trim().toLowerCase();
+      newState[box.id] = ua && ua === ca ? "correct" : "incorrect";
+    });
+    setValidationState(newState);
+    setChecked(true);
   };
 
-  const handleRevealAnswers = () => {
-    setShowAnswers(true);
-  };
-
-  const handleHideAnswers = () => {
-    setShowAnswers(false);
+  const handleReset = () => {
     setUserAnswers({});
     setValidationState({});
+    setChecked(false);
   };
 
   const getBoxBorderColor = (id: string) => {
@@ -62,35 +58,29 @@ export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: In
   };
 
   const getBoxBackgroundColor = (id: string) => {
-    // Always use a fully opaque background so underlying image text is not visible
+    const state = validationState[id];
+    if (state === "correct") return "rgba(16, 185, 129, 0.15)";
+    if (state === "incorrect") return "rgba(239, 68, 68, 0.15)";
     return "hsl(var(--background))";
   };
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        {showAnswers ? (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleHideAnswers}
-          >
-            Hide Answers
+        {checked ? (
+          <Button variant="outline" size="sm" onClick={handleReset}>
+            Try Again
           </Button>
         ) : (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRevealAnswers}
-          >
-            Reveal Answer
+          <Button size="sm" onClick={handleCheckAll}>
+            Check Answers
           </Button>
         )}
       </div>
 
       <div className="relative border rounded-lg overflow-hidden">
         <img src={imageUrl} alt="Flashcard" className="w-full h-auto" />
-        
-        {!showAnswers && textBoxes.map((box) => (
+
+        {textBoxes.map((box) => (
           <div
             key={box.id}
             className="absolute"
@@ -111,12 +101,13 @@ export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: In
               <Input
                 value={userAnswers[box.id] || ""}
                 onChange={(e) => handleAnswerChange(box.id, e.target.value)}
-                onBlur={() => handleCheckAnswer(box.id)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    handleCheckAnswer(box.id);
+                    e.preventDefault();
+                    handleCheckAll();
                   }
                 }}
+                disabled={checked && validationState[box.id] === "correct"}
                 className="h-full px-1 text-center cursor-text"
                 style={{
                   borderColor: getBoxBorderColor(box.id),
@@ -138,9 +129,27 @@ export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: In
         ))}
       </div>
 
-      <p className="text-sm text-muted-foreground text-center">
-        Fill in the text boxes. Press Enter or click outside to check your answer.
-      </p>
+      {checked && (
+        <div className="space-y-1 text-sm">
+          {textBoxes
+            .filter(b => validationState[b.id] === "incorrect")
+            .map(b => (
+              <div key={b.id} className="flex items-center gap-2 text-muted-foreground">
+                <X className="h-3.5 w-3.5 text-red-600 shrink-0" />
+                <span>
+                  Your answer: <span className="font-medium text-foreground">{userAnswers[b.id] || "(blank)"}</span>
+                  {" — Correct: "}
+                  <span className="font-medium text-green-600">{b.answer}</span>
+                </span>
+              </div>
+            ))}
+        </div>
+      )}
+      {!checked && (
+        <p className="text-sm text-muted-foreground text-center">
+          Type your answers into the boxes, then click Check Answers.
+        </p>
+      )}
     </div>
   );
 };
