@@ -126,7 +126,7 @@ export const StackedFlashcardDeck = ({
       {/* Stacked deck container */}
       <div
         className={`relative w-full max-w-xl perspective-1000 ${
-          currentCard?.flashcard_type === "interactive" ? "min-h-[320px]" : "h-[320px]"
+          currentCard?.flashcard_type === "interactive" ? "h-[640px]" : "h-[320px]"
         }`}
       >
         {stackedCards.map((card) => {
