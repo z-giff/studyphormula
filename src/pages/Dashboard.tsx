@@ -103,28 +103,27 @@ const Dashboard = () => {
       });
       if (error) throw error;
 
-      // Fetch flashcard counts and first flashcard color for each set
-      const setsWithCounts = await Promise.all((data || []).map(async set => {
-        const {
-          count
-        } = await supabase.from("flashcards").select("*", {
-          count: "exact",
-          head: true
-        }).eq("set_id", set.id);
-
-        // Get the first flashcard's color
-        const {
-          data: firstFlashcard
-        } = await supabase.from("flashcards").select("color").eq("set_id", set.id).order("position", {
-          ascending: true
-        }).limit(1).maybeSingle();
-        return {
-          ...set,
-          _count: {
-            flashcards: count || 0
-          },
-          displayColor: firstFlashcard?.color || set.color
-        };
+      // Batch-fetch counts and first-card colors in a single query (instead of 2N+1)
+      const setIds = (data || []).map((s) => s.id);
+      let countsBySet = new Map<string, number>();
+      let firstColorBySet = new Map<string, string | null>();
+      if (setIds.length > 0) {
+        const { data: allCards } = await supabase
+          .from("flashcards")
+          .select("set_id, color, position")
+          .in("set_id", setIds)
+          .order("position", { ascending: true });
+        for (const card of allCards || []) {
+          countsBySet.set(card.set_id, (countsBySet.get(card.set_id) ?? 0) + 1);
+          if (!firstColorBySet.has(card.set_id)) {
+            firstColorBySet.set(card.set_id, card.color ?? null);
+          }
+        }
+      }
+      const setsWithCounts = (data || []).map((set) => ({
+        ...set,
+        _count: { flashcards: countsBySet.get(set.id) ?? 0 },
+        displayColor: firstColorBySet.get(set.id) || set.color,
       }));
       setSets(setsWithCounts);
     } catch (error: any) {
