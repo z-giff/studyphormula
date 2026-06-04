@@ -78,7 +78,7 @@ export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: In
       </div>
 
       <div className="relative border rounded-lg overflow-hidden">
-        <img src={imageUrl} alt="Flashcard" className="w-full h-auto" />
+        <img src={imageUrl} alt="Flashcard" loading="lazy" decoding="async" className="w-full h-auto" />
 
         {textBoxes.map((box) => (
           <div

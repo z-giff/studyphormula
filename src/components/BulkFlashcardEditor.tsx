@@ -509,40 +509,42 @@ export const BulkFlashcardEditor = ({
       // 2. Update existing rows with new positions
       const existingRows = rows.filter((r) => !r.isDeleted && r.dbId);
       const visibleRowsForPosition = rows.filter((r) => !r.isDeleted);
-      
-      for (const row of existingRows) {
-        const newPosition = visibleRowsForPosition.findIndex((r) => r.id === row.id);
-        const updateData: any = {
-          term: row.term.trim(),
-          flashcard_type: row.type,
-          is_bookmarked: row.isBookmarked,
-          position: newPosition,
-        };
 
-        if (row.type === "standard") {
-          updateData.definition = row.definition.trim();
-          updateData.image_url = row.imageUrl || null;
-          updateData.interactive_data = null;
-        } else if (row.type === "interactive") {
-          updateData.definition = "Fill in the blanks";
-          updateData.image_url = row.imageUrl;
-          updateData.interactive_data = row.interactiveData;
-        } else if (row.type === "flowchart") {
-          updateData.definition = "Flowchart diagram";
-          updateData.image_url = null;
-          updateData.interactive_data = row.flowchartData;
-        } else if (row.type === "drawing") {
-          updateData.definition = "Drawing";
-          updateData.image_url = null;
-          updateData.interactive_data = row.drawingData;
-        }
-
-        const { error } = await supabase
-          .from("flashcards")
-          .update(updateData)
-          .eq("id", row.dbId!);
-        if (error) throw error;
-      }
+      await Promise.all(
+        existingRows.map((row) => {
+          const newPosition = visibleRowsForPosition.findIndex((r) => r.id === row.id);
+          const updateData: any = {
+            term: row.term.trim(),
+            flashcard_type: row.type,
+            is_bookmarked: row.isBookmarked,
+            position: newPosition,
+          };
+          if (row.type === "standard") {
+            updateData.definition = row.definition.trim();
+            updateData.image_url = row.imageUrl || null;
+            updateData.interactive_data = null;
+          } else if (row.type === "interactive") {
+            updateData.definition = "Fill in the blanks";
+            updateData.image_url = row.imageUrl;
+            updateData.interactive_data = row.interactiveData;
+          } else if (row.type === "flowchart") {
+            updateData.definition = "Flowchart diagram";
+            updateData.image_url = null;
+            updateData.interactive_data = row.flowchartData;
+          } else if (row.type === "drawing") {
+            updateData.definition = "Drawing";
+            updateData.image_url = null;
+            updateData.interactive_data = row.drawingData;
+          }
+          return supabase
+            .from("flashcards")
+            .update(updateData)
+            .eq("id", row.dbId!)
+            .then(({ error }) => {
+              if (error) throw error;
+            });
+        })
+      );
 
       // 3. Insert new rows
       const newRows = rows.filter(
@@ -550,7 +552,7 @@ export const BulkFlashcardEditor = ({
       );
       
       if (newRows.length > 0) {
-        for (const row of newRows) {
+        const inserts = newRows.map((row) => {
           const newPosition = visibleRowsForPosition.findIndex((r) => r.id === row.id);
           const insertData: any = {
             set_id: setId,
@@ -559,7 +561,6 @@ export const BulkFlashcardEditor = ({
             flashcard_type: row.type,
             is_bookmarked: row.isBookmarked,
           };
-
           if (row.type === "standard") {
             insertData.definition = row.definition.trim();
             insertData.image_url = row.imageUrl || null;
@@ -574,10 +575,10 @@ export const BulkFlashcardEditor = ({
             insertData.definition = "Drawing";
             insertData.interactive_data = row.drawingData;
           }
-
-          const { error } = await supabase.from("flashcards").insert(insertData);
-          if (error) throw error;
-        }
+          return insertData;
+        });
+        const { error: insErr } = await supabase.from("flashcards").insert(inserts);
+        if (insErr) throw insErr;
       }
 
       toast.success("Flashcards saved successfully!");

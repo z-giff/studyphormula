@@ -327,7 +327,7 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
         onClick={handleImageClick}
         style={{ minHeight: "400px", cursor: isAddingBox ? "crosshair" : "default" }}
       >
-        <img src={imageUrl} alt="Flashcard" className="w-full h-auto" />
+        <img src={imageUrl} alt="Flashcard" loading="lazy" decoding="async" className="w-full h-auto" />
         
         {textBoxes.map((box) => (
           <div
