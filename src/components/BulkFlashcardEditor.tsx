@@ -814,6 +814,8 @@ export const BulkFlashcardEditor = ({
                             <img
                               src={row.imageUrl}
                               alt=""
+                              loading="lazy"
+                              decoding="async"
                               className="w-full h-full object-cover"
                             />
                             <Button
