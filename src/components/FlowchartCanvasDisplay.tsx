@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { ReactFlow, Node, Edge, Background, Controls, Handle, Position } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 
@@ -22,7 +23,7 @@ const nodeTypes = {
     >
       <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
       {data.image && (
-        <img src={data.image} alt="" style={{ width: "100%", maxHeight: "60px", objectFit: "cover", marginBottom: "8px", borderRadius: "4px" }} />
+        <img src={data.image} alt="" loading="lazy" decoding="async" style={{ width: "100%", maxHeight: "60px", objectFit: "cover", marginBottom: "8px", borderRadius: "4px" }} />
       )}
       <div style={{ fontWeight: 500 }}>{data.label}</div>
       <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
@@ -41,7 +42,7 @@ const nodeTypes = {
       }}
     >
       {data.image && (
-        <img src={data.image} alt="" style={{ width: "100%", maxHeight: "60px", objectFit: "cover", marginBottom: "8px", borderRadius: "4px" }} />
+        <img src={data.image} alt="" loading="lazy" decoding="async" style={{ width: "100%", maxHeight: "60px", objectFit: "cover", marginBottom: "8px", borderRadius: "4px" }} />
       )}
       <div style={{ fontWeight: 500 }}>{data.label}</div>
       <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
@@ -61,7 +62,7 @@ const nodeTypes = {
     >
       <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
       {data.image && (
-        <img src={data.image} alt="" style={{ width: "100%", maxHeight: "60px", objectFit: "cover", marginBottom: "8px", borderRadius: "4px" }} />
+        <img src={data.image} alt="" loading="lazy" decoding="async" style={{ width: "100%", maxHeight: "60px", objectFit: "cover", marginBottom: "8px", borderRadius: "4px" }} />
       )}
       <div style={{ fontWeight: 500 }}>{data.label}</div>
     </div>
@@ -85,7 +86,7 @@ const nodeTypes = {
     >
       <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
       {data.image && (
-        <img src={data.image} alt="" style={{ width: "60px", height: "60px", objectFit: "cover", marginBottom: "4px", borderRadius: "50%" }} />
+        <img src={data.image} alt="" loading="lazy" decoding="async" style={{ width: "60px", height: "60px", objectFit: "cover", marginBottom: "4px", borderRadius: "50%" }} />
       )}
       <div style={{ fontWeight: 500, fontSize: "12px", wordBreak: "break-word" }}>{data.label}</div>
       <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
@@ -125,21 +126,26 @@ const nodeTypes = {
 
 export const FlowchartCanvasDisplay = ({ flowchartData, className, showControls = true }: FlowchartCanvasDisplayProps) => {
   // Convert edges to solid static lines and normalize legacy handle ids (null can prevent rendering)
-  const solidEdges = flowchartData.edges.map((edge) => {
-    const normalized: any = {
-      ...edge,
-      animated: false,
-      sourceHandle: edge.sourceHandle == null || edge.sourceHandle === "null" ? undefined : edge.sourceHandle,
-      targetHandle: edge.targetHandle == null || edge.targetHandle === "null" ? undefined : edge.targetHandle,
-      style: {
-        ...(edge.style || {}),
-        stroke: "hsl(var(--foreground) / 0.65)",
-        strokeWidth: 2,
-      },
-    };
-
-    return normalized as Edge;
-  });
+  const solidEdges = useMemo(
+    () =>
+      flowchartData.edges.map((edge) => {
+        const normalized: any = {
+          ...edge,
+          animated: false,
+          sourceHandle:
+            edge.sourceHandle == null || edge.sourceHandle === "null" ? undefined : edge.sourceHandle,
+          targetHandle:
+            edge.targetHandle == null || edge.targetHandle === "null" ? undefined : edge.targetHandle,
+          style: {
+            ...(edge.style || {}),
+            stroke: "hsl(var(--foreground) / 0.65)",
+            strokeWidth: 2,
+          },
+        };
+        return normalized as Edge;
+      }),
+    [flowchartData.edges]
+  );
 
   return (
     <div className={`border rounded-lg bg-white flowchart-display h-full ${className || ""}`}>

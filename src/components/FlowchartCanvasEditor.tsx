@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, useRef } from "react";
+import { useCallback, useState, useEffect, useRef, useMemo } from "react";
 import {
   ReactFlow,
   Node,
@@ -478,7 +478,10 @@ const FlowchartCanvasEditorInner = ({ flowchartData, onChange }: FlowchartCanvas
     onChange({ nodes: newNodes, edges });
   }, [nodes, edges, setNodes, onChange]);
 
-  const nodeTypes = createNodeTypes(handleDisconnect, editingNodeId, handleStartEdit, handleFinishEdit);
+  const nodeTypes = useMemo(
+    () => createNodeTypes(handleDisconnect, editingNodeId, handleStartEdit, handleFinishEdit),
+    [handleDisconnect, editingNodeId, handleStartEdit, handleFinishEdit]
+  );
 
   const onConnect = useCallback(
     (params: Connection) => {
@@ -492,12 +495,22 @@ const FlowchartCanvasEditorInner = ({ flowchartData, onChange }: FlowchartCanvas
   const handleNodesChange = useCallback(
     (changes: any) => {
       onNodesChange(changes);
-      setTimeout(() => {
-        setNodes((nds) => {
-          onChange({ nodes: nds, edges });
-          return nds;
-        });
-      }, 0);
+      // Only propagate to parent (which triggers auto-save) when a drag settles
+      // or for non-position changes (selection toggles produce dimension/select changes we ignore).
+      const shouldPropagate = changes.some(
+        (c: any) =>
+          (c.type === "position" && c.dragging === false) ||
+          c.type === "remove" ||
+          c.type === "add"
+      );
+      if (shouldPropagate) {
+        setTimeout(() => {
+          setNodes((nds) => {
+            onChange({ nodes: nds, edges });
+            return nds;
+          });
+        }, 0);
+      }
     },
     [onNodesChange, setNodes, edges, onChange]
   );

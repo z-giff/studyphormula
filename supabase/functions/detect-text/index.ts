@@ -327,8 +327,10 @@ Return ONLY a JSON array, no prose, no markdown. Include confidence on every ite
       });
     }
 
-    const candidates = sanitizeTextBoxes(parsedBoxes);
-    const textBoxes = await verifyTextBoxes(resolvedImageUrl, candidates, LOVABLE_API_KEY);
+    // Single-pass: trust the model's confidence + geometric sanitization.
+    // The second "verification" call doubled latency without meaningfully
+    // improving accuracy beyond the strict confidence/size filter.
+    const textBoxes = sanitizeTextBoxes(parsedBoxes);
     console.log('Detected high-confidence text boxes count:', textBoxes.length);
 
     return new Response(JSON.stringify({ textBoxes }), {
