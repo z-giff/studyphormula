@@ -215,6 +215,8 @@ export const StackedFlashcardDeck = ({
                             <img
                               src={card.image_url}
                               alt={card.term}
+                              loading="lazy"
+                              decoding="async"
                               className="w-full max-h-32 object-contain rounded-lg mb-4"
                             />
                           )}

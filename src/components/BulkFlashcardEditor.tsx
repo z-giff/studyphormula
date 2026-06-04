@@ -219,19 +219,17 @@ export const BulkFlashcardEditor = ({
         if (deleteError) throw deleteError;
       }
 
-      // 2. Update existing rows with new positions
+      // 2. Update existing rows with new positions — run in parallel
       const existingRows = rowsToSave.filter((r) => !r.isDeleted && r.dbId);
       const visibleRowsForPosition = rowsToSave.filter((r) => !r.isDeleted);
-      
-      for (const row of existingRows) {
-        const newPosition = visibleRowsForPosition.findIndex((r) => r.id === row.id);
+
+      const buildUpdateData = (row: BulkCardRow, newPosition: number) => {
         const updateData: any = {
           term: row.term.trim(),
           flashcard_type: row.type,
           is_bookmarked: row.isBookmarked,
           position: newPosition,
         };
-
         if (row.type === "standard") {
           updateData.definition = row.definition.trim();
           updateData.image_url = row.imageUrl || null;
@@ -249,21 +247,29 @@ export const BulkFlashcardEditor = ({
           updateData.image_url = null;
           updateData.interactive_data = row.drawingData;
         }
+        return updateData;
+      };
 
-        const { error } = await supabase
-          .from("flashcards")
-          .update(updateData)
-          .eq("id", row.dbId!);
-        if (error) throw error;
-      }
+      await Promise.all(
+        existingRows.map((row) => {
+          const newPosition = visibleRowsForPosition.findIndex((r) => r.id === row.id);
+          return supabase
+            .from("flashcards")
+            .update(buildUpdateData(row, newPosition))
+            .eq("id", row.dbId!)
+            .then(({ error }) => {
+              if (error) throw error;
+            });
+        })
+      );
 
-      // 3. Insert new rows that have content
+      // 3. Insert new rows that have content — run in parallel
       const newRows = rowsToSave.filter(
         (r) => r.isNew && !r.isDeleted && (r.term.trim() || r.definition.trim() || r.drawingData?.strokes?.length > 0)
       );
-      
+
       if (newRows.length > 0) {
-        for (const row of newRows) {
+        const insertPayloads = newRows.map((row) => {
           const newPosition = visibleRowsForPosition.findIndex((r) => r.id === row.id);
           const insertData: any = {
             set_id: setId,
@@ -272,7 +278,6 @@ export const BulkFlashcardEditor = ({
             flashcard_type: row.type,
             is_bookmarked: row.isBookmarked,
           };
-
           if (row.type === "standard") {
             insertData.definition = row.definition.trim() || "";
             insertData.image_url = row.imageUrl || null;
@@ -287,16 +292,26 @@ export const BulkFlashcardEditor = ({
             insertData.definition = "Drawing";
             insertData.interactive_data = row.drawingData;
           }
+          return { localId: row.id, insertData };
+        });
 
-          const { data, error } = await supabase.from("flashcards").insert(insertData).select().single();
-          if (error) throw error;
-          
-          // Update the row to mark it as no longer new and store the dbId
-          if (data) {
-            setRows(prev => prev.map(r => 
-              r.id === row.id ? { ...r, isNew: false, dbId: data.id } : r
-            ));
-          }
+        // Single batched insert with returning rows in order
+        const { data: inserted, error: insertError } = await supabase
+          .from("flashcards")
+          .insert(insertPayloads.map((p) => p.insertData))
+          .select();
+        if (insertError) throw insertError;
+
+        if (inserted) {
+          const idByLocal = new Map<string, string>();
+          inserted.forEach((dbRow: any, i: number) => {
+            idByLocal.set(insertPayloads[i].localId, dbRow.id);
+          });
+          setRows((prev) =>
+            prev.map((r) =>
+              idByLocal.has(r.id) ? { ...r, isNew: false, dbId: idByLocal.get(r.id)! } : r
+            )
+          );
         }
       }
 
@@ -494,40 +509,42 @@ export const BulkFlashcardEditor = ({
       // 2. Update existing rows with new positions
       const existingRows = rows.filter((r) => !r.isDeleted && r.dbId);
       const visibleRowsForPosition = rows.filter((r) => !r.isDeleted);
-      
-      for (const row of existingRows) {
-        const newPosition = visibleRowsForPosition.findIndex((r) => r.id === row.id);
-        const updateData: any = {
-          term: row.term.trim(),
-          flashcard_type: row.type,
-          is_bookmarked: row.isBookmarked,
-          position: newPosition,
-        };
 
-        if (row.type === "standard") {
-          updateData.definition = row.definition.trim();
-          updateData.image_url = row.imageUrl || null;
-          updateData.interactive_data = null;
-        } else if (row.type === "interactive") {
-          updateData.definition = "Fill in the blanks";
-          updateData.image_url = row.imageUrl;
-          updateData.interactive_data = row.interactiveData;
-        } else if (row.type === "flowchart") {
-          updateData.definition = "Flowchart diagram";
-          updateData.image_url = null;
-          updateData.interactive_data = row.flowchartData;
-        } else if (row.type === "drawing") {
-          updateData.definition = "Drawing";
-          updateData.image_url = null;
-          updateData.interactive_data = row.drawingData;
-        }
-
-        const { error } = await supabase
-          .from("flashcards")
-          .update(updateData)
-          .eq("id", row.dbId!);
-        if (error) throw error;
-      }
+      await Promise.all(
+        existingRows.map((row) => {
+          const newPosition = visibleRowsForPosition.findIndex((r) => r.id === row.id);
+          const updateData: any = {
+            term: row.term.trim(),
+            flashcard_type: row.type,
+            is_bookmarked: row.isBookmarked,
+            position: newPosition,
+          };
+          if (row.type === "standard") {
+            updateData.definition = row.definition.trim();
+            updateData.image_url = row.imageUrl || null;
+            updateData.interactive_data = null;
+          } else if (row.type === "interactive") {
+            updateData.definition = "Fill in the blanks";
+            updateData.image_url = row.imageUrl;
+            updateData.interactive_data = row.interactiveData;
+          } else if (row.type === "flowchart") {
+            updateData.definition = "Flowchart diagram";
+            updateData.image_url = null;
+            updateData.interactive_data = row.flowchartData;
+          } else if (row.type === "drawing") {
+            updateData.definition = "Drawing";
+            updateData.image_url = null;
+            updateData.interactive_data = row.drawingData;
+          }
+          return supabase
+            .from("flashcards")
+            .update(updateData)
+            .eq("id", row.dbId!)
+            .then(({ error }) => {
+              if (error) throw error;
+            });
+        })
+      );
 
       // 3. Insert new rows
       const newRows = rows.filter(
@@ -535,7 +552,7 @@ export const BulkFlashcardEditor = ({
       );
       
       if (newRows.length > 0) {
-        for (const row of newRows) {
+        const inserts = newRows.map((row) => {
           const newPosition = visibleRowsForPosition.findIndex((r) => r.id === row.id);
           const insertData: any = {
             set_id: setId,
@@ -544,7 +561,6 @@ export const BulkFlashcardEditor = ({
             flashcard_type: row.type,
             is_bookmarked: row.isBookmarked,
           };
-
           if (row.type === "standard") {
             insertData.definition = row.definition.trim();
             insertData.image_url = row.imageUrl || null;
@@ -559,10 +575,10 @@ export const BulkFlashcardEditor = ({
             insertData.definition = "Drawing";
             insertData.interactive_data = row.drawingData;
           }
-
-          const { error } = await supabase.from("flashcards").insert(insertData);
-          if (error) throw error;
-        }
+          return insertData;
+        });
+        const { error: insErr } = await supabase.from("flashcards").insert(inserts);
+        if (insErr) throw insErr;
       }
 
       toast.success("Flashcards saved successfully!");
@@ -798,6 +814,8 @@ export const BulkFlashcardEditor = ({
                             <img
                               src={row.imageUrl}
                               alt=""
+                              loading="lazy"
+                              decoding="async"
                               className="w-full h-full object-cover"
                             />
                             <Button

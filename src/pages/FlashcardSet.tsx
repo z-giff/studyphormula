@@ -88,9 +88,11 @@ const FlashcardSetPage = () => {
 
   useEffect(() => {
     if (user && id) {
-      fetchSetData();
-      fetchFlashcards();
-      void markSetAccessed();
+      // Run independent fetches in parallel and defer the access-time write
+      void Promise.all([fetchSetData(), fetchFlashcards()]);
+      // Defer the last_accessed_at write off the critical path
+      const t = setTimeout(() => { void markSetAccessed(); }, 0);
+      return () => clearTimeout(t);
     }
   }, [user, id]);
 
@@ -152,7 +154,8 @@ const FlashcardSetPage = () => {
       if (error) throw error;
 
       toast.success("Flashcard deleted successfully");
-      fetchFlashcards();
+      // Optimistic: drop locally instead of refetching the whole set
+      setFlashcards((prev) => prev.filter((c) => c.id !== flashcardId));
     } catch (error: any) {
       toast.error(error.message || "Failed to delete flashcard");
     }
@@ -168,7 +171,12 @@ const FlashcardSetPage = () => {
       if (error) throw error;
 
       toast.success(currentBookmarkStatus ? "Bookmark removed" : "Flashcard bookmarked");
-      fetchFlashcards();
+      // Optimistic update — avoid refetching the full set
+      setFlashcards((prev) =>
+        prev.map((c) =>
+          c.id === flashcardId ? { ...c, is_bookmarked: !currentBookmarkStatus } : c
+        )
+      );
     } catch (error: any) {
       toast.error(error.message || "Failed to update bookmark");
     }
