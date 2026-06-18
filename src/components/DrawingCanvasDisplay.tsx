@@ -31,8 +31,8 @@ export const DrawingCanvasDisplay = ({ drawingData, className = "" }: DrawingCan
     const maxH = Math.max(container.clientHeight || maxW * 0.6, 1);
 
     const drawPlaceholder = () => {
-      canvas.width = Math.min(maxW, 400);
-      canvas.height = Math.min(maxH, 200);
+      canvas.width = maxW;
+      canvas.height = maxH;
       ctx.fillStyle = "#f5f5f5";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = "#9ca3af";
@@ -79,30 +79,22 @@ export const DrawingCanvasDisplay = ({ drawingData, className = "" }: DrawingCan
     const contentWidth = Math.max(maxX - minX, 1);
     const contentHeight = Math.max(maxY - minY, 1);
 
-    // Inner padding around the drawing inside the white canvas
-    const margin = 24;
+    // Canvas fills the available container area so the white drawing
+    // surface stays visually balanced inside the card.
+    canvas.width = maxW;
+    canvas.height = maxH;
 
-    // Fit content into available container area, preserving aspect ratio
+    // Inner padding around the drawing inside the white canvas
+    const margin = 32;
+
+    // Fit content into available canvas area, preserving aspect ratio.
+    // Allow up-scaling small drawings so they feel proportional to the
+    // canvas instead of sitting tiny in a corner.
     const scale = Math.min(
-      (maxW - margin * 2) / contentWidth,
-      (maxH - margin * 2) / contentHeight,
-      1.5 // don't over-magnify tiny drawings
+      (canvas.width - margin * 2) / contentWidth,
+      (canvas.height - margin * 2) / contentHeight
     );
     const effectiveScale = scale > 0 ? scale : 1;
-
-    // Size the canvas tightly to the drawing + margin (this shrinks the
-    // white area for small drawings instead of using the full container).
-    const canvasW = Math.max(
-      Math.min(contentWidth * effectiveScale + margin * 2, maxW),
-      120
-    );
-    const canvasH = Math.max(
-      Math.min(contentHeight * effectiveScale + margin * 2, maxH),
-      80
-    );
-
-    canvas.width = canvasW;
-    canvas.height = canvasH;
 
     // Background
     ctx.fillStyle = "#f5f5f5";
