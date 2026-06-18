@@ -49,9 +49,46 @@ export const DrawingCanvasDisplay = ({ drawingData, className = "" }: DrawingCan
       return;
     }
 
-    // Calculate scale factors
-    const scaleX = canvas.width / (drawingData.width || canvas.width);
-    const scaleY = canvas.height / (drawingData.height || canvas.height);
+    // Compute bounding box of the actual drawing so we can center it
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    let maxStrokeWidth = 0;
+    for (const stroke of drawingData.strokes) {
+      if (!stroke.points || stroke.points.length === 0) continue;
+      if (stroke.width > maxStrokeWidth) maxStrokeWidth = stroke.width;
+      for (const p of stroke.points) {
+        if (p.x < minX) minX = p.x;
+        if (p.y < minY) minY = p.y;
+        if (p.x > maxX) maxX = p.x;
+        if (p.y > maxY) maxY = p.y;
+      }
+    }
+
+    if (!isFinite(minX) || !isFinite(minY)) return;
+
+    // Pad for stroke width so edges aren't clipped
+    const pad = Math.max(maxStrokeWidth, 2);
+    minX -= pad;
+    minY -= pad;
+    maxX += pad;
+    maxY += pad;
+
+    const contentWidth = Math.max(maxX - minX, 1);
+    const contentHeight = Math.max(maxY - minY, 1);
+
+    // Leave a small margin inside the canvas
+    const margin = 16;
+    const availW = Math.max(canvas.width - margin * 2, 1);
+    const availH = Math.max(canvas.height - margin * 2, 1);
+
+    // Uniform scale to preserve aspect ratio
+    const scale = Math.min(availW / contentWidth, availH / contentHeight);
+
+    // Offset to center the drawing's bounding box within the canvas
+    const offsetX = (canvas.width - contentWidth * scale) / 2 - minX * scale;
+    const offsetY = (canvas.height - contentHeight * scale) / 2 - minY * scale;
 
     // Draw all strokes
     drawingData.strokes.forEach((stroke) => {
@@ -59,13 +96,13 @@ export const DrawingCanvasDisplay = ({ drawingData, className = "" }: DrawingCan
 
       ctx.beginPath();
       ctx.strokeStyle = stroke.color;
-      ctx.lineWidth = stroke.width * Math.min(scaleX, scaleY);
+      ctx.lineWidth = Math.max(stroke.width * scale, 0.5);
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
 
-      ctx.moveTo(stroke.points[0].x * scaleX, stroke.points[0].y * scaleY);
+      ctx.moveTo(stroke.points[0].x * scale + offsetX, stroke.points[0].y * scale + offsetY);
       for (let i = 1; i < stroke.points.length; i++) {
-        ctx.lineTo(stroke.points[i].x * scaleX, stroke.points[i].y * scaleY);
+        ctx.lineTo(stroke.points[i].x * scale + offsetX, stroke.points[i].y * scale + offsetY);
       }
       ctx.stroke();
     });
