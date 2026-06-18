@@ -65,8 +65,10 @@ export const CreateSetDialog = ({ open, onOpenChange, onSuccess }: CreateSetDial
       setFormData({ title: "", description: "", color: PRESET_COLORS[0] });
       onOpenChange(false);
       onSuccess();
-      // Navigate to the new set with bulk editor open
-      navigate(`/set/${data.id}?bulkEdit=true`);
+      // Navigate to the new set with bulk editor open.
+      // Pass both a query param and router state so the editor opens
+      // reliably regardless of fetch ordering on the destination page.
+      navigate(`/set/${data.id}?bulkEdit=true`, { state: { openBulkEditor: true } });
     } catch (error: any) {
       toast.error(error.message || "Failed to create flashcard set");
     } finally {
