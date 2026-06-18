@@ -30,7 +30,7 @@ export const DrawingCanvasDisplay = ({ drawingData, className = "" }: DrawingCan
     // Get container dimensions
     const containerWidth = container.clientWidth;
     const aspectRatio = (drawingData.height || 400) / (drawingData.width || 800);
-    const containerHeight = Math.min(containerWidth * aspectRatio, 500);
+    const containerHeight = Math.min(containerWidth * aspectRatio, container.clientHeight || 500);
 
     // Set canvas size
     canvas.width = containerWidth;
@@ -84,10 +84,9 @@ export const DrawingCanvasDisplay = ({ drawingData, className = "" }: DrawingCan
   }, [redrawCanvas]);
 
   return (
-    <div ref={containerRef} className={`w-full rounded-lg overflow-hidden ${className}`}>
+    <div ref={containerRef} className={`w-full h-full flex items-center justify-center rounded-lg overflow-hidden ${className}`}>
       <canvas
         ref={canvasRef}
-        className="w-full"
         style={{ display: "block" }}
       />
     </div>
