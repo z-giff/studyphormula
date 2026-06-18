@@ -27,29 +27,27 @@ export const DrawingCanvasDisplay = ({ drawingData, className = "" }: DrawingCan
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Get container dimensions
-    const containerWidth = container.clientWidth;
-    const aspectRatio = (drawingData.height || 400) / (drawingData.width || 800);
-    const containerHeight = Math.min(containerWidth * aspectRatio, container.clientHeight || 500);
+    const maxW = Math.max(container.clientWidth, 1);
+    const maxH = Math.max(container.clientHeight || maxW * 0.6, 1);
 
-    // Set canvas size
-    canvas.width = containerWidth;
-    canvas.height = containerHeight;
-
-    // Clear canvas with light background
-    ctx.fillStyle = "#f5f5f5";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    if (!drawingData.strokes || drawingData.strokes.length === 0) {
-      // Show placeholder if no drawing
+    const drawPlaceholder = () => {
+      canvas.width = Math.min(maxW, 400);
+      canvas.height = Math.min(maxH, 200);
+      ctx.fillStyle = "#f5f5f5";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = "#9ca3af";
       ctx.font = "16px sans-serif";
       ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
       ctx.fillText("No drawing", canvas.width / 2, canvas.height / 2);
+    };
+
+    if (!drawingData.strokes || drawingData.strokes.length === 0) {
+      drawPlaceholder();
       return;
     }
 
-    // Compute bounding box of the actual drawing so we can center it
+    // Compute bounding box of the actual drawing
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
@@ -66,29 +64,53 @@ export const DrawingCanvasDisplay = ({ drawingData, className = "" }: DrawingCan
       }
     }
 
-    if (!isFinite(minX) || !isFinite(minY)) return;
+    if (!isFinite(minX) || !isFinite(minY)) {
+      drawPlaceholder();
+      return;
+    }
 
     // Pad for stroke width so edges aren't clipped
-    const pad = Math.max(maxStrokeWidth, 2);
-    minX -= pad;
-    minY -= pad;
-    maxX += pad;
-    maxY += pad;
+    const strokePad = Math.max(maxStrokeWidth, 2);
+    minX -= strokePad;
+    minY -= strokePad;
+    maxX += strokePad;
+    maxY += strokePad;
 
     const contentWidth = Math.max(maxX - minX, 1);
     const contentHeight = Math.max(maxY - minY, 1);
 
-    // Leave a small margin inside the canvas
-    const margin = 16;
-    const availW = Math.max(canvas.width - margin * 2, 1);
-    const availH = Math.max(canvas.height - margin * 2, 1);
+    // Inner padding around the drawing inside the white canvas
+    const margin = 24;
 
-    // Uniform scale to preserve aspect ratio
-    const scale = Math.min(availW / contentWidth, availH / contentHeight);
+    // Fit content into available container area, preserving aspect ratio
+    const scale = Math.min(
+      (maxW - margin * 2) / contentWidth,
+      (maxH - margin * 2) / contentHeight,
+      1.5 // don't over-magnify tiny drawings
+    );
+    const effectiveScale = scale > 0 ? scale : 1;
 
-    // Offset to center the drawing's bounding box within the canvas
-    const offsetX = (canvas.width - contentWidth * scale) / 2 - minX * scale;
-    const offsetY = (canvas.height - contentHeight * scale) / 2 - minY * scale;
+    // Size the canvas tightly to the drawing + margin (this shrinks the
+    // white area for small drawings instead of using the full container).
+    const canvasW = Math.max(
+      Math.min(contentWidth * effectiveScale + margin * 2, maxW),
+      120
+    );
+    const canvasH = Math.max(
+      Math.min(contentHeight * effectiveScale + margin * 2, maxH),
+      80
+    );
+
+    canvas.width = canvasW;
+    canvas.height = canvasH;
+
+    // Background
+    ctx.fillStyle = "#f5f5f5";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Center bounding box within canvas
+    const offsetX = (canvas.width - contentWidth * effectiveScale) / 2 - minX * effectiveScale;
+    const offsetY = (canvas.height - contentHeight * effectiveScale) / 2 - minY * effectiveScale;
 
     // Draw all strokes
     drawingData.strokes.forEach((stroke) => {
@@ -96,13 +118,13 @@ export const DrawingCanvasDisplay = ({ drawingData, className = "" }: DrawingCan
 
       ctx.beginPath();
       ctx.strokeStyle = stroke.color;
-      ctx.lineWidth = Math.max(stroke.width * scale, 0.5);
+      ctx.lineWidth = Math.max(stroke.width * effectiveScale, 0.5);
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
 
-      ctx.moveTo(stroke.points[0].x * scale + offsetX, stroke.points[0].y * scale + offsetY);
+      ctx.moveTo(stroke.points[0].x * effectiveScale + offsetX, stroke.points[0].y * effectiveScale + offsetY);
       for (let i = 1; i < stroke.points.length; i++) {
-        ctx.lineTo(stroke.points[i].x * scale + offsetX, stroke.points[i].y * scale + offsetY);
+        ctx.lineTo(stroke.points[i].x * effectiveScale + offsetX, stroke.points[i].y * effectiveScale + offsetY);
       }
       ctx.stroke();
     });
