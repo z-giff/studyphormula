@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate, Link, useSearchParams, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -58,6 +58,7 @@ interface FlashcardSet {
 const FlashcardSetPage = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [set, setSet] = useState<FlashcardSet | null>(null);
@@ -70,15 +71,26 @@ const FlashcardSetPage = () => {
   const [copyingFlashcard, setCopyingFlashcard] = useState<{ id: string; setId: string } | null>(null);
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
 
-  // Open bulk editor if URL has bulkEdit=true query param
+  // Open bulk editor immediately if requested via router state or query param.
+  // Done early (not gated on data fetch) so the user lands directly in the
+  // editor after creating a new set — the modal itself waits for `set` to mount.
   useEffect(() => {
-    if (searchParams.get("bulkEdit") === "true" && !isLoading && set) {
+    const wantsBulkEdit =
+      (location.state as any)?.openBulkEditor === true ||
+      searchParams.get("bulkEdit") === "true";
+    if (wantsBulkEdit) {
       setIsBulkEditorOpen(true);
-      // Remove the query param to prevent re-opening on refresh
-      searchParams.delete("bulkEdit");
-      setSearchParams(searchParams, { replace: true });
+      if (searchParams.get("bulkEdit") === "true") {
+        searchParams.delete("bulkEdit");
+        setSearchParams(searchParams, { replace: true });
+      }
+      if ((location.state as any)?.openBulkEditor) {
+        // Clear router state so a refresh doesn't reopen the editor
+        navigate(location.pathname + location.search, { replace: true, state: {} });
+      }
     }
-  }, [searchParams, isLoading, set]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!loading && !user) {
