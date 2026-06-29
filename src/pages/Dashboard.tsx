@@ -321,7 +321,7 @@ const Dashboard = () => {
                         "w-full h-full transition-colors " +
                         (dragOverFileId === file.id
                           ? "text-primary"
-                          : "text-muted-foreground/50 group-hover:text-foreground/70")
+                          : "text-foreground group-hover:text-foreground")
                       }
                       fill="none"
                       stroke="currentColor"
