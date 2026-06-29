@@ -11,17 +11,10 @@
    }
  
    try {
-     const { content, flashcardType } = await req.json();
+    const { content } = await req.json();
      
      if (!content || typeof content !== 'string') {
        return new Response(JSON.stringify({ error: 'Content is required' }), {
-         status: 400,
-         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-       });
-     }
- 
-     if (!flashcardType || !['definition', 'question'].includes(flashcardType)) {
-       return new Response(JSON.stringify({ error: 'Valid flashcard type is required (definition or question)' }), {
          status: 400,
          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
        });
@@ -36,21 +29,24 @@
        });
      }
  
-     const systemPrompt = flashcardType === 'definition' 
-       ? `You are an expert educational content creator. Analyze the provided text and create flashcards.
- For each key term, concept, or important idea, generate a flashcard with:
- - term: The key term or concept (front of card)
- - definition: A clear, accurate, and concise definition derived from the content (back of card)
- 
- Focus on the most important concepts. Create between 5-20 flashcards depending on content length.
- Return ONLY a JSON array of objects with "term" and "definition" fields. No markdown, no explanation.`
-       : `You are an expert educational content creator. Analyze the provided text and create study question flashcards.
- Generate meaningful study questions based on the content:
- - term: A clear study question (front of card)
- - definition: The answer derived from the content (back of card)
- 
- Focus on questions that test understanding of key concepts. Create between 5-20 flashcards depending on content length.
- Return ONLY a JSON array of objects with "term" and "definition" fields. No markdown, no explanation.`;
+    const systemPrompt = `You are an expert educator creating high-quality flashcards optimized for memorization and active recall.
+
+For each concept in the provided content, you must INDEPENDENTLY decide which of two flashcard formats best promotes learning for that specific concept, and then naturally mix both formats throughout the set:
+
+1. Definition ↔ Term format (term on front, definition on back)
+   Use for: vocabulary, anatomical structures, named processes, equations, laws, chemical compounds, classifications, and any concept where direct recall of a name/definition is most effective.
+
+2. Question ↔ Answer format (question on front, answer on back)
+   Use for: mechanisms, cause-and-effect relationships, applications, comparisons, "why" and "how" concepts, multi-step processes, clinical reasoning, and any concept where active retrieval beats simple definition recall.
+
+Guiding principle: do NOT force a single format. Choose whichever format best helps a student remember each specific piece of information. Straightforward concepts → definition/term. Complex or applied concepts → question/answer. A good set will naturally alternate between both styles.
+
+Quality rules:
+- Generate concise, high-quality flashcards (typically 5-20 depending on content length).
+- Avoid repetitive or redundant cards.
+- Keep questions and answers tight; no unnecessary length.
+- Preserve important terminology exactly where appropriate.
+- Always populate the "term" field with the FRONT of the card (either the term OR the question) and the "definition" field with the BACK of the card (either the definition OR the answer). Do not add labels like "Q:" or "A:".`;
  
      console.log('Calling AI gateway for flashcard generation...');
      
