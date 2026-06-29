@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useParams } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -9,10 +9,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Pipette } from "lucide-react";
-import { InteractiveFlashcardEditor } from "@/components/InteractiveFlashcardEditor";
-import { FlowchartCanvasEditor } from "@/components/FlowchartCanvasEditor";
-import { DrawingCanvasEditor } from "@/components/DrawingCanvasEditor";
 import { ImageUploader } from "@/components/ImageUploader";
+
+const InteractiveFlashcardEditor = lazy(() => import("@/components/InteractiveFlashcardEditor").then(m => ({ default: m.InteractiveFlashcardEditor })));
+const FlowchartCanvasEditor = lazy(() => import("@/components/FlowchartCanvasEditor").then(m => ({ default: m.FlowchartCanvasEditor })));
+const DrawingCanvasEditor = lazy(() => import("@/components/DrawingCanvasEditor").then(m => ({ default: m.DrawingCanvasEditor })));
+
+const EditorFallback = () => <div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" /></div>;
 
 const FLASHCARD_COLORS = [
   "#000000",
@@ -320,12 +323,14 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
               />
 
               {formData.imageUrl && (
-                <InteractiveFlashcardEditor
-                  imageUrl={formData.imageUrl}
-                  textBoxes={interactiveData.textBoxes}
-                  onChange={(textBoxes) => setInteractiveData({ textBoxes })}
-                  onImageChange={(imageUrl) => setFormData({ ...formData, imageUrl })}
-                />
+                <Suspense fallback={<EditorFallback />}>
+                  <InteractiveFlashcardEditor
+                    imageUrl={formData.imageUrl}
+                    textBoxes={interactiveData.textBoxes}
+                    onChange={(textBoxes) => setInteractiveData({ textBoxes })}
+                    onImageChange={(imageUrl) => setFormData({ ...formData, imageUrl })}
+                  />
+                </Suspense>
               )}
             </TabsContent>
 
@@ -342,10 +347,12 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
                 />
               </div>
 
-              <FlowchartCanvasEditor
-                flowchartData={flowchartData}
-                onChange={setFlowchartData}
-              />
+              <Suspense fallback={<EditorFallback />}>
+                <FlowchartCanvasEditor
+                  flowchartData={flowchartData}
+                  onChange={setFlowchartData}
+                />
+              </Suspense>
             </TabsContent>
 
             <TabsContent value="drawing" className="space-y-4 mt-4">
@@ -361,10 +368,12 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
                 />
               </div>
 
-              <DrawingCanvasEditor
-                drawingData={drawingData}
-                onChange={setDrawingData}
-              />
+              <Suspense fallback={<EditorFallback />}>
+                <DrawingCanvasEditor
+                  drawingData={drawingData}
+                  onChange={setDrawingData}
+                />
+              </Suspense>
             </TabsContent>
           </Tabs>
 

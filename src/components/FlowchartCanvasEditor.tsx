@@ -398,39 +398,41 @@ const EditableDiamondNode = ({ id, data, isEditing, onStartEdit, onFinishEdit, o
 };
 
 const createNodeTypes = (
-  onHandleDoubleClick: (nodeId: string, handleType: 'source' | 'target') => void,
-  editingNodeId: string | null,
-  onStartEdit: (nodeId: string) => void,
-  onFinishEdit: (nodeId: string, newLabel: string) => void
+  callbacksRef: React.MutableRefObject<{
+    onHandleDoubleClick: (nodeId: string, handleType: 'source' | 'target') => void;
+    editingNodeId: string | null;
+    onStartEdit: (nodeId: string) => void;
+    onFinishEdit: (nodeId: string, newLabel: string) => void;
+  }>
 ) => ({
   default: ({ id, data }: { id: string; data: any }) => (
     <EditableBoxNode
       id={id}
       data={data}
-      isEditing={editingNodeId === id}
-      onStartEdit={() => onStartEdit(id)}
-      onFinishEdit={(newLabel) => onFinishEdit(id, newLabel)}
-      onHandleDoubleClick={onHandleDoubleClick}
+      isEditing={callbacksRef.current.editingNodeId === id}
+      onStartEdit={() => callbacksRef.current.onStartEdit(id)}
+      onFinishEdit={(newLabel) => callbacksRef.current.onFinishEdit(id, newLabel)}
+      onHandleDoubleClick={callbacksRef.current.onHandleDoubleClick}
     />
   ),
   circle: ({ id, data }: { id: string; data: any }) => (
     <EditableCircleNode
       id={id}
       data={data}
-      isEditing={editingNodeId === id}
-      onStartEdit={() => onStartEdit(id)}
-      onFinishEdit={(newLabel) => onFinishEdit(id, newLabel)}
-      onHandleDoubleClick={onHandleDoubleClick}
+      isEditing={callbacksRef.current.editingNodeId === id}
+      onStartEdit={() => callbacksRef.current.onStartEdit(id)}
+      onFinishEdit={(newLabel) => callbacksRef.current.onFinishEdit(id, newLabel)}
+      onHandleDoubleClick={callbacksRef.current.onHandleDoubleClick}
     />
   ),
   diamond: ({ id, data }: { id: string; data: any }) => (
     <EditableDiamondNode
       id={id}
       data={data}
-      isEditing={editingNodeId === id}
-      onStartEdit={() => onStartEdit(id)}
-      onFinishEdit={(newLabel) => onFinishEdit(id, newLabel)}
-      onHandleDoubleClick={onHandleDoubleClick}
+      isEditing={callbacksRef.current.editingNodeId === id}
+      onStartEdit={() => callbacksRef.current.onStartEdit(id)}
+      onFinishEdit={(newLabel) => callbacksRef.current.onFinishEdit(id, newLabel)}
+      onHandleDoubleClick={callbacksRef.current.onHandleDoubleClick}
     />
   ),
 });
@@ -478,9 +480,22 @@ const FlowchartCanvasEditorInner = ({ flowchartData, onChange }: FlowchartCanvas
     onChange({ nodes: newNodes, edges });
   }, [nodes, edges, setNodes, onChange]);
 
+  const nodeCallbacksRef = useRef({
+    onHandleDoubleClick: handleDisconnect,
+    editingNodeId,
+    onStartEdit: handleStartEdit,
+    onFinishEdit: handleFinishEdit,
+  });
+  nodeCallbacksRef.current = {
+    onHandleDoubleClick: handleDisconnect,
+    editingNodeId,
+    onStartEdit: handleStartEdit,
+    onFinishEdit: handleFinishEdit,
+  };
+
   const nodeTypes = useMemo(
-    () => createNodeTypes(handleDisconnect, editingNodeId, handleStartEdit, handleFinishEdit),
-    [handleDisconnect, editingNodeId, handleStartEdit, handleFinishEdit]
+    () => createNodeTypes(nodeCallbacksRef),
+    []
   );
 
   const onConnect = useCallback(

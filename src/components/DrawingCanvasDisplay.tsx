@@ -74,13 +74,17 @@ export const DrawingCanvasDisplay = ({ drawingData, className = "" }: DrawingCan
   useEffect(() => {
     redrawCanvas();
 
-    // Redraw on resize
+    let resizeTimer: ReturnType<typeof setTimeout>;
     const handleResize = () => {
-      redrawCanvas();
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(redrawCanvas, 150);
     };
 
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    return () => {
+      clearTimeout(resizeTimer);
+      window.removeEventListener("resize", handleResize);
+    };
   }, [redrawCanvas]);
 
   return (

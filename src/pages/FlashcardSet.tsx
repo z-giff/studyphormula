@@ -113,7 +113,7 @@ const FlashcardSetPage = () => {
     try {
       const { data, error } = await supabase
         .from("flashcard_sets")
-        .select("*")
+        .select("id,title,description,color")
         .eq("id", id)
         .single();
 
@@ -381,14 +381,14 @@ const FlashcardSetPage = () => {
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
         setId={id!}
-        onSuccess={fetchFlashcards}
+        onSuccess={() => void fetchFlashcards()}
       />
 
       <ImportFlashcardsDialog
         open={isImportDialogOpen}
         onOpenChange={setIsImportDialogOpen}
         setId={id!}
-        onSuccess={fetchFlashcards}
+        onSuccess={() => void fetchFlashcards()}
       />
 
       {editingFlashcard && (
@@ -396,7 +396,7 @@ const FlashcardSetPage = () => {
           open={!!editingFlashcard}
           onOpenChange={(open) => !open && setEditingFlashcard(null)}
           flashcard={editingFlashcard}
-          onSuccess={fetchFlashcards}
+          onSuccess={() => void fetchFlashcards()}
         />
       )}
 

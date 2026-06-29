@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useState, useMemo, lazy, Suspense } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Pencil, Trash2, Bookmark, Copy, Maximize2 } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { DrawingCanvasDisplay } from "@/components/DrawingCanvasDisplay";
-import { FlowchartCanvasDisplay } from "@/components/FlowchartCanvasDisplay";
-import { InteractiveFlashcardStudy } from "@/components/InteractiveFlashcardStudy";
+
+const DrawingCanvasDisplay = lazy(() => import("@/components/DrawingCanvasDisplay").then(m => ({ default: m.DrawingCanvasDisplay })));
+const FlowchartCanvasDisplay = lazy(() => import("@/components/FlowchartCanvasDisplay").then(m => ({ default: m.FlowchartCanvasDisplay })));
+const InteractiveFlashcardStudy = lazy(() => import("@/components/InteractiveFlashcardStudy").then(m => ({ default: m.InteractiveFlashcardStudy })));
+
+const DisplayFallback = () => <div className="flex items-center justify-center p-4"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" /></div>;
 
 interface Flashcard {
   id: string;
@@ -106,19 +109,17 @@ export const StackedFlashcardDeck = ({
     }, 400);
   };
 
-  const getStackedCards = () => {
+  const stackedCards = useMemo(() => {
     const cards = [];
     const visibleCount = Math.min(3, flashcards.length);
-    
+
     for (let i = 0; i < visibleCount; i++) {
       const cardIndex = (currentIndex + i) % flashcards.length;
       cards.push({ ...flashcards[cardIndex], stackPosition: i, originalIndex: cardIndex });
     }
-    
-    return cards.reverse();
-  };
 
-  const stackedCards = getStackedCards();
+    return cards.reverse();
+  }, [flashcards, currentIndex]);
   const currentCard = flashcards[currentIndex];
 
   return (
@@ -183,12 +184,18 @@ export const StackedFlashcardDeck = ({
                             {card.term}
                           </h3>
                           <div className="flex-1 overflow-auto bg-background rounded-lg p-3">
-                            {card.image_url && card.interactive_data?.textBoxes ? (
-                              <InteractiveFlashcardStudy
-                                imageUrl={card.image_url}
-                                textBoxes={card.interactive_data.textBoxes}
-                                cardColor={cardColor}
-                              />
+                            {isTop && card.image_url && card.interactive_data?.textBoxes ? (
+                              <Suspense fallback={<DisplayFallback />}>
+                                <InteractiveFlashcardStudy
+                                  imageUrl={card.image_url}
+                                  textBoxes={card.interactive_data.textBoxes}
+                                  cardColor={cardColor}
+                                />
+                              </Suspense>
+                            ) : !isTop ? (
+                              <p className="text-sm text-muted-foreground text-center">
+                                Interactive flashcard
+                              </p>
                             ) : (
                               <p className="text-sm text-muted-foreground text-center">
                                 No interactive content available.
@@ -234,34 +241,46 @@ export const StackedFlashcardDeck = ({
                       >
                         <CardContent className="flex flex-col items-center justify-center h-full p-6 text-center">
                           {card.flashcard_type === "drawing" && card.interactive_data ? (
-                            <div className="w-full flex items-center justify-center px-4">
-                              <DrawingCanvasDisplay 
-                                drawingData={card.interactive_data.drawingData || card.interactive_data}
-                                className="rounded-lg shadow-sm max-w-full mx-auto"
-                              />
-                            </div>
-                          ) : card.flashcard_type === "flowchart" && card.interactive_data ? (
-                            <div 
-                              className="relative w-full h-48 bg-white rounded-lg border border-border shadow-sm overflow-hidden"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <div className="w-full h-full flowchart-preview">
-                                <FlowchartCanvasDisplay
-                                  flowchartData={card.interactive_data.flowchartData || card.interactive_data}
-                                  showControls={false}
-                                />
+                            isTop ? (
+                              <div className="w-full flex items-center justify-center px-4">
+                                <Suspense fallback={<DisplayFallback />}>
+                                  <DrawingCanvasDisplay
+                                    drawingData={card.interactive_data.drawingData || card.interactive_data}
+                                    className="rounded-lg shadow-sm max-w-full mx-auto"
+                                  />
+                                </Suspense>
                               </div>
-                              <button
-                                className="absolute bottom-2 right-2 p-1.5 bg-background/90 hover:bg-background border border-border rounded-md shadow-sm transition-colors z-10"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setExpandedFlowchartData(card.interactive_data.flowchartData || card.interactive_data);
-                                }}
-                                title="Expand flowchart"
+                            ) : (
+                              <p className="text-lg" style={{ color: textColor }}>Drawing</p>
+                            )
+                          ) : card.flashcard_type === "flowchart" && card.interactive_data ? (
+                            isTop ? (
+                              <div
+                                className="relative w-full h-48 bg-white rounded-lg border border-border shadow-sm overflow-hidden"
+                                onClick={(e) => e.stopPropagation()}
                               >
-                                <Maximize2 className="h-4 w-4 text-foreground" />
-                              </button>
-                            </div>
+                                <div className="w-full h-full flowchart-preview">
+                                  <Suspense fallback={<DisplayFallback />}>
+                                    <FlowchartCanvasDisplay
+                                      flowchartData={card.interactive_data.flowchartData || card.interactive_data}
+                                      showControls={false}
+                                    />
+                                  </Suspense>
+                                </div>
+                                <button
+                                  className="absolute bottom-2 right-2 p-1.5 bg-background/90 hover:bg-background border border-border rounded-md shadow-sm transition-colors z-10"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setExpandedFlowchartData(card.interactive_data.flowchartData || card.interactive_data);
+                                  }}
+                                  title="Expand flowchart"
+                                >
+                                  <Maximize2 className="h-4 w-4 text-foreground" />
+                                </button>
+                              </div>
+                            ) : (
+                              <p className="text-lg" style={{ color: textColor }}>Flowchart</p>
+                            )
                           ) : (
                             <p className="text-lg" style={{ color: textColor }}>{card.definition}</p>
                           )}
@@ -384,7 +403,9 @@ export const StackedFlashcardDeck = ({
         <DialogContent className="max-w-4xl w-[90vw] h-[70vh] p-0 overflow-hidden">
           <div className="w-full h-full bg-white rounded-lg">
             {expandedFlowchartData && (
-              <FlowchartCanvasDisplay flowchartData={expandedFlowchartData} />
+              <Suspense fallback={<DisplayFallback />}>
+                <FlowchartCanvasDisplay flowchartData={expandedFlowchartData} />
+              </Suspense>
             )}
           </div>
         </DialogContent>

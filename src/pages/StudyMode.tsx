@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,9 +10,12 @@ import phormulaLogo from "@/assets/phormula-text-logo.png";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { getContrastColor } from "@/lib/utils";
-import { InteractiveFlashcardStudy } from "@/components/InteractiveFlashcardStudy";
-import { FlowchartCanvasDisplay } from "@/components/FlowchartCanvasDisplay";
-import { DrawingCanvasDisplay } from "@/components/DrawingCanvasDisplay";
+
+const InteractiveFlashcardStudy = lazy(() => import("@/components/InteractiveFlashcardStudy").then(m => ({ default: m.InteractiveFlashcardStudy })));
+const FlowchartCanvasDisplay = lazy(() => import("@/components/FlowchartCanvasDisplay").then(m => ({ default: m.FlowchartCanvasDisplay })));
+const DrawingCanvasDisplay = lazy(() => import("@/components/DrawingCanvasDisplay").then(m => ({ default: m.DrawingCanvasDisplay })));
+
+const DisplayFallback = () => <div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" /></div>;
 
 interface Flashcard {
   id: string;
@@ -252,11 +255,13 @@ const StudyMode = () => {
           <div className="mb-8">
             {currentCard.flashcard_type === "interactive" && currentCard.interactive_data?.textBoxes ? (
               <Card className="p-8" style={{ backgroundColor: cardColor }}>
-                <InteractiveFlashcardStudy
-                  imageUrl={currentCard.image_url || ""}
-                  textBoxes={currentCard.interactive_data.textBoxes}
-                  cardColor={cardColor}
-                />
+                <Suspense fallback={<DisplayFallback />}>
+                  <InteractiveFlashcardStudy
+                    imageUrl={currentCard.image_url || ""}
+                    textBoxes={currentCard.interactive_data.textBoxes}
+                    cardColor={cardColor}
+                  />
+                </Suspense>
               </Card>
             ) : currentCard.flashcard_type === "flowchart" && currentCard.interactive_data ? (
               <Card
@@ -286,9 +291,11 @@ const StudyMode = () => {
                   ) : (
                     <div className="flex-1 flex flex-col">
                       <p className="text-sm uppercase tracking-wide opacity-80 mb-4 text-center">Flowchart</p>
-                      <FlowchartCanvasDisplay
-                        flowchartData={currentCard.interactive_data}
-                      />
+                      <Suspense fallback={<DisplayFallback />}>
+                        <FlowchartCanvasDisplay
+                          flowchartData={currentCard.interactive_data}
+                        />
+                      </Suspense>
                     </div>
                   )}
                 </div>
@@ -321,9 +328,11 @@ const StudyMode = () => {
                   ) : (
                     <div className="flex-1 flex flex-col">
                       <p className="text-sm uppercase tracking-wide opacity-80 mb-4 text-center">Drawing</p>
-                      <DrawingCanvasDisplay
-                        drawingData={currentCard.interactive_data}
-                      />
+                      <Suspense fallback={<DisplayFallback />}>
+                        <DrawingCanvasDisplay
+                          drawingData={currentCard.interactive_data}
+                        />
+                      </Suspense>
                     </div>
                   )}
                 </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,10 +7,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { InteractiveFlashcardEditor } from "./InteractiveFlashcardEditor";
-import { FlowchartCanvasEditor } from "./FlowchartCanvasEditor";
-import { DrawingCanvasEditor } from "./DrawingCanvasEditor";
 import { ImageUploader } from "./ImageUploader";
+
+const InteractiveFlashcardEditor = lazy(() => import("./InteractiveFlashcardEditor").then(m => ({ default: m.InteractiveFlashcardEditor })));
+const FlowchartCanvasEditor = lazy(() => import("./FlowchartCanvasEditor").then(m => ({ default: m.FlowchartCanvasEditor })));
+const DrawingCanvasEditor = lazy(() => import("./DrawingCanvasEditor").then(m => ({ default: m.DrawingCanvasEditor })));
+
+const EditorFallback = () => <div className="flex items-center justify-center p-8 text-muted-foreground"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" /></div>;
 
 
 interface CreateFlashcardDialogProps {
@@ -239,12 +242,14 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
                 </div>
 
                 {interactiveData.imageUrl && (
-                  <InteractiveFlashcardEditor
-                    imageUrl={interactiveData.imageUrl}
-                    textBoxes={interactiveData.textBoxes}
-                    onChange={(textBoxes) => setInteractiveData({ ...interactiveData, textBoxes })}
-                    onImageChange={(imageUrl) => setInteractiveData({ ...interactiveData, imageUrl })}
-                  />
+                  <Suspense fallback={<EditorFallback />}>
+                    <InteractiveFlashcardEditor
+                      imageUrl={interactiveData.imageUrl}
+                      textBoxes={interactiveData.textBoxes}
+                      onChange={(textBoxes) => setInteractiveData({ ...interactiveData, textBoxes })}
+                      onImageChange={(imageUrl) => setInteractiveData({ ...interactiveData, imageUrl })}
+                    />
+                  </Suspense>
                 )}
               </TabsContent>
 
@@ -262,10 +267,12 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
                   />
                 </div>
 
-                <FlowchartCanvasEditor
-                  flowchartData={flowchartData}
-                  onChange={setFlowchartData}
-                />
+                <Suspense fallback={<EditorFallback />}>
+                  <FlowchartCanvasEditor
+                    flowchartData={flowchartData}
+                    onChange={setFlowchartData}
+                  />
+                </Suspense>
               </TabsContent>
 
               <TabsContent value="drawing" className="space-y-5 mt-6">
@@ -282,10 +289,12 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
                   />
                 </div>
 
-                <DrawingCanvasEditor
-                  drawingData={drawingData}
-                  onChange={setDrawingData}
-                />
+                <Suspense fallback={<EditorFallback />}>
+                  <DrawingCanvasEditor
+                    drawingData={drawingData}
+                    onChange={setDrawingData}
+                  />
+                </Suspense>
               </TabsContent>
             </Tabs>
           </div>

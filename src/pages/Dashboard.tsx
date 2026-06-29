@@ -98,7 +98,7 @@ const Dashboard = () => {
       const {
         data,
         error
-      } = await supabase.from("flashcard_sets").select("*").order("created_at", {
+      } = await supabase.from("flashcard_sets").select("id,title,description,color,file_id,created_at,last_accessed_at").order("created_at", {
         ascending: false
       });
       if (error) throw error;

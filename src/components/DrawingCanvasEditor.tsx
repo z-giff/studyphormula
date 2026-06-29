@@ -128,28 +128,24 @@ export const DrawingCanvasEditor = ({ drawingData, onChange }: DrawingCanvasEdit
     e.preventDefault();
 
     const point = getCanvasPoint(e);
-    const newStroke = [...currentStroke, point];
-    setCurrentStroke(newStroke);
-
-    // Draw current stroke
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    ctx.beginPath();
-    ctx.strokeStyle = tool === "eraser" ? "#f5f5f5" : strokeColor;
-    ctx.lineWidth = tool === "eraser" ? strokeWidth * 3 : strokeWidth;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-
-    if (newStroke.length >= 2) {
-      const lastTwo = newStroke.slice(-2);
-      ctx.moveTo(lastTwo[0].x, lastTwo[0].y);
-      ctx.lineTo(lastTwo[1].x, lastTwo[1].y);
-      ctx.stroke();
-    }
+    setCurrentStroke(prev => {
+      const canvas = canvasRef.current;
+      if (canvas && prev.length >= 1) {
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.beginPath();
+          ctx.strokeStyle = tool === "eraser" ? "#f5f5f5" : strokeColor;
+          ctx.lineWidth = tool === "eraser" ? strokeWidth * 3 : strokeWidth;
+          ctx.lineCap = "round";
+          ctx.lineJoin = "round";
+          const last = prev[prev.length - 1];
+          ctx.moveTo(last.x, last.y);
+          ctx.lineTo(point.x, point.y);
+          ctx.stroke();
+        }
+      }
+      return [...prev, point];
+    });
   };
 
   const stopDrawing = () => {

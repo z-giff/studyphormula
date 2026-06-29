@@ -1,21 +1,23 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, GripVertical, Image, Layers, GitBranch, FileText, X, Signature, Bookmark, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, GripVertical, Image, Layers, GitBranch, FileText, X, Signature, Bookmark, Check, Loader2, Sparkles } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import LogoOrb from "@/components/LogoOrb";
-import { InteractiveFlashcardEditor } from "@/components/InteractiveFlashcardEditor";
-import { FlowchartCanvasEditor } from "@/components/FlowchartCanvasEditor";
-import { DrawingCanvasEditor } from "@/components/DrawingCanvasEditor";
 import { ImageUploader } from "@/components/ImageUploader";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
- import { AutoFlashcardDialog } from "@/components/AutoFlashcardDialog";
- import { Sparkles } from "lucide-react";
+import { AutoFlashcardDialog } from "@/components/AutoFlashcardDialog";
+
+const InteractiveFlashcardEditor = lazy(() => import("@/components/InteractiveFlashcardEditor").then(m => ({ default: m.InteractiveFlashcardEditor })));
+const FlowchartCanvasEditor = lazy(() => import("@/components/FlowchartCanvasEditor").then(m => ({ default: m.FlowchartCanvasEditor })));
+const DrawingCanvasEditor = lazy(() => import("@/components/DrawingCanvasEditor").then(m => ({ default: m.DrawingCanvasEditor })));
+
+const EditorFallback = () => <div className="flex items-center justify-center p-8"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" /></div>;
 
 type FlashcardType = "standard" | "interactive" | "flowchart" | "drawing";
 
@@ -337,10 +339,9 @@ export const BulkFlashcardEditor = ({
       clearTimeout(autoSaveTimeoutRef.current);
     }
 
-    // Set new timeout for auto-save (1.5 seconds after last change)
     autoSaveTimeoutRef.current = setTimeout(() => {
       performAutoSave(rows);
-    }, 1500);
+    }, 3000);
 
     return () => {
       if (autoSaveTimeoutRef.current) {
@@ -896,14 +897,16 @@ export const BulkFlashcardEditor = ({
                             onImageChange={(url) => handleRowChange(row.id, "imageUrl", url)}
                           />
                           {row.imageUrl && (
-                            <InteractiveFlashcardEditor
-                              imageUrl={row.imageUrl}
-                              textBoxes={row.interactiveData.textBoxes}
-                              onChange={(textBoxes) =>
-                                handleRowChange(row.id, "interactiveData", { textBoxes })
-                              }
-                              onImageChange={(url) => handleRowChange(row.id, "imageUrl", url)}
-                            />
+                            <Suspense fallback={<EditorFallback />}>
+                              <InteractiveFlashcardEditor
+                                imageUrl={row.imageUrl}
+                                textBoxes={row.interactiveData.textBoxes}
+                                onChange={(textBoxes) =>
+                                  handleRowChange(row.id, "interactiveData", { textBoxes })
+                                }
+                                onImageChange={(url) => handleRowChange(row.id, "imageUrl", url)}
+                              />
+                            </Suspense>
                           )}
                         </div>
                       )}
@@ -949,10 +952,12 @@ export const BulkFlashcardEditor = ({
                               Collapse
                             </Button>
                           </div>
-                          <FlowchartCanvasEditor
-                            flowchartData={row.flowchartData}
-                            onChange={(data) => handleRowChange(row.id, "flowchartData", data)}
-                          />
+                          <Suspense fallback={<EditorFallback />}>
+                            <FlowchartCanvasEditor
+                              flowchartData={row.flowchartData}
+                              onChange={(data) => handleRowChange(row.id, "flowchartData", data)}
+                            />
+                          </Suspense>
                         </div>
                       )}
                     </div>
@@ -997,10 +1002,12 @@ export const BulkFlashcardEditor = ({
                               Collapse
                             </Button>
                           </div>
-                          <DrawingCanvasEditor
-                            drawingData={row.drawingData}
-                            onChange={(data) => handleRowChange(row.id, "drawingData", data)}
-                          />
+                          <Suspense fallback={<EditorFallback />}>
+                            <DrawingCanvasEditor
+                              drawingData={row.drawingData}
+                              onChange={(data) => handleRowChange(row.id, "drawingData", data)}
+                            />
+                          </Suspense>
                         </div>
                       )}
                     </div>
