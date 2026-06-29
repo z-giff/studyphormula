@@ -302,7 +302,7 @@ const StudyMode = () => {
               </Card>
             ) : currentCard.flashcard_type === "drawing" && currentCard.interactive_data ? (
               <Card
-                className="relative min-h-[500px] cursor-pointer border-0 overflow-hidden flex flex-col"
+                className="relative cursor-pointer border-0 overflow-hidden flex flex-col"
                 style={{
                   backgroundColor: cardColor,
                   color: textColor,
