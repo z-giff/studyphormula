@@ -60,34 +60,38 @@
        toast.error("File too large. Maximum size is 5MB.");
        return;
      }
- 
-     // Support text and common document formats
-     const supportedTypes = [
-       'text/plain',
-       'text/markdown',
-       'application/pdf',
-       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-       'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-       'application/msword',
-       'application/vnd.ms-powerpoint',
-     ];
- 
+
+     const isTextFile = file.type === 'text/plain' || file.type === 'text/markdown' || file.name.endsWith('.txt') || file.name.endsWith('.md');
+     const isPdf = file.type === 'application/pdf' || file.name.endsWith('.pdf');
+
      try {
        setUploadedFileName(file.name);
-       
-       if (file.type === 'text/plain' || file.type === 'text/markdown' || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
+
+       if (isTextFile) {
          const text = await file.text();
+         setFormData(prev => ({ ...prev, content: text }));
+       } else if (isPdf) {
+         const { extractPdfText } = await import("@/lib/extractPdfText");
+         const text = await extractPdfText(file);
+         if (!text.trim()) {
+           toast.error("Couldn't extract text from this PDF. It may be a scanned/image-only document — please paste the text directly.");
+           setUploadedFileName(null);
+           setFormData(prev => ({ ...prev, content: "" }));
+           return;
+         }
          setFormData(prev => ({ ...prev, content: text }));
        } else {
-         // For other formats, read as text (basic support)
-         const text = await file.text();
-         setFormData(prev => ({ ...prev, content: text }));
-         toast.info("Document uploaded. For best results with complex formats, consider pasting the text directly.");
+         // .doc, .docx, .ppt, .pptx, etc. — no reliable browser-side text extraction,
+         // so don't read raw bytes into the textarea. Ask the user to paste instead.
+         toast.error("This file format isn't supported for automatic text extraction. Please paste the content directly, or upload a .txt, .md, or .pdf file.");
+         setUploadedFileName(null);
+         return;
        }
      } catch (error) {
        console.error("Error reading file:", error);
        toast.error("Failed to read file. Please try pasting the content instead.");
        setUploadedFileName(null);
+       setFormData(prev => ({ ...prev, content: "" }));
      }
    };
  
