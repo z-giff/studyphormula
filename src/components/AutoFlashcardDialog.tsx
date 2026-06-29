@@ -5,7 +5,6 @@
  import { Input } from "@/components/ui/input";
  import { Label } from "@/components/ui/label";
  import { Textarea } from "@/components/ui/textarea";
- import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
  import { supabase } from "@/integrations/supabase/client";
  import { toast } from "sonner";
  import { useAuth } from "@/hooks/useAuth";
@@ -46,7 +45,6 @@
    const [formData, setFormData] = useState({
      title: "",
      color: PRESET_COLORS[0],
-     flashcardType: "definition" as "definition" | "question",
      content: "",
    });
    const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
@@ -124,8 +122,7 @@
        
        const { data: aiData, error: aiError } = await supabase.functions.invoke('generate-flashcards', {
          body: { 
-           content: formData.content.trim(),
-           flashcardType: formData.flashcardType
+            content: formData.content.trim()
          }
        });
  
@@ -183,7 +180,7 @@
        toast.success(`Generated ${generatedFlashcards.length} flashcards!`);
        
        // Reset form
-       setFormData({ title: "", color: PRESET_COLORS[0], flashcardType: "definition", content: "" });
+      setFormData({ title: "", color: PRESET_COLORS[0], content: "" });
        setUploadedFileName(null);
        onOpenChange(false);
        onSuccess();
@@ -203,7 +200,7 @@
  
    const handleClose = () => {
      if (!isLoading) {
-       setFormData({ title: "", color: PRESET_COLORS[0], flashcardType: "definition", content: "" });
+      setFormData({ title: "", color: PRESET_COLORS[0], content: "" });
        setUploadedFileName(null);
        onOpenChange(false);
      }
@@ -280,30 +277,6 @@
                </div>
              </div>
            )}
- 
-           {/* Flashcard Type Selector */}
-           <div className="space-y-3">
-             <Label>Flashcard Type</Label>
-             <RadioGroup
-               value={formData.flashcardType}
-               onValueChange={(value) => setFormData({ ...formData, flashcardType: value as "definition" | "question" })}
-               className="flex gap-4"
-               disabled={isLoading}
-             >
-               <div className="flex items-center space-x-2">
-                 <RadioGroupItem value="definition" id="definition" />
-                 <Label htmlFor="definition" className="cursor-pointer font-normal">
-                   Definition (Term → Definition)
-                 </Label>
-               </div>
-               <div className="flex items-center space-x-2">
-                 <RadioGroupItem value="question" id="question" />
-                 <Label htmlFor="question" className="cursor-pointer font-normal">
-                   Question (Question → Answer)
-                 </Label>
-               </div>
-             </RadioGroup>
-           </div>
  
            {/* Content Input */}
            <div className="space-y-3">
