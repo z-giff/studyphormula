@@ -372,7 +372,7 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
                   fontWeight: box.fontWeight || "normal",
                   color: box.fontColor || "#000000",
                 }}
-                placeholder="Enter answer..."
+                placeholder="e.g., Enter answer..."
               />
             ) : (
               box.answer && (
@@ -431,7 +431,7 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
               id="answer"
               value={textBoxes.find(b => b.id === selectedBox)?.answer || ""}
               onChange={(e) => handleAnswerChange(selectedBox, e.target.value)}
-              placeholder="Enter the correct answer"
+              placeholder="e.g., Enter the correct answer"
             />
           </div>
         </div>

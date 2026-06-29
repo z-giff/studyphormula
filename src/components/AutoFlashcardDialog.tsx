@@ -338,7 +338,7 @@
  
              {/* Text Area */}
              <Textarea
-               placeholder="Paste your content here (lecture notes, textbook excerpts, transcripts, etc.)..."
+               placeholder="e.g., Paste your content here (lecture notes, textbook excerpts, transcripts, etc.)..."
                value={formData.content}
                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                disabled={isLoading}

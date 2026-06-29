@@ -786,7 +786,7 @@ export const BulkFlashcardEditor = ({
                           ref={(el) => {
                             if (el) inputRefs.current.set(`term-${row.id}`, el);
                           }}
-                          placeholder="Enter term"
+                          placeholder="e.g., Enter term"
                           value={row.term}
                           onChange={(e) => handleRowChange(row.id, "term", e.target.value)}
                           onKeyDown={(e) => handleKeyDown(e, row.id, "term")}
@@ -799,7 +799,7 @@ export const BulkFlashcardEditor = ({
                           ref={(el) => {
                             if (el) inputRefs.current.set(`definition-${row.id}`, el);
                           }}
-                          placeholder="Enter definition"
+                          placeholder="e.g., Enter definition"
                           value={row.definition}
                           onChange={(e) => handleRowChange(row.id, "definition", e.target.value)}
                           onKeyDown={(e) => handleKeyDown(e, row.id, "definition")}
@@ -861,7 +861,7 @@ export const BulkFlashcardEditor = ({
                           ref={(el) => {
                             if (el) inputRefs.current.set(`term-${row.id}`, el);
                           }}
-                          placeholder="Enter term/question"
+                          placeholder="e.g., Enter term/question"
                           value={row.term}
                           onChange={(e) => handleRowChange(row.id, "term", e.target.value)}
                           className="bg-muted/50 border-0 focus-visible:ring-1"
@@ -921,7 +921,7 @@ export const BulkFlashcardEditor = ({
                           ref={(el) => {
                             if (el) inputRefs.current.set(`term-${row.id}`, el);
                           }}
-                          placeholder="Enter question/topic"
+                          placeholder="e.g., Enter question/topic"
                           value={row.term}
                           onChange={(e) => handleRowChange(row.id, "term", e.target.value)}
                           className="bg-muted/50 border-0 focus-visible:ring-1"
@@ -971,7 +971,7 @@ export const BulkFlashcardEditor = ({
                           ref={(el) => {
                             if (el) inputRefs.current.set(`term-${row.id}`, el);
                           }}
-                          placeholder="Enter question/topic"
+                          placeholder="e.g., Enter question/topic"
                           value={row.term}
                           onChange={(e) => handleRowChange(row.id, "term", e.target.value)}
                           className="bg-muted/50 border-0 focus-visible:ring-1"

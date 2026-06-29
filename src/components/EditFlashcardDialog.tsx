@@ -282,7 +282,7 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
                 <Label htmlFor="edit-definition">Definition / Answer *</Label>
                 <Textarea
                   id="edit-definition"
-                  placeholder="The powerhouse of the cell..."
+                  placeholder="e.g., The powerhouse of the cell..."
                   value={formData.definition}
                   onChange={(e) => setFormData({ ...formData, definition: e.target.value })}
                   disabled={isLoading}

@@ -100,7 +100,7 @@ export const CreateSetDialog = ({ open, onOpenChange, onSuccess }: CreateSetDial
             <Label htmlFor="description">Description (Optional)</Label>
             <Textarea
               id="description"
-              placeholder="Brief description of what this set covers..."
+              placeholder="e.g., Brief description of what this set covers..."
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               disabled={isLoading}

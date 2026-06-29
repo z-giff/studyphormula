@@ -81,7 +81,7 @@ export const RenameSetDialog = ({
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter set title"
+                placeholder="e.g., Enter set title"
                 autoFocus
               />
             </div>

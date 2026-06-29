@@ -182,7 +182,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
                   <Label htmlFor="term" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Term</Label>
                   <Input
                     id="term"
-                    placeholder="What is the mitochondria?"
+                    placeholder="e.g., What is the mitochondria?"
                     value={formData.term}
                     onChange={(e) => setFormData({ ...formData, term: e.target.value })}
                     disabled={isLoading}
@@ -195,7 +195,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
                   <Label htmlFor="definition" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Definition</Label>
                   <Textarea
                     id="definition"
-                    placeholder="The powerhouse of the cell…"
+                    placeholder="e.g., The powerhouse of the cell…"
                     value={formData.definition}
                     onChange={(e) => setFormData({ ...formData, definition: e.target.value })}
                     disabled={isLoading}
@@ -222,7 +222,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
                   <Label htmlFor="interactive-term" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Term</Label>
                   <Input
                     id="interactive-term"
-                    placeholder="Label the parts of the cell"
+                    placeholder="e.g., Label the parts of the cell"
                     value={interactiveData.term}
                     onChange={(e) => setInteractiveData({ ...interactiveData, term: e.target.value })}
                     disabled={isLoading}
@@ -258,7 +258,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
                   <Label htmlFor="flowchart-term" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Topic</Label>
                   <Input
                     id="flowchart-term"
-                    placeholder="Photosynthesis process"
+                    placeholder="e.g., Photosynthesis process"
                     value={formData.term}
                     onChange={(e) => setFormData({ ...formData, term: e.target.value })}
                     disabled={isLoading}
@@ -280,7 +280,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
                   <Label htmlFor="drawing-term" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Topic</Label>
                   <Input
                     id="drawing-term"
-                    placeholder="Draw the cell membrane structure"
+                    placeholder="e.g., Draw the cell membrane structure"
                     value={formData.term}
                     onChange={(e) => setFormData({ ...formData, term: e.target.value })}
                     disabled={isLoading}
