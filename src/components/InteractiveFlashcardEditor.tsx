@@ -140,12 +140,6 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
 
       if (data?.textBoxes && Array.isArray(data.textBoxes)) {
         const MIN_CONFIDENCE = 0.86;
-        const REL_X = 0.08;
-        const REL_Y = 0.18;
-        const MIN_PAD_X = 0.35;
-        const MIN_PAD_Y = 0.25;
-        const MAX_PAD_X = 1.1;
-        const MAX_PAD_Y = 0.9;
 
         const validDetections = data.textBoxes.filter((box: any) => {
           const text = typeof box?.text === "string" ? box.text.trim() : "";
@@ -174,13 +168,21 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
           const rawW = Number(box.width) || 0;
           const rawH = Number(box.height) || 0;
 
-          const padX = Math.min(MAX_PAD_X, Math.max(MIN_PAD_X, rawW * REL_X));
-          const padY = Math.min(MAX_PAD_Y, Math.max(MIN_PAD_Y, rawH * REL_Y));
+          // Add 20% horizontal padding so multi-word labels stay on one line
+          const extraW = rawW * 0.20;
+          // Add small vertical padding for visual breathing room
+          const extraH = rawH * 0.15;
 
-          const x = Math.max(0, rawX - padX);
-          const y = Math.max(0, rawY - padY);
-          const width = Math.min(100 - x, rawW + padX * 2);
-          const height = Math.min(100 - y, rawH + padY * 2);
+          // Expand symmetrically around the center of the OCR bounding box
+          const cx = rawX + rawW / 2;
+          const cy = rawY + rawH / 2;
+          const newW = rawW + extraW;
+          const newH = rawH + extraH;
+
+          const x = Math.max(0, cx - newW / 2);
+          const y = Math.max(0, cy - newH / 2);
+          const width = Math.min(100 - x, newW);
+          const height = Math.min(100 - y, newH);
 
           return {
             id: Math.random().toString(36).substr(2, 9),
@@ -189,7 +191,7 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
             width,
             height,
             answer: box.text,
-            fontSize: 14,
+            fontSize: box.fontSize || 14,
             fontWeight: "normal",
             fontColor: "#000000",
           };

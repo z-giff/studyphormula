@@ -257,30 +257,39 @@ serve(async (req) => {
             content: [
               {
                 type: "text",
-                text: `You are a strict high-precision OCR verifier for study diagrams. Detect ONLY visible, readable text labels that you can localize with high confidence.
+                text: `You are a strict high-precision OCR system for study diagrams. Detect ONLY visible, readable text labels that you can localize with high confidence.
 
 Accuracy is more important than quantity. It is better to return 8 correct labels than 20 labels with any false positives.
 
-For each label, return a bounding box anchored directly to the real visible text. The box must be centered on the actual text location and match the actual text dimensions closely enough that an opaque rectangle placed there would cover the original label. Never invent labels and never place boxes in blank areas.
+BOUNDING BOX RULES — READ CAREFULLY:
+- Coordinates are percentages of the full image dimensions (0–100).
+- x = left edge of the bounding box (percentage from left side of image).
+- y = top edge of the bounding box (percentage from top of image).
+- width = horizontal span of the bounding box (percentage of image width).
+- height = vertical span of the bounding box (percentage of image height).
+- The box MUST be a tight-fit rectangle around the actual visible text glyphs.
+- The text should be horizontally and vertically centered within the box.
+- If you placed an opaque rectangle at (x, y) with the given (width, height), it MUST cover the original text completely.
+- Do NOT add extra margin. Do NOT offset the box from the text. The box should sit directly on top of the text.
 
-MANDATORY VALIDATION BEFORE RETURNING EACH BOX:
-1. Confirm there are visible glyphs/letters inside the proposed box.
+GROUPING RULES:
+- GROUP nearby words that visually belong to one label into ONE box (e.g. "Aortic valve", "Pulmonary artery", "Right ventricle", "Left atrium" = one box each, NOT separate words).
+- If a label wraps onto two lines, return ONE box spanning BOTH lines.
+- The width must be wide enough to contain the full label text. For multi-word labels like "Pulmonary artery", ensure the width spans the entire phrase.
+
+VALIDATION — for each box before returning:
+1. Confirm there are visible glyphs/letters at the exact (x, y, width, height) location.
 2. Confirm the visible glyphs spell the returned text.
 3. Confirm the box overlaps the original text itself, not a pointer line, organ area, blank whitespace, or nearby region.
-4. If the text or its exact location is uncertain, REJECT it.
+4. If the text or its exact pixel location is uncertain, REJECT it.
 5. Assign confidence from 0 to 1 based on both text readability and location accuracy. Only return boxes with confidence >= ${OCR_CONFIDENCE_THRESHOLD}.
 
-CRITICAL RULES:
-- GROUP nearby words that visually belong to one label into ONE box (e.g. "Aortic valve", "Pulmonary artery", "Right ventricle", "Left atrium" = one box each, NOT separate words).
-- If a label wraps onto two lines, return ONE box spanning BOTH lines and only if both lines are clearly part of the same label.
-- Coordinates are percentages of the full image: x,y = top-left corner; (0,0) is top-left, (100,100) is bottom-right.
-- Width and height must match the actual text area with only a small margin. Do not use oversized boxes to compensate for uncertainty.
+EXCLUSIONS:
 - Do NOT detect text that is absent, partially guessed, hidden, decorative, a watermark, or part of the illustration/arrow/shape.
 - Do NOT infer common anatomy labels unless the exact words are visibly present at that exact location.
-- Reject any detection that would put a box far away from the source text.
 - Estimate fontSize as the pixel height of a capital letter mapped to a 8–48 range.
 
-Return ONLY a JSON array, no prose, no markdown. Include confidence on every item:
+Return ONLY a JSON array, no prose, no markdown:
 [
   { "text": "Aortic valve", "x": 70.2, "y": 55.4, "width": 14.8, "height": 4.2, "fontSize": 18, "confidence": 0.94 }
 ]`
