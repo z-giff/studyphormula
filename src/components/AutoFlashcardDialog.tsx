@@ -9,6 +9,40 @@
  import { toast } from "sonner";
  import { useAuth } from "@/hooks/useAuth";
  import { Plus, Upload, FileText, Loader2, Sparkles } from "lucide-react";
+ import * as pdfjsLib from "pdfjs-dist";
+ import pdfjsWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+
+ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+
+ // Extracts readable text from a PDF using pdf.js, page by page.
+ const extractPdfText = async (file: File): Promise<string> => {
+   const arrayBuffer = await file.arrayBuffer();
+   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+   const pageTexts: string[] = [];
+   for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+     const page = await pdf.getPage(pageNum);
+     const textContent = await page.getTextContent();
+     const pageText = textContent.items
+       .map((item) => ("str" in item ? item.str : ""))
+       .join(" ");
+     pageTexts.push(pageText);
+   }
+
+   return pageTexts.join("\n\n").trim();
+ };
+
+ // Heuristic to catch cases where a file's raw bytes (e.g. an unsupported
+ // binary format) get decoded as text instead of properly extracted content.
+ const looksLikeBinaryData = (text: string): boolean => {
+   if (!text) return false;
+   const sampleLength = Math.min(text.length, 2000);
+   const sample = text.slice(0, sampleLength);
+   // eslint-disable-next-line no-control-regex
+   const suspiciousChars = sample.match(/[\x00-\x08\x0B\x0C\x0E-\x1F�]/g);
+   const ratio = (suspiciousChars?.length ?? 0) / sampleLength;
+   return ratio > 0.02;
+ };
  
  const PRESET_COLORS = [
    "#000000", // Black
@@ -72,17 +106,33 @@
        'application/vnd.ms-powerpoint',
      ];
  
+     const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+
      try {
        setUploadedFileName(file.name);
-       
+
        if (file.type === 'text/plain' || file.type === 'text/markdown' || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
          const text = await file.text();
          setFormData(prev => ({ ...prev, content: text }));
+       } else if (isPdf) {
+         const text = await extractPdfText(file);
+         if (!text) {
+           toast.warning("Couldn't extract any text from this PDF. It may be scanned or image-only — please paste the content manually.");
+           setFormData(prev => ({ ...prev, content: "" }));
+         } else {
+           setFormData(prev => ({ ...prev, content: text }));
+         }
        } else {
-         // For other formats, read as text (basic support)
+         // For other document formats (Word, PowerPoint, etc.), basic text
+         // extraction is attempted, but the raw bytes are never surfaced.
          const text = await file.text();
-         setFormData(prev => ({ ...prev, content: text }));
-         toast.info("Document uploaded. For best results with complex formats, consider pasting the text directly.");
+         if (looksLikeBinaryData(text)) {
+           toast.info("This file format can't be parsed automatically. Please paste the text content instead.");
+           setFormData(prev => ({ ...prev, content: "" }));
+         } else {
+           setFormData(prev => ({ ...prev, content: text }));
+           toast.info("Document uploaded. For best results with complex formats, consider pasting the text directly.");
+         }
        }
      } catch (error) {
        console.error("Error reading file:", error);
