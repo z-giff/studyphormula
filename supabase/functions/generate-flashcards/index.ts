@@ -29,23 +29,38 @@
        });
      }
  
-    const systemPrompt = `You are an expert educator creating high-quality flashcards optimized for memorization and active recall.
+    const systemPrompt = `You are an expert educator creating a COMPLETE, exam-prep flashcard study set optimized for memorization, active recall, and top exam performance.
 
-For each concept in the provided content, you must INDEPENDENTLY decide which of two flashcard formats best promotes learning for that specific concept, and then naturally mix both formats throughout the set:
+Your goal: a student should be able to use this flashcard set as their MAIN study resource for a quiz, midterm, or final exam on this material, and walk in fully prepared.
 
-1. Definition ↔ Term format (term on front, definition on back)
-   Use for: vocabulary, anatomical structures, named processes, equations, laws, chemical compounds, classifications, and any concept where direct recall of a name/definition is most effective.
+COVERAGE — this is the top priority:
+- Analyze the ENTIRE provided content and cover every major testable idea: important concepts, definitions, examples, comparisons, processes, statistics, key numbers, dates, categories, named frameworks/laws/models, and major takeaways.
+- Do NOT restrict the output to a small fixed number of cards. The number of flashcards must scale with the amount and complexity of the material:
+  * Short or simple content → a smaller, focused set.
+  * Long or dense lectures, slide decks, and documents → a large, complete set (40, 60, 80 or more cards if needed for full coverage).
+- Where the content describes charts, tables, figures, or diagrams, turn their high-yield information into flashcards (notable values, rankings, trends, and what they imply).
+- Do not skip small but testable details such as specific percentages, thresholds, years, populations affected, or lists of principles/criteria.
+- Continue generating cards until every major testable idea from the material is covered — full coverage matters more than keeping the set short.
 
-2. Question ↔ Answer format (question on front, answer on back)
-   Use for: mechanisms, cause-and-effect relationships, applications, comparisons, "why" and "how" concepts, multi-step processes, clinical reasoning, and any concept where active retrieval beats simple definition recall.
+CARD FORMATS — for each concept, INDEPENDENTLY choose the format that best promotes learning, and naturally mix styles across the set:
+1. Term ↔ Definition — vocabulary, named laws/acts/frameworks, classifications, structures, equations.
+2. Question ↔ Answer — mechanisms, "why" and "how" concepts, multi-step processes, applied reasoning.
+3. Comparison cards — "What is the difference between X and Y?" for contrasting concepts.
+4. Cause/effect cards — "Why does X lead to Y?" for relationships and consequences.
+5. Example-based cards — tie abstract concepts to concrete examples from the material.
+6. Application/exam-style cards — deeper "why/how" questions a professor would ask on an exam.
+7. Simplified-explanation cards — for complex topics, the answer explains the idea in a simple, easy-to-understand way while staying accurate to the material.
+Never ask the user to pick a format — decide automatically per concept. Straightforward facts → term/definition. Complex or applied ideas → question/answer or explanation cards.
 
-Guiding principle: do NOT force a single format. Choose whichever format best helps a student remember each specific piece of information. Straightforward concepts → definition/term. Complex or applied concepts → question/answer. A good set will naturally alternate between both styles.
+ORGANIZATION:
+- Structure the set to follow the document's own logical sections (its major topics or slide groupings), ordering cards section by section from start to finish.
+- End the set with a handful of deeper exam-style synthesis cards that tie the whole material together (e.g., overall takeaways, cross-topic "why" questions).
 
-Quality rules:
-- Generate concise, high-quality flashcards (typically 5-20 depending on content length).
-- Avoid repetitive or redundant cards.
-- Keep questions and answers tight; no unnecessary length.
+ANSWER QUALITY:
+- Each answer must be detailed enough to actually learn from — avoid vague or overly short answers — while staying clear and organized.
+- When a topic is complex, explain it simply (plain language, brief reasoning, or a quick example) while staying accurate to the provided material.
 - Preserve important terminology exactly where appropriate.
+- Avoid duplicate cards and filler/overly obvious cards — every card should earn its place.
 - Always populate the "term" field with the FRONT of the card (either the term OR the question) and the "definition" field with the BACK of the card (either the definition OR the answer). Do not add labels like "Q:" or "A:".`;
  
      console.log('Calling AI gateway for flashcard generation...');
@@ -60,14 +75,14 @@ Quality rules:
          model: 'google/gemini-3-flash-preview',
          messages: [
            { role: 'system', content: systemPrompt },
-           { role: 'user', content: `Generate flashcards from this content:\n\n${content.substring(0, 30000)}` }
+           { role: 'user', content: `Generate a complete exam-prep flashcard set from this material. Do not restrict the output to 10-15 cards. Create as many flashcards as needed to thoroughly cover the content. Focus on high-yield, testable material. Use a natural mix of definition, question/answer, comparison, application, and simplified explanation cards. If a concept is complex, explain it in a simple way. Make the final set detailed enough that a student could use it as their main study resource for a quiz, midterm, or final exam.\n\nMaterial:\n\n${content.substring(0, 120000)}` }
          ],
          tools: [
            {
              type: 'function',
              function: {
                name: 'generate_flashcards',
-               description: 'Generate flashcards from the provided content',
+               description: 'Generate a complete exam-prep flashcard set from the provided content',
                parameters: {
                  type: 'object',
                  properties: {
