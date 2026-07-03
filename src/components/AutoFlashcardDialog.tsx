@@ -82,7 +82,11 @@
      content: "",
    });
    const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
- 
+   // Text extracted from an uploaded document. Kept separate from the
+   // Content textbox so uploads are processed in the background and never
+   // inserted into the textbox (which is reserved for typed/pasted text).
+   const [uploadedContent, setUploadedContent] = useState("");
+
    const isAppendMode = !!existingSetId;
  
    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,14 +117,17 @@
 
        if (file.type === 'text/plain' || file.type === 'text/markdown' || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
          const text = await file.text();
-         setFormData(prev => ({ ...prev, content: text }));
+         setUploadedContent(text);
+         toast.success("Document attached.");
        } else if (isPdf) {
          const text = await extractPdfText(file);
          if (!text) {
            toast.warning("Couldn't extract any text from this PDF. It may be scanned or image-only — please paste the content manually.");
-           setFormData(prev => ({ ...prev, content: "" }));
+           setUploadedContent("");
+           setUploadedFileName(null);
          } else {
-           setFormData(prev => ({ ...prev, content: text }));
+           setUploadedContent(text);
+           toast.success("Document attached.");
          }
        } else {
          // For other document formats (Word, PowerPoint, etc.), basic text
@@ -128,15 +135,17 @@
          const text = await file.text();
          if (looksLikeBinaryData(text)) {
            toast.info("This file format can't be parsed automatically. Please paste the text content instead.");
-           setFormData(prev => ({ ...prev, content: "" }));
+           setUploadedContent("");
+           setUploadedFileName(null);
          } else {
-           setFormData(prev => ({ ...prev, content: text }));
-           toast.info("Document uploaded. For best results with complex formats, consider pasting the text directly.");
+           setUploadedContent(text);
+           toast.success("Document attached.");
          }
        }
      } catch (error) {
        console.error("Error reading file:", error);
        toast.error("Failed to read file. Please try pasting the content instead.");
+       setUploadedContent("");
        setUploadedFileName(null);
      }
    };
@@ -154,12 +163,18 @@
        return;
      }
  
-     if (!formData.content.trim()) {
+     // Combine any typed/pasted text with the text extracted from an
+     // uploaded document (processed silently in the background).
+     const typedContent = formData.content.trim();
+     const documentContent = uploadedContent.trim();
+     const generationContent = [typedContent, documentContent].filter(Boolean).join("\n\n");
+
+     if (!generationContent) {
        toast.error("Please paste or upload content to generate flashcards from");
        return;
      }
  
-     if (formData.content.trim().length < 50) {
+     if (generationContent.length < 50) {
        toast.error("Please provide more content for better flashcard generation (at least 50 characters)");
        return;
      }
@@ -172,7 +187,7 @@
        
        const { data: aiData, error: aiError } = await supabase.functions.invoke('generate-flashcards', {
          body: { 
-            content: formData.content.trim()
+            content: generationContent
          }
        });
  
@@ -232,6 +247,7 @@
        // Reset form
       setFormData({ title: "", color: PRESET_COLORS[0], content: "" });
        setUploadedFileName(null);
+       setUploadedContent("");
        onOpenChange(false);
        onSuccess();
  
@@ -252,6 +268,7 @@
      if (!isLoading) {
       setFormData({ title: "", color: PRESET_COLORS[0], content: "" });
        setUploadedFileName(null);
+       setUploadedContent("");
        onOpenChange(false);
      }
    };
