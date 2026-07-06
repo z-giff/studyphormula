@@ -4,6 +4,41 @@
    'Access-Control-Allow-Origin': '*',
    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
  };
+
+const MAX_FLASHCARDS = 100;
+
+// Recovers complete card objects from a JSON string that may be truncated
+// (e.g. a large tool-call payload cut off mid-stream). Scans the flashcards
+// array and parses each complete top-level object, skipping any partial
+// trailing one.
+function salvageFlashcards(raw: string): Array<{ term: string; definition: string }> {
+  const cards: Array<{ term: string; definition: string }> = [];
+  const start = raw.indexOf('[');
+  if (start === -1) return cards;
+  let depth = 0;
+  let objStart = -1;
+  let inString = false;
+  let escaped = false;
+  for (let i = start + 1; i < raw.length; i++) {
+    const ch = raw[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === '\\') escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') { inString = true; continue; }
+    if (ch === '{') { if (depth === 0) objStart = i; depth++; }
+    else if (ch === '}') {
+      depth--;
+      if (depth === 0 && objStart !== -1) {
+        try { cards.push(JSON.parse(raw.slice(objStart, i + 1))); } catch { /* skip partial */ }
+        objStart = -1;
+      }
+    } else if (ch === ']' && depth === 0) break;
+  }
+  return cards;
+}
  
  serve(async (req) => {
    if (req.method === 'OPTIONS') {
@@ -29,21 +64,26 @@
        });
      }
  
-    const systemPrompt = `You are an expert educator creating a COMPLETE, exam-prep flashcard study set optimized for memorization, active recall, and top exam performance.
+    const systemPrompt = `You are an expert educator creating a COMPLETE, exam-focused flashcard study set optimized for long-term understanding, active recall, and assessment preparation.
 
-Your goal: a student should be able to use this flashcard set as their MAIN study resource for a quiz, midterm, or final exam on this material, and walk in fully prepared.
+Your goal: a student should be able to study ONLY these flashcards and gain a thorough understanding of the material while being well prepared for quizzes, midterms, and final exams.
+
+CARD COUNT — scale with the material, up to a hard maximum of 100 cards:
+- Determine the number of flashcards from the amount and complexity of the content — never from a fixed default.
+- Short or simple content (roughly a page or less) → a focused set of around 10-25 cards.
+- Medium content (several pages or a short lecture) → around 25-50 cards.
+- Long or information-dense material (full lecture decks, textbook chapters, multi-page documents) → 50-100 cards. Err toward MORE cards for dense material; undershooting coverage is worse than a large set.
+- Never exceed 100 cards, and never pad with filler just to reach a number — every card must earn its place.
 
 COVERAGE — this is the top priority:
-- Analyze the ENTIRE provided content and cover every major testable idea: important concepts, definitions, examples, comparisons, processes, statistics, key numbers, dates, categories, named frameworks/laws/models, and major takeaways.
-- Do NOT restrict the output to a small fixed number of cards. The number of flashcards must scale with the amount and complexity of the material:
-  * Short or simple content → a smaller, focused set.
-  * Long or dense lectures, slide decks, and documents → a large, complete set (40, 60, 80 or more cards if needed for full coverage).
-- Where the content describes charts, tables, figures, or diagrams, turn their high-yield information into flashcards (notable values, rankings, trends, and what they imply).
-- Do not skip small but testable details such as specific percentages, thresholds, years, populations affected, or lists of principles/criteria.
-- Continue generating cards until every major testable idea from the material is covered — full coverage matters more than keeping the set short.
+- Analyze the ENTIRE provided content and cover EVERY major topic and subtopic in the document.
+- Prioritize high-yield information most likely to appear on quizzes and exams.
+- Include important definitions, processes, mechanisms, formulas, relationships, comparisons, cause-and-effect concepts, exceptions, and high-yield facts (specific percentages, thresholds, years, categories, named frameworks/laws/models).
+- Where the content describes charts, tables, figures, or diagrams, turn their key takeaways into flashcards (notable values, rankings, trends, and what they imply).
+- Break complex concepts into several smaller, memorable flashcards rather than one long card.
 
-CARD FORMATS — for each concept, INDEPENDENTLY choose the format that best promotes learning, and naturally mix styles across the set:
-1. Term ↔ Definition — vocabulary, named laws/acts/frameworks, classifications, structures, equations.
+CARD FORMATS — for each concept, INDEPENDENTLY choose the format that best reinforces it, and naturally mix styles across the set:
+1. Term ↔ Definition — vocabulary, named laws/acts/frameworks, classifications, structures, formulas.
 2. Question ↔ Answer — mechanisms, "why" and "how" concepts, multi-step processes, applied reasoning.
 3. Comparison cards — "What is the difference between X and Y?" for contrasting concepts.
 4. Cause/effect cards — "Why does X lead to Y?" for relationships and consequences.
@@ -56,11 +96,12 @@ ORGANIZATION:
 - Structure the set to follow the document's own logical sections (its major topics or slide groupings), ordering cards section by section from start to finish.
 - End the set with a handful of deeper exam-style synthesis cards that tie the whole material together (e.g., overall takeaways, cross-topic "why" questions).
 
-ANSWER QUALITY:
-- Each answer must be detailed enough to actually learn from — avoid vague or overly short answers — while staying clear and organized.
+CARD QUALITY:
+- Each flashcard must be concise, accurate, and focused on ONE key idea.
+- Answers must be complete enough to actually learn from — avoid vague one-liners — but without unnecessary length.
 - When a topic is complex, explain it simply (plain language, brief reasoning, or a quick example) while staying accurate to the provided material.
 - Preserve important terminology exactly where appropriate.
-- Avoid duplicate cards and filler/overly obvious cards — every card should earn its place.
+- Avoid duplicate or repetitive cards and filler/overly obvious cards.
 - Always populate the "term" field with the FRONT of the card (either the term OR the question) and the "definition" field with the BACK of the card (either the definition OR the answer). Do not add labels like "Q:" or "A:".`;
  
      console.log('Calling AI gateway for flashcard generation...');
@@ -75,7 +116,7 @@ ANSWER QUALITY:
          model: 'google/gemini-3-flash-preview',
          messages: [
            { role: 'system', content: systemPrompt },
-           { role: 'user', content: `Generate a complete exam-prep flashcard set from this material. Do not restrict the output to 10-15 cards. Create as many flashcards as needed to thoroughly cover the content. Focus on high-yield, testable material. Use a natural mix of definition, question/answer, comparison, application, and simplified explanation cards. If a concept is complex, explain it in a simple way. Make the final set detailed enough that a student could use it as their main study resource for a quiz, midterm, or final exam.\n\nMaterial:\n\n${content.substring(0, 120000)}` }
+           { role: 'user', content: `Generate a complete exam-prep flashcard set from this material. Do not restrict the output to 10-15 cards — scale the card count to the content, up to a maximum of 100 cards. For long or information-dense material, generate 50-100 cards; cover every major topic and subtopic. Focus on high-yield, testable material. Use a natural mix of definition, question/answer, comparison, application, and simplified explanation cards. If a concept is complex, explain it in a simple way. Make the final set detailed enough that a student could use it as their main study resource for a quiz, midterm, or final exam.\n\nMaterial:\n\n${content.substring(0, 120000)}` }
          ],
          tools: [
            {
@@ -105,7 +146,10 @@ ANSWER QUALITY:
              }
            }
          ],
-         tool_choice: { type: 'function', function: { name: 'generate_flashcards' } }
+         tool_choice: { type: 'function', function: { name: 'generate_flashcards' } },
+         // Generous output budget so large sets (up to 100 cards) are never
+         // cut off by a low gateway default.
+         max_tokens: 32768
        }),
      });
  
@@ -133,21 +177,25 @@ ANSWER QUALITY:
      }
  
       const data = await response.json();
-      console.log('AI response received:', JSON.stringify(data, null, 2));
-      
+      console.log('AI response received, finish_reason:', data.choices?.[0]?.finish_reason);
+
       // Extract flashcards from tool call response
       let flashcards: Array<{ term: string; definition: string }> = [];
-      
+
       const toolCalls = data.choices?.[0]?.message?.tool_calls;
       console.log('Tool calls found:', toolCalls ? toolCalls.length : 0);
-      
+
       if (toolCalls && toolCalls.length > 0) {
+        const rawArgs = toolCalls[0].function.arguments;
         try {
-          const args = JSON.parse(toolCalls[0].function.arguments);
-          console.log('Parsed tool arguments:', JSON.stringify(args, null, 2));
+          const args = JSON.parse(rawArgs);
           flashcards = args.flashcards || [];
         } catch (parseError) {
-          console.error('Failed to parse tool call arguments:', parseError);
+          // Large outputs can occasionally be truncated mid-JSON; recover
+          // every complete card instead of failing the whole generation.
+          console.error('Failed to parse tool call arguments, salvaging complete cards:', parseError);
+          flashcards = salvageFlashcards(rawArgs);
+          console.log('Salvaged flashcards:', flashcards.length);
         }
       }
       
@@ -169,6 +217,13 @@ ANSWER QUALITY:
         }
       }
  
+     // Keep only well-formed cards and enforce the hard cap.
+     if (Array.isArray(flashcards)) {
+       flashcards = flashcards
+         .filter((c) => c && typeof c.term === 'string' && typeof c.definition === 'string' && c.term.trim() && c.definition.trim())
+         .slice(0, MAX_FLASHCARDS);
+     }
+
      if (!Array.isArray(flashcards) || flashcards.length === 0) {
        return new Response(JSON.stringify({ error: 'No flashcards could be generated from this content' }), {
          status: 400,
