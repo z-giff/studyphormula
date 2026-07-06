@@ -260,7 +260,7 @@ const StudyMode = () => {
               </Card>
             ) : currentCard.flashcard_type === "flowchart" && currentCard.interactive_data ? (
               <Card
-                className="relative min-h-[500px] cursor-pointer border-0 overflow-hidden flex flex-col"
+                className="relative h-[500px] cursor-pointer border-0 overflow-hidden flex flex-col"
                 style={{
                   backgroundColor: cardColor,
                   color: textColor,
@@ -271,7 +271,7 @@ const StudyMode = () => {
                 onClick={handleFlip}
               >
                 <div
-                  className="p-12 w-full flex-1 flex flex-col"
+                  className="p-12 w-full flex-1 flex flex-col min-h-0"
                   style={{
                     transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
                     transformStyle: "preserve-3d",
@@ -283,11 +283,13 @@ const StudyMode = () => {
                       <p className="text-sm opacity-70 mt-8">Click to reveal flowchart</p>
                     </div>
                   ) : (
-                    <div className="flex-1 flex flex-col">
+                    <div className="flex-1 flex flex-col min-h-0">
                       <p className="text-sm uppercase tracking-wide opacity-80 mb-4 text-center">Flowchart</p>
-                      <FlowchartCanvasDisplay
-                        flowchartData={currentCard.interactive_data}
-                      />
+                      <div className="flex-1 min-h-0">
+                        <FlowchartCanvasDisplay
+                          flowchartData={currentCard.interactive_data}
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
