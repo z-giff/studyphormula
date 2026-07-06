@@ -279,7 +279,6 @@ const StudyMode = () => {
                 >
                   {!isFlipped ? (
                     <div className="text-center space-y-6 flex-1 flex flex-col items-center justify-center">
-                      <p className="text-sm uppercase tracking-wide opacity-80">Question</p>
                       <h2 className="text-4xl font-bold break-words">{currentCard.term}</h2>
                       <p className="text-sm opacity-70 mt-8">Click to reveal flowchart</p>
                     </div>
@@ -314,7 +313,6 @@ const StudyMode = () => {
                 >
                   {!isFlipped ? (
                     <div className="text-center space-y-6 flex-1 flex flex-col items-center justify-center">
-                      <p className="text-sm uppercase tracking-wide opacity-80">Question</p>
                       <h2 className="text-4xl font-bold break-words">{currentCard.term}</h2>
                       <p className="text-sm opacity-70 mt-8">Click to reveal drawing</p>
                     </div>
@@ -347,9 +345,11 @@ const StudyMode = () => {
                     transformStyle: "preserve-3d",
                   }}
                 >
-                  <p className="text-sm uppercase tracking-wide opacity-80">
-                    {isFlipped ? "Definition" : "Term"}
-                  </p>
+                  {isFlipped && (
+                    <p className="text-sm uppercase tracking-wide opacity-80">
+                      Definition
+                    </p>
+                  )}
 
                   {!isFlipped ? (
                     <>
