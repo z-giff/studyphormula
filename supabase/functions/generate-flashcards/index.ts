@@ -11,8 +11,8 @@ const MAX_CONTENT_CHARS = 120000;
 // its own AI call with an explicit per-section card quota. Small focused
 // tasks with exact targets are covered reliably; one big "make many cards"
 // task gets undershot.
-const SECTION_TARGET_CHARS = 5000;
-const MAX_SECTIONS = 8;
+const SECTION_TARGET_CHARS = 3000;
+const MAX_SECTIONS = 12;
 
 interface Flashcard {
   term: string;
@@ -98,7 +98,9 @@ function splitIntoSections(content: string): string[] {
 
 // How many cards a section of this size should produce.
 function cardTargetFor(chars: number): number {
-  return Math.min(30, Math.max(8, Math.round(chars / 200)));
+  // Denser coverage: ~1 card per 130 chars, with a healthy floor so short
+  // documents still produce a substantial set.
+  return Math.min(40, Math.max(15, Math.round(chars / 130)));
 }
 
 const systemPrompt = `You are an expert educator creating exam-focused flashcards optimized for long-term understanding, active recall, and assessment preparation.
@@ -165,7 +167,7 @@ async function generateSectionCards(
   const sectionLabel = totalSections > 1
     ? `section ${sectionIndex + 1} of ${totalSections} of a larger document`
     : 'material';
-  const userMessage = `Generate ${target} exam-prep flashcards from this ${sectionLabel}. Aim for exactly ${target} cards — thoroughly cover every topic, subtopic, and high-yield testable detail in this content. Focus on what is most likely to appear on quizzes and exams. Use a natural mix of definition, question/answer, comparison, application, and simplified explanation cards. If a concept is complex, explain it in a simple way.\n\nContent:\n\n${section}`;
+  const userMessage = `Generate EXACTLY ${target} exam-prep flashcards from this ${sectionLabel}. This is a firm requirement, not a suggestion — do not stop early. If you are running out of obvious cards, break broader concepts into smaller sub-cards, add comparison, application, and example cards, and cover every named fact, figure, date, definition, mechanism, and subtopic. Only fall short of ${target} if the content is truly too small to support that many non-duplicate cards. Use a natural mix of definition, question/answer, comparison, application, and simplified explanation cards. If a concept is complex, explain it in a simple way.\n\nContent:\n\n${section}`;
 
   const { data, status } = await callGateway(apiKey, {
     model: 'google/gemini-3-flash-preview',
