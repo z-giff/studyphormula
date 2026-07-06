@@ -206,7 +206,7 @@ async function generateSectionCards(
     tool_choice: { type: 'function', function: { name: 'generate_flashcards' } },
     // Generous output budget so section payloads are never cut off by a low
     // gateway default.
-    max_tokens: 16384,
+    max_completion_tokens: 16384,
   });
 
   if (!data) return { cards: [], errorStatus: status };
