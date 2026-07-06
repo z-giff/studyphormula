@@ -11,8 +11,8 @@ const MAX_CONTENT_CHARS = 120000;
 // its own AI call with an explicit per-section card quota. Small focused
 // tasks with exact targets are covered reliably; one big "make many cards"
 // task gets undershot.
-const SECTION_TARGET_CHARS = 5000;
-const MAX_SECTIONS = 8;
+const SECTION_TARGET_CHARS = 3000;
+const MAX_SECTIONS = 12;
 
 interface Flashcard {
   term: string;
@@ -98,7 +98,9 @@ function splitIntoSections(content: string): string[] {
 
 // How many cards a section of this size should produce.
 function cardTargetFor(chars: number): number {
-  return Math.min(30, Math.max(8, Math.round(chars / 200)));
+  // Denser coverage: ~1 card per 130 chars, with a healthy floor so short
+  // documents still produce a substantial set.
+  return Math.min(40, Math.max(15, Math.round(chars / 130)));
 }
 
 const systemPrompt = `You are an expert educator creating exam-focused flashcards optimized for long-term understanding, active recall, and assessment preparation.
