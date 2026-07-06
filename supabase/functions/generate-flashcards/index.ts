@@ -167,7 +167,7 @@ async function generateSectionCards(
   const sectionLabel = totalSections > 1
     ? `section ${sectionIndex + 1} of ${totalSections} of a larger document`
     : 'material';
-  const userMessage = `Generate ${target} exam-prep flashcards from this ${sectionLabel}. Aim for exactly ${target} cards — thoroughly cover every topic, subtopic, and high-yield testable detail in this content. Focus on what is most likely to appear on quizzes and exams. Use a natural mix of definition, question/answer, comparison, application, and simplified explanation cards. If a concept is complex, explain it in a simple way.\n\nContent:\n\n${section}`;
+  const userMessage = `Generate EXACTLY ${target} exam-prep flashcards from this ${sectionLabel}. This is a firm requirement, not a suggestion — do not stop early. If you are running out of obvious cards, break broader concepts into smaller sub-cards, add comparison, application, and example cards, and cover every named fact, figure, date, definition, mechanism, and subtopic. Only fall short of ${target} if the content is truly too small to support that many non-duplicate cards. Use a natural mix of definition, question/answer, comparison, application, and simplified explanation cards. If a concept is complex, explain it in a simple way.\n\nContent:\n\n${section}`;
 
   const { data, status } = await callGateway(apiKey, {
     model: 'google/gemini-3-flash-preview',
