@@ -6,9 +6,9 @@ import { useNavigate } from "react-router-dom";
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signInWithGoogle: () => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, next?: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string, next?: string) => Promise<{ error: any }>;
+  signInWithGoogle: (next?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   loading: boolean;
 }
@@ -41,8 +41,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string) => {
-    const redirectUrl = `${window.location.origin}/dashboard`;
+  const safeNext = (next?: string) => {
+    if (!next || !next.startsWith("/") || next.startsWith("//")) return "/dashboard";
+    return next;
+  };
+
+  const signUp = async (email: string, password: string, fullName: string, next?: string) => {
+    const target = safeNext(next);
+    const redirectUrl = `${window.location.origin}${target}`;
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -56,27 +62,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
     
     if (!error) {
-      navigate("/dashboard");
+      navigate(target);
     }
     
     return { error };
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, next?: string) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
     
     if (!error) {
-      navigate("/dashboard");
+      navigate(safeNext(next));
     }
     
     return { error };
   };
 
-  const signInWithGoogle = async () => {
-    const redirectUrl = `${window.location.origin}/dashboard`;
+  const signInWithGoogle = async (next?: string) => {
+    const redirectUrl = `${window.location.origin}${safeNext(next)}`;
     
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
