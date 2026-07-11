@@ -5,3 +5,6 @@ project_id = "awvwrdjtptjyalmsyejt"
  
  [functions.generate-flashcards]
  verify_jwt = false
+
+ [functions.waitlist-signup]
+ verify_jwt = false

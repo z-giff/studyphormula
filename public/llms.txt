@@ -4,7 +4,8 @@
 
 Phormula helps students and lifelong learners memorize faster with beautiful color-coded flashcards, interactive diagram labeling, flowcharts, and AI-assisted study modes.
 
+Phormula is currently in pre-launch. Visitors can join the waitlist for early access.
+
 ## Pages
 
-- [Home](/): Product overview and sign-up entry point.
-- [Sign in / Sign up](/auth): Create an account or sign in to access study tools.
+- [Home](/): Pre-launch waitlist — join with your email for early access.
