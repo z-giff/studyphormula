@@ -15,6 +15,7 @@ import FilePage from "./pages/File";
 import BookmarksSet from "./pages/BookmarksSet";
 import NotFound from "./pages/NotFound";
  import SwipeStudy from "./pages/SwipeStudy";
+import OAuthConsent from "./pages/OAuthConsent";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/study/:id" element={<StudyMode />} />
               <Route path="/quiz/:id" element={<QuizMode />} />
                <Route path="/swipe/:id" element={<SwipeStudy />} />
+              <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

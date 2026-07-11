@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import LogoOrb from "@/components/LogoOrb";
@@ -13,12 +13,14 @@ import GlowSphere from "@/components/GlowSphere";
 
 const Auth = () => {
   const { signIn, signUp, signInWithGoogle } = useAuth();
+  const [searchParams] = useSearchParams();
+  const nextParam = searchParams.get("next") ?? undefined;
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
-    const { error } = await signInWithGoogle();
+    const { error } = await signInWithGoogle(nextParam);
     setIsGoogleLoading(false);
     
     if (error) {
@@ -47,7 +49,7 @@ const Auth = () => {
     }
 
     setIsLoading(true);
-    const { error } = await signIn(loginData.email, loginData.password);
+    const { error } = await signIn(loginData.email, loginData.password, nextParam);
     setIsLoading(false);
 
     if (error) {
@@ -74,7 +76,7 @@ const Auth = () => {
     }
 
     setIsLoading(true);
-    const { error } = await signUp(signupData.email, signupData.password, signupData.fullName);
+    const { error } = await signUp(signupData.email, signupData.password, signupData.fullName, nextParam);
     setIsLoading(false);
 
     if (error) {

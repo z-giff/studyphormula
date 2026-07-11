@@ -1,0 +1,168 @@
+{
+  "version": 1,
+  "sdk_version": "0.20.1",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://awvwrdjtptjyalmsyejt.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "phormula-mcp",
+      "version": "0.1.0",
+      "title": "Phormula"
+    },
+    "tools": [
+      {
+        "name": "list_flashcard_sets",
+        "title": "List flashcard sets",
+        "description": "List the signed-in user's flashcard sets, most recently updated first.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "description": "Max number of sets to return (default 50)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_flashcard_set",
+        "title": "Get flashcard set",
+        "description": "Read a single flashcard set and all of its flashcards (term, definition, position).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "set_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "The flashcard set id."
+            }
+          },
+          "required": [
+            "set_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_flashcard_set",
+        "title": "Create flashcard set",
+        "description": "Create a new empty flashcard set for the signed-in user.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "color": {
+              "type": "string",
+              "maxLength": 32,
+              "description": "Hex color like #38b6ff."
+            }
+          },
+          "required": [
+            "title"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_flashcard",
+        "title": "Create flashcard",
+        "description": "Add a standard term/definition flashcard to an existing set owned by the signed-in user.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "set_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "term": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            },
+            "definition": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4000
+            }
+          },
+          "required": [
+            "set_id",
+            "term",
+            "definition"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "delete_flashcard",
+        "title": "Delete flashcard",
+        "description": "Delete a single flashcard by id from a set owned by the signed-in user.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "flashcard_id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": [
+            "flashcard_id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
