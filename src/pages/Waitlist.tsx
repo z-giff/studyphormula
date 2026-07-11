@@ -24,10 +24,10 @@ const Waitlist = () => {
   const [waitlistCount, setWaitlistCount] = useState<number | null>(null);
 
   useEffect(() => {
-    supabase
-      .rpc("waitlist_count")
+    supabase.functions
+      .invoke("waitlist-count")
       .then(({ data }) => {
-        if (typeof data === "number") setWaitlistCount(data);
+        if (data && typeof data.count === "number") setWaitlistCount(data.count);
       });
   }, []);
 
