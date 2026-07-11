@@ -13,65 +13,10 @@ const TURNSTILE_TEST_SECRET = "1x0000000000000000000000000000000AA";
 const EMAIL_MAX_LENGTH = 255;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-// ===========================================================================
-// CONFIRMATION EMAIL TEMPLATE — EDIT ME
-// This is a generic placeholder. Update the subject, copy, and styling before
-// launch. Keep it a single self-contained HTML string (inline styles only —
-// most email clients strip <style> blocks).
-// ===========================================================================
-const EMAIL_SUBJECT = "You're on the Phormula waitlist!";
-
-const EMAIL_HTML = `
-<!DOCTYPE html>
-<html>
-  <body style="margin:0;padding:0;background-color:#f6f6f8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f6f6f8;padding:40px 16px;">
-      <tr>
-        <td align="center">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background-color:#ffffff;border-radius:16px;padding:40px 32px;box-shadow:0 1px 4px rgba(20,20,40,0.08);">
-            <tr>
-              <td align="center" style="padding-bottom:24px;">
-                <div style="font-size:24px;font-weight:700;color:#1a1a2e;letter-spacing:0.5px;">Phormula</div>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding-bottom:16px;">
-                <h1 style="margin:0;font-size:22px;font-weight:600;color:#1a1a2e;text-align:center;">You're on the list &#127881;</h1>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding-bottom:24px;">
-                <p style="margin:0;font-size:15px;line-height:1.6;color:#4a4a5e;text-align:center;">
-                  Thanks for joining the Phormula waitlist! We're building the easiest,
-                  most satisfying way to memorize &mdash; beautiful color-coded flashcards,
-                  interactive diagrams, and AI-generated study sets.
-                </p>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding-bottom:24px;">
-                <p style="margin:0;font-size:15px;line-height:1.6;color:#4a4a5e;text-align:center;">
-                  We'll email you the moment early access opens. No spam, ever.
-                </p>
-              </td>
-            </tr>
-            <tr>
-              <td align="center" style="padding-top:8px;border-top:1px solid #ececf1;">
-                <p style="margin:16px 0 0;font-size:12px;color:#9a9aad;text-align:center;">
-                  &copy; 2026 Phormula &middot; You received this because you signed up at phormula.co
-                </p>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </body>
-</html>
-`;
-// ===========================================================================
-// END OF EMAIL TEMPLATE
-// ===========================================================================
+// NOTE: Confirmation emails are handled through Lovable, not this function.
+// This function only records the signup (after captcha verification). If you
+// ever want the function to send the email itself again, re-add the sending
+// logic where `confirmation_sent_at` is noted below.
 
 function jsonResponse(body: Record<string, unknown>, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -103,40 +48,6 @@ async function verifyTurnstile(token: string, remoteIp: string | null): Promise<
     console.warn("Turnstile verification rejected:", data["error-codes"]);
   }
   return data.success === true;
-}
-
-async function sendConfirmationEmail(email: string): Promise<boolean> {
-  const resendApiKey = Deno.env.get("RESEND_API_KEY");
-  if (!resendApiKey) {
-    console.warn("RESEND_API_KEY not configured — skipping confirmation email");
-    return false;
-  }
-
-  // Default sender works out of the box on Resend; set RESEND_FROM to a
-  // verified domain sender (e.g. "Phormula <hello@phormula.co>") for production.
-  const from = Deno.env.get("RESEND_FROM") || "Phormula <onboarding@resend.dev>";
-
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${resendApiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from,
-      to: [email],
-      subject: EMAIL_SUBJECT,
-      html: EMAIL_HTML,
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error("Resend API error:", response.status, errorText);
-    return false;
-  }
-
-  return true;
 }
 
 serve(async (req) => {
@@ -174,11 +85,9 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    const { data: inserted, error: insertError } = await supabase
+    const { error: insertError } = await supabase
       .from('waitlist')
-      .insert({ email: rawEmail })
-      .select('id')
-      .single();
+      .insert({ email: rawEmail });
 
     let alreadyRegistered = false;
     if (insertError) {
@@ -193,15 +102,9 @@ serve(async (req) => {
       }
     }
 
-    if (!alreadyRegistered && inserted) {
-      const emailSent = await sendConfirmationEmail(rawEmail);
-      if (emailSent) {
-        await supabase
-          .from('waitlist')
-          .update({ confirmation_sent_at: new Date().toISOString() })
-          .eq('id', inserted.id);
-      }
-    }
+    // Confirmation email is sent via Lovable. If that ever moves back into
+    // this function, send it here for new signups only (not duplicates) and
+    // stamp `confirmation_sent_at` on the inserted row.
 
     const { data: count } = await supabase.rpc('waitlist_count');
 

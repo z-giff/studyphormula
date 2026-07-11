@@ -51,21 +51,14 @@ Before going live:
 3. Put the **secret key** in Supabase → Project Settings → Edge Functions →
    Secrets → `TURNSTILE_SECRET_KEY`.
 
-### 2. Resend (confirmation email)
+### 2. Confirmation email
 
-1. Create an API key at https://resend.com (free tier is plenty).
-2. Add Supabase secret `RESEND_API_KEY`.
-3. Optionally verify your domain in Resend and set secret
-   `RESEND_FROM="Phormula <hello@phormula.co>"` (defaults to
-   `onboarding@resend.dev`, which only delivers to your own Resend account
-   email until a domain is verified).
+Confirmation emails are handled through **Lovable**, not this codebase. The
+`waitlist-signup` edge function only verifies the captcha and records the
+signup; it does not send email. Edit the email content and trigger in Lovable.
 
-If `RESEND_API_KEY` is missing, signups still work — the email is just
-skipped (logged as a warning).
-
-**Editing the email:** the template lives in
-`supabase/functions/waitlist-signup/index.ts` between the
-`CONFIRMATION EMAIL TEMPLATE — EDIT ME` markers.
+The `waitlist` table keeps an unused `confirmation_sent_at` column in case
+email sending is ever moved back into the edge function later.
 
 ## Social proof counter
 
