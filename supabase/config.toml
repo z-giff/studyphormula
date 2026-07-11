@@ -9,5 +9,8 @@ project_id = "awvwrdjtptjyalmsyejt"
  [functions.waitlist-signup]
  verify_jwt = false
 
+ [functions.waitlist-count]
+ verify_jwt = false
+
  [functions.process-email-queue]
  verify_jwt = true
