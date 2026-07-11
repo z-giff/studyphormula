@@ -5,9 +5,5 @@
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
-  <url>
-    <loc>https://phormula.co/auth</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-  </url>
+  <!-- /auth is gated behind the waitlist during pre-launch; re-add it at launch. -->
 </urlset>

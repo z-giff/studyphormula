@@ -198,12 +198,36 @@ export type Database = {
           },
         ]
       }
+      waitlist: {
+        Row: {
+          confirmation_sent_at: string | null
+          created_at: string
+          email: string
+          id: string
+        }
+        Insert: {
+          confirmation_sent_at?: string | null
+          created_at?: string
+          email: string
+          id?: string
+        }
+        Update: {
+          confirmation_sent_at?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      waitlist_count: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
