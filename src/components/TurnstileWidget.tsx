@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // Cloudflare Turnstile "always passes" test site key — works on any domain
 // with no setup, so the waitlist works out of the box in development.
@@ -58,6 +58,7 @@ interface TurnstileWidgetProps {
 const TurnstileWidget = ({ onToken, className = "" }: TurnstileWidgetProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
   const onTokenRef = useRef(onToken);
   onTokenRef.current = onToken;
 
@@ -78,6 +79,7 @@ const TurnstileWidget = ({ onToken, className = "" }: TurnstileWidgetProps) => {
       })
       .catch((error) => {
         console.error(error);
+        if (!cancelled) setLoadFailed(true);
         onTokenRef.current(null);
       });
 
@@ -89,6 +91,15 @@ const TurnstileWidget = ({ onToken, className = "" }: TurnstileWidgetProps) => {
       }
     };
   }, []);
+
+  if (loadFailed) {
+    return (
+      <p className={`text-xs text-muted-foreground font-light text-center ${className}`}>
+        The verification widget couldn't load. Please disable ad blockers for
+        this site and refresh the page.
+      </p>
+    );
+  }
 
   return <div ref={containerRef} className={className} />;
 };
