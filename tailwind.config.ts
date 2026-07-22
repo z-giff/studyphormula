@@ -15,9 +15,9 @@ export default {
     extend: {
       fontFamily: {
         'cursive': ['Dancing Script', 'cursive'],
-        'display': ['Outfit', 'sans-serif'],
-        'sans': ['Elms Sans', 'sans-serif'],
-        'heading': ['Elms Sans', 'sans-serif'],
+        'display': ['Fraunces', 'Georgia', 'serif'],
+        'sans': ['Inter', 'system-ui', 'sans-serif'],
+        'heading': ['Fraunces', 'Georgia', 'serif'],
         'handwriting': ['Caveat', 'cursive'],
       },
       colors: {
@@ -63,6 +63,16 @@ export default {
           pink: "hsl(var(--deck-pink))",
           teal: "hsl(var(--deck-teal))",
         },
+        ember: {
+          DEFAULT: "hsl(var(--ember))",
+          deep: "hsl(var(--ember-deep))",
+          glow: "hsl(var(--ember-glow))",
+        },
+        ink: {
+          DEFAULT: "hsl(var(--ink))",
+          soft: "hsl(var(--ink-soft))",
+        },
+        paper: "hsl(var(--paper))",
       },
       borderRadius: {
         lg: "var(--radius)",

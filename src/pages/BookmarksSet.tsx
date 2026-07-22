@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Play, Bookmark } from "lucide-react";
+import { ArrowLeft, Brain, Bookmark } from "lucide-react";
 import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { StackedFlashcardDeck } from "@/components/StackedFlashcardDeck";
@@ -118,7 +118,7 @@ const BookmarksSet = () => {
             {flashcards.length > 0 && (
               <Link to="/study/bookmarks">
                 <Button size="lg">
-                  <Play className="h-5 w-5 mr-2" />
+                  <Brain className="h-5 w-5 mr-2" />
                   Memorize
                 </Button>
               </Link>

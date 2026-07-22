@@ -52,9 +52,9 @@ const LogoOrb = ({ size = "md", showWordmark = true, linkTo = "/", className = "
           style={{
             background: `radial-gradient(
               ellipse 100% 100% at 40% 35%,
-              hsla(320, 45%, 70%, 0.25) 0%,
-              hsla(210, 45%, 70%, 0.28) 30%,
-              hsla(220, 40%, 50%, 0.18) 60%,
+              hsla(24, 45%, 70%, 0.25) 0%,
+              hsla(38, 45%, 70%, 0.28) 30%,
+              hsla(32, 40%, 50%, 0.18) 60%,
               transparent 80%
             )`,
             filter: "blur(6px)",
@@ -68,10 +68,10 @@ const LogoOrb = ({ size = "md", showWordmark = true, linkTo = "/", className = "
             background: `
               radial-gradient(
                 ellipse 120% 120% at 30% 25%,
-                hsla(200, 55%, 85%, 0.7) 0%,
-                hsla(210, 50%, 70%, 0.55) 20%,
-                hsla(280, 40%, 55%, 0.4) 45%,
-                hsla(320, 35%, 45%, 0.2) 65%,
+                hsla(42, 55%, 85%, 0.7) 0%,
+                hsla(38, 50%, 70%, 0.55) 20%,
+                hsla(18, 40%, 55%, 0.4) 45%,
+                hsla(24, 35%, 45%, 0.2) 65%,
                 transparent 85%
               )
             `,
@@ -86,8 +86,8 @@ const LogoOrb = ({ size = "md", showWordmark = true, linkTo = "/", className = "
             background: `
               radial-gradient(
                 ellipse 100% 100% at 75% 80%,
-                hsla(280, 30%, 18%, 0.4) 0%,
-                hsla(220, 30%, 25%, 0.25) 30%,
+                hsla(18, 30%, 18%, 0.4) 0%,
+                hsla(32, 30%, 25%, 0.25) 30%,
                 transparent 60%
               )
             `,
@@ -102,13 +102,13 @@ const LogoOrb = ({ size = "md", showWordmark = true, linkTo = "/", className = "
             background: `
               conic-gradient(
                 from ${colorShift}deg at 45% 40%,
-                hsla(200, 50%, 80%, 0.6) 0%,
-                hsla(210, 45%, 65%, 0.65) 15%,
-                hsla(320, 45%, 65%, 0.6) 35%,
-                hsla(330, 40%, 55%, 0.55) 50%,
-                hsla(280, 40%, 60%, 0.5) 65%,
-                hsla(210, 45%, 70%, 0.55) 80%,
-                hsla(200, 50%, 80%, 0.6) 100%
+                hsla(42, 50%, 80%, 0.6) 0%,
+                hsla(38, 45%, 65%, 0.65) 15%,
+                hsla(24, 45%, 65%, 0.6) 35%,
+                hsla(14, 40%, 55%, 0.55) 50%,
+                hsla(18, 40%, 60%, 0.5) 65%,
+                hsla(38, 45%, 70%, 0.55) 80%,
+                hsla(42, 50%, 80%, 0.6) 100%
               )
             `,
             filter: "blur(2px)",
@@ -127,8 +127,8 @@ const LogoOrb = ({ size = "md", showWordmark = true, linkTo = "/", className = "
             background: `
               radial-gradient(
                 ellipse 100% 80% at 50% 60%,
-                hsla(200, 60%, 95%, 0.85) 0%,
-                hsla(210, 50%, 85%, 0.5) 40%,
+                hsla(42, 60%, 95%, 0.85) 0%,
+                hsla(38, 50%, 85%, 0.5) 40%,
                 transparent 80%
               )
             `,
@@ -147,8 +147,8 @@ const LogoOrb = ({ size = "md", showWordmark = true, linkTo = "/", className = "
             background: `
               radial-gradient(
                 ellipse at 50% 50%,
-                hsla(320, 60%, 95%, 0.9) 0%,
-                hsla(310, 50%, 88%, 0.55) 50%,
+                hsla(24, 60%, 95%, 0.9) 0%,
+                hsla(26, 50%, 88%, 0.55) 50%,
                 transparent 100%
               )
             `,
@@ -167,9 +167,9 @@ const LogoOrb = ({ size = "md", showWordmark = true, linkTo = "/", className = "
             background: `
               radial-gradient(
                 ellipse 90% 90% at 45% 45%,
-                hsla(320, 55%, 88%, 0.65) 0%,
-                hsla(280, 45%, 75%, 0.5) 30%,
-                hsla(215, 40%, 55%, 0.35) 55%,
+                hsla(24, 55%, 88%, 0.65) 0%,
+                hsla(18, 45%, 75%, 0.5) 30%,
+                hsla(36, 40%, 55%, 0.35) 55%,
                 transparent 80%
               )
             `,
@@ -188,9 +188,9 @@ const LogoOrb = ({ size = "md", showWordmark = true, linkTo = "/", className = "
             background: `
               radial-gradient(
                 ellipse at 40% 40%,
-                hsla(315, 60%, 95%, 0.7) 0%,
-                hsla(320, 50%, 85%, 0.45) 35%,
-                hsla(280, 40%, 70%, 0.3) 60%,
+                hsla(28, 60%, 95%, 0.7) 0%,
+                hsla(24, 50%, 85%, 0.45) 35%,
+                hsla(18, 40%, 70%, 0.3) 60%,
                 transparent 85%
               )
             `,
@@ -206,9 +206,9 @@ const LogoOrb = ({ size = "md", showWordmark = true, linkTo = "/", className = "
               radial-gradient(
                 circle at 50% 50%,
                 transparent 55%,
-                hsla(320, 40%, 70%, 0.2) 65%,
-                hsla(280, 35%, 55%, 0.12) 75%,
-                hsla(220, 35%, 45%, 0.08) 85%,
+                hsla(24, 40%, 70%, 0.2) 65%,
+                hsla(18, 35%, 55%, 0.12) 75%,
+                hsla(32, 35%, 45%, 0.08) 85%,
                 transparent 95%
               )
             `,

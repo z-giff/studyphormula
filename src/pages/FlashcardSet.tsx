@@ -23,6 +23,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import LogoOrb from "@/components/LogoOrb";
 import phormulaLogo from "@/assets/phormula-text-logo.png";
 import { RenameSetDialog } from "@/components/RenameSetDialog";
+import { StudyModeIcon } from "@/components/StudyModeIcon";
 
 const PRESET_COLORS = [
   "#000000", // Black
@@ -325,19 +326,19 @@ const FlashcardSetPage = () => {
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuItem asChild>
                     <Link to={`/study/${id}`}>
-                      <Play className="h-4 w-4 mr-2" />
+                      <StudyModeIcon mode="memorize" className="mr-2" />
                       Memorize
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to={`/swipe/${id}`}>
-                      <Repeat className="h-4 w-4 mr-2" />
+                      <StudyModeIcon mode="swipe" className="mr-2" />
                       Swipe Study
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to={`/quiz/${id}`}>
-                      <Crown className="h-4 w-4 mr-2" />
+                      <StudyModeIcon mode="quiz" className="mr-2" />
                       MC Quiz
                       <span className="ml-auto text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">Premium</span>
                     </Link>

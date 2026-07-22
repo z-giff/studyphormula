@@ -257,7 +257,8 @@ const Dashboard = () => {
 
       <main className="container mx-auto px-6 py-12 max-w-6xl">
         <div className="mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2 text-foreground">Your Phormula to Studying</h1>
+          <p className="text-xs uppercase tracking-[0.3em] text-primary font-medium mb-2">Dashboard</p>
+          <h1 className="text-3xl md:text-4xl font-semibold mb-2 text-foreground">Your Phormula to Studying</h1>
           <p className="text-sm text-muted-foreground">Create and manage your study materials</p>
         </div>
 

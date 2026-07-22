@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Layers, MousePointerClick, Workflow, PenLine } from "lucide-react";
 import { InteractiveFlashcardEditor } from "./InteractiveFlashcardEditor";
 import { FlowchartCanvasEditor } from "./FlowchartCanvasEditor";
 import { DrawingCanvasEditor } from "./DrawingCanvasEditor";
@@ -167,11 +168,24 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
         <form onSubmit={handleSubmit} className="flex flex-col">
           <div className="px-8 pb-6 space-y-7">
             <Tabs value={flashcardType} onValueChange={(v) => setFlashcardType(v as "standard" | "interactive" | "flowchart" | "drawing")}>
-              <TabsList className="grid w-full grid-cols-4 h-10 bg-muted/60 p-1 rounded-lg">
-                <TabsTrigger value="standard" className="rounded-md text-sm font-medium">Standard</TabsTrigger>
-                <TabsTrigger value="interactive" className="rounded-md text-sm font-medium">Interactive</TabsTrigger>
-                <TabsTrigger value="flowchart" className="rounded-md text-sm font-medium">Flowchart</TabsTrigger>
-                <TabsTrigger value="drawing" className="rounded-md text-sm font-medium">Drawing</TabsTrigger>
+              {/* Flashcard types: circular, icon-only controls */}
+              <TabsList className="flex w-full justify-center gap-4 h-auto bg-transparent p-0">
+                {([
+                  { value: "standard", label: "Standard", Icon: Layers },
+                  { value: "interactive", label: "Interactive", Icon: MousePointerClick },
+                  { value: "flowchart", label: "Flowchart", Icon: Workflow },
+                  { value: "drawing", label: "Drawing", Icon: PenLine },
+                ] as const).map(({ value, label, Icon }) => (
+                  <TabsTrigger
+                    key={value}
+                    value={value}
+                    aria-label={label}
+                    title={label}
+                    className="w-12 h-12 rounded-full p-0 border border-border bg-secondary text-muted-foreground transition-all hover:text-foreground hover:scale-105 data-[state=active]:border-transparent data-[state=active]:text-primary-foreground data-[state=active]:shadow-[var(--shadow-ember)] data-[state=active]:[background:var(--gradient-ember)]"
+                  >
+                    <Icon className="h-5 w-5" />
+                  </TabsTrigger>
+                ))}
               </TabsList>
 
               <TabsContent value="standard" className="space-y-5 mt-6">

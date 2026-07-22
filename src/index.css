@@ -8,36 +8,46 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Neutral, Apple/Linear-like base. Accent is a refined indigo→violet gradient. */
-    --background: 0 0% 98%;             /* #FAFAFA */
-    --foreground: 222 24% 12%;
+    /* ── Ember & Ink ─────────────────────────────────────────────
+       Warm paper surfaces, ink-dark text, a burnt-ember accent.
+       Ink for structure, ember for action. */
+    --background: 36 33% 97%;           /* warm paper */
+    --foreground: 24 30% 10%;           /* warm ink */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222 24% 12%;
+    --card: 36 40% 99%;
+    --card-foreground: 24 30% 10%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 24% 12%;
+    --popover: 36 40% 99%;
+    --popover-foreground: 24 30% 10%;
 
-    --primary: 244 70% 58%;             /* indigo */
-    --primary-foreground: 0 0% 100%;
+    --primary: 19 82% 49%;              /* ember */
+    --primary-foreground: 36 40% 99%;
 
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 222 24% 16%;
+    --secondary: 30 26% 92%;
+    --secondary-foreground: 24 28% 14%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 30 26% 92%;
+    --muted-foreground: 25 12% 42%;
 
-    --accent: 270 70% 62%;              /* violet accent */
-    --accent-foreground: 0 0% 100%;
+    --accent: 27 65% 91%;               /* soft ember tint (hovers, highlights) */
+    --accent-foreground: 22 55% 26%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 72% 46%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 244 70% 58%;
+    --border: 30 20% 87%;
+    --input: 30 20% 87%;
+    --ring: 19 82% 49%;
 
     --radius: 0.875rem;
+
+    /* Ember & Ink named tokens */
+    --ember: 19 82% 49%;
+    --ember-deep: 6 72% 42%;
+    --ember-glow: 32 95% 58%;
+    --ink: 24 30% 10%;
+    --ink-soft: 24 18% 18%;
+    --paper: 36 33% 97%;
 
     /* Deck colors for flashcard sets - DO NOT MODIFY */
     --deck-blue: 200 100% 61%;
@@ -48,47 +58,64 @@ All colors MUST be HSL.
     --deck-pink: 330 81% 60%;
     --deck-teal: 185 75% 45%;
     
-    /* Brand gradient — used only as an accent (CTAs, highlights, hovers) */
-    --gradient-primary: linear-gradient(135deg, hsl(244 70% 58%) 0%, hsl(270 70% 62%) 100%);
-    --gradient-card: linear-gradient(to bottom, hsl(0 0% 100%) 0%, hsl(0 0% 99%) 100%);
+    /* Brand gradients — ember for action, ink for depth */
+    --gradient-primary: linear-gradient(135deg, hsl(19 82% 52%) 0%, hsl(6 72% 44%) 100%);
+    --gradient-ember: linear-gradient(135deg, hsl(32 95% 58%) 0%, hsl(19 82% 49%) 55%, hsl(6 72% 42%) 100%);
+    --gradient-ink: linear-gradient(160deg, hsl(24 25% 12%) 0%, hsl(24 30% 7%) 100%);
+    --gradient-card: linear-gradient(to bottom, hsl(36 40% 99%) 0%, hsl(36 36% 98%) 100%);
 
     /* Animations & soft shadows */
     --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    --shadow-card: 0 1px 2px hsl(220 9% 10% / 0.04), 0 1px 3px hsl(220 9% 10% / 0.04);
-    --shadow-card-hover: 0 4px 12px -2px hsl(220 9% 10% / 0.08), 0 2px 6px -2px hsl(220 9% 10% / 0.05);
+    --shadow-card: 0 1px 2px hsl(24 30% 10% / 0.05), 0 1px 3px hsl(24 30% 10% / 0.05);
+    --shadow-card-hover: 0 4px 14px -2px hsl(24 30% 10% / 0.10), 0 2px 6px -2px hsl(24 30% 10% / 0.06);
+    --shadow-ember: 0 6px 20px -6px hsl(19 82% 49% / 0.45);
   }
 
   .dark {
-    --background: 222 24% 8%;
-    --foreground: 0 0% 96%;
+    /* Ink night: warm charcoal, glowing ember */
+    --background: 24 22% 7%;
+    --foreground: 33 30% 94%;
 
-    --card: 222 22% 11%;
-    --card-foreground: 0 0% 96%;
+    --card: 24 20% 10%;
+    --card-foreground: 33 30% 94%;
 
-    --popover: 222 22% 11%;
-    --popover-foreground: 0 0% 96%;
+    --popover: 24 20% 10%;
+    --popover-foreground: 33 30% 94%;
 
-    --primary: 244 75% 66%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 21 88% 57%;
+    --primary-foreground: 24 30% 8%;
 
-    --secondary: 222 18% 16%;
-    --secondary-foreground: 0 0% 96%;
+    --secondary: 24 16% 15%;
+    --secondary-foreground: 33 30% 94%;
 
-    --muted: 222 18% 16%;
-    --muted-foreground: 220 9% 65%;
+    --muted: 24 16% 15%;
+    --muted-foreground: 30 12% 64%;
 
-    --accent: 270 70% 70%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 22 30% 18%;
+    --accent-foreground: 33 40% 90%;
 
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 222 16% 20%;
-    --input: 222 16% 20%;
-    --ring: 244 75% 66%;
-    
+    --border: 24 14% 18%;
+    --input: 24 14% 18%;
+    --ring: 21 88% 57%;
+
+    --ember: 21 88% 57%;
+    --ember-deep: 6 72% 46%;
+    --ember-glow: 32 95% 60%;
+    --ink: 33 30% 94%;
+    --ink-soft: 30 15% 80%;
+    --paper: 24 20% 10%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(21 88% 58%) 0%, hsl(6 72% 48%) 100%);
+    --gradient-ember: linear-gradient(135deg, hsl(32 95% 60%) 0%, hsl(21 88% 57%) 55%, hsl(6 72% 46%) 100%);
+    --gradient-ink: linear-gradient(160deg, hsl(24 20% 11%) 0%, hsl(24 25% 6%) 100%);
+    --gradient-card: linear-gradient(to bottom, hsl(24 20% 10%) 0%, hsl(24 20% 9%) 100%);
+
     --shadow-card: 0 4px 6px -1px hsl(0 0% 0% / 0.3), 0 2px 4px -1px hsl(0 0% 0% / 0.2);
     --shadow-card-hover: 0 10px 15px -3px hsl(0 0% 0% / 0.3), 0 4px 6px -2px hsl(0 0% 0% / 0.2);
+    --shadow-ember: 0 6px 24px -6px hsl(21 88% 57% / 0.5);
   }
 }
 
@@ -98,7 +125,14 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  /* Editorial hierarchy: ink-serif display for major headings,
+     clean sans for everything else. */
+  h1, h2 {
+    @apply font-display;
+    letter-spacing: -0.015em;
   }
 }
 
@@ -119,6 +153,28 @@ All colors MUST be HSL.
 
 .animate-float {
   animation: float 15s ease-in-out infinite;
+}
+
+/* Caption entrance for the Scene 0-9 story */
+@keyframes caption-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-caption-in {
+  animation: caption-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-caption-in {
+    animation: none;
+  }
 }
 
 /* React Flow node styling - remove default white background */
