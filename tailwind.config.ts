@@ -14,10 +14,11 @@ export default {
     },
     extend: {
       fontFamily: {
-        'cursive': ['Dancing Script', 'cursive'],
+        'cursive': ['Caveat', 'cursive'],
         'display': ['Fraunces', 'Georgia', 'serif'],
-        'sans': ['Inter', 'system-ui', 'sans-serif'],
-        'heading': ['Fraunces', 'Georgia', 'serif'],
+        'serif': ['Fraunces', 'Georgia', 'serif'],
+        'sans': ['Manrope', 'system-ui', 'sans-serif'],
+        'heading': ['Manrope', 'system-ui', 'sans-serif'],
         'handwriting': ['Caveat', 'cursive'],
       },
       colors: {
@@ -46,6 +47,13 @@ export default {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
         },
+        brand: {
+          amber: "hsl(var(--brand-amber))",
+          ember: "hsl(var(--brand-ember))",
+          pink: "hsl(var(--brand-pink))",
+        },
+        success: "hsl(var(--success))",
+        "line-strong": "hsl(var(--line-strong))",
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
@@ -63,16 +71,6 @@ export default {
           pink: "hsl(var(--deck-pink))",
           teal: "hsl(var(--deck-teal))",
         },
-        ember: {
-          DEFAULT: "hsl(var(--ember))",
-          deep: "hsl(var(--ember-deep))",
-          glow: "hsl(var(--ember-glow))",
-        },
-        ink: {
-          DEFAULT: "hsl(var(--ink))",
-          soft: "hsl(var(--ink-soft))",
-        },
-        paper: "hsl(var(--paper))",
       },
       borderRadius: {
         lg: "var(--radius)",

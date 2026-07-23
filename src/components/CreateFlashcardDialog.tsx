@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Layers, MousePointerClick, Workflow, PenLine } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { FileText, Layers, GitBranch, Signature } from "lucide-react";
 import { InteractiveFlashcardEditor } from "./InteractiveFlashcardEditor";
 import { FlowchartCanvasEditor } from "./FlowchartCanvasEditor";
 import { DrawingCanvasEditor } from "./DrawingCanvasEditor";
@@ -168,23 +169,28 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
         <form onSubmit={handleSubmit} className="flex flex-col">
           <div className="px-8 pb-6 space-y-7">
             <Tabs value={flashcardType} onValueChange={(v) => setFlashcardType(v as "standard" | "interactive" | "flowchart" | "drawing")}>
-              {/* Flashcard types: circular, icon-only controls */}
-              <TabsList className="flex w-full justify-center gap-4 h-auto bg-transparent p-0">
-                {([
-                  { value: "standard", label: "Standard", Icon: Layers },
-                  { value: "interactive", label: "Interactive", Icon: MousePointerClick },
-                  { value: "flowchart", label: "Flowchart", Icon: Workflow },
-                  { value: "drawing", label: "Drawing", Icon: PenLine },
-                ] as const).map(({ value, label, Icon }) => (
-                  <TabsTrigger
-                    key={value}
-                    value={value}
-                    aria-label={label}
-                    title={label}
-                    className="w-12 h-12 rounded-full p-0 border border-border bg-secondary text-muted-foreground transition-all hover:text-foreground hover:scale-105 data-[state=active]:border-transparent data-[state=active]:text-primary-foreground data-[state=active]:shadow-[var(--shadow-ember)] data-[state=active]:[background:var(--gradient-ember)]"
-                  >
-                    <Icon className="h-5 w-5" />
-                  </TabsTrigger>
+              {/* Flashcard types — circular, icon-only controls */}
+              <TabsList className="flex h-auto w-full justify-center gap-5 bg-transparent p-0">
+                {(
+                  [
+                    { value: "standard", label: "Standard", Icon: FileText },
+                    { value: "interactive", label: "Interactive", Icon: Layers },
+                    { value: "flowchart", label: "Flowchart", Icon: GitBranch },
+                    { value: "drawing", label: "Drawing", Icon: Signature },
+                  ] as const
+                ).map(({ value, label, Icon }) => (
+                  <Tooltip key={value}>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger
+                        value={value}
+                        aria-label={`${label} flashcard`}
+                        className="h-14 w-14 rounded-full border border-line-strong bg-secondary p-0 text-muted-foreground shadow-none transition-all hover:border-primary/50 hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-accent data-[state=active]:text-primary data-[state=active]:shadow-[var(--glow-ember)]"
+                      >
+                        <Icon className="h-5 w-5" strokeWidth={1.7} />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-xs">{label}</TooltipContent>
+                  </Tooltip>
                 ))}
               </TabsList>
 

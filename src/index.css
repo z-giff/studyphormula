@@ -2,54 +2,114 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here.
 All colors MUST be HSL.
+
+"Ember & Ink" — dark-first identity. The default (:root) palette is the dark
+theme: a plum-biased near-black ramp with the logo's amber→coral→pink ember
+gradient reserved for meaning (brand, primary actions, progress, focus).
+The previous light palette is preserved under `.light` for future use.
 */
 
 @layer base {
   :root {
-    /* ── Ember & Ink ─────────────────────────────────────────────
-       Warm paper surfaces, ink-dark text, a burnt-ember accent.
-       Ink for structure, ember for action. */
-    --background: 36 33% 97%;           /* warm paper */
-    --foreground: 24 30% 10%;           /* warm ink */
+    /* Ink ramp — plum-biased darks (hue ≈ 268°) */
+    --background: 266 24% 6%;            /* ink-0 #0E0B12 — page */
+    --foreground: 274 28% 95%;           /* text-hi #F3EFF6 */
 
-    --card: 36 40% 99%;
-    --card-foreground: 24 30% 10%;
+    --card: 270 21% 11%;                 /* ink-2 #1C1622 */
+    --card-foreground: 274 28% 95%;
 
-    --popover: 36 40% 99%;
-    --popover-foreground: 24 30% 10%;
+    --popover: 268 21% 14%;              /* ink-3 #241D2C */
+    --popover-foreground: 274 28% 95%;
 
-    --primary: 19 82% 49%;              /* ember */
-    --primary-foreground: 36 40% 99%;
+    /* Ember — primary action colour. Text on ember is always dark ink. */
+    --primary: 11 85% 66%;               /* #F2795F */
+    --primary-foreground: 19 44% 7%;     /* #1A0F0A — never white on ember */
 
-    --secondary: 30 26% 92%;
-    --secondary-foreground: 24 28% 14%;
+    --secondary: 270 21% 11%;            /* raised neutral surface */
+    --secondary-foreground: 274 28% 95%;
 
-    --muted: 30 26% 92%;
-    --muted-foreground: 25 12% 42%;
+    --muted: 268 21% 14%;
+    --muted-foreground: 269 13% 67%;     /* text-mid #ABA1B6 */
 
-    --accent: 27 65% 91%;               /* soft ember tint (hovers, highlights) */
-    --accent-foreground: 22 55% 26%;
+    /* Accent = subtle hover surface (shadcn semantics), not the brand pink */
+    --accent: 268 21% 16%;
+    --accent-foreground: 274 28% 95%;
 
-    --destructive: 0 72% 46%;
+    --destructive: 0 62% 52%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 30 20% 87%;
-    --input: 30 20% 87%;
-    --ring: 19 82% 49%;
+    --border: 268 20% 17%;               /* line #2A2233 */
+    --input: 268 20% 17%;
+    --ring: 11 85% 66%;
 
     --radius: 0.875rem;
 
-    /* Ember & Ink named tokens */
-    --ember: 19 82% 49%;
-    --ember-deep: 6 72% 42%;
-    --ember-glow: 32 95% 58%;
-    --ink: 24 30% 10%;
-    --ink-soft: 24 18% 18%;
-    --paper: 36 33% 97%;
+    /* Brand hues (for gradients, spines, glows) */
+    --brand-amber: 32 92% 61%;           /* #F7A03E */
+    --brand-ember: 11 85% 66%;           /* #F2795F */
+    --brand-pink: 334 81% 65%;           /* #EE5D9B */
+    --success: 150 40% 63%;              /* #7CC7A1 — "learned" */
+    --line-strong: 268 19% 23%;          /* interactive borders #3A3046 */
 
-    /* Deck colors for flashcard sets - DO NOT MODIFY */
+    /* Deck colors for flashcard sets — same seven slots, recalibrated as
+       luminous pastels that hold on ink surfaces. */
+    --deck-blue: 205 100% 72%;
+    --deck-red: 355 100% 74%;
+    --deck-green: 152 54% 67%;
+    --deck-purple: 264 100% 82%;
+    --deck-yellow: 45 100% 70%;
+    --deck-pink: 330 100% 78%;
+    --deck-teal: 185 66% 61%;
+
+    /* Brand gradient — used only as an accent (CTAs, progress, logo, active states) */
+    --gradient-primary: linear-gradient(118deg, hsl(32 92% 61%) 0%, hsl(11 85% 66%) 52%, hsl(334 81% 65%) 100%);
+    --gradient-card: linear-gradient(to bottom, hsl(270 21% 12%) 0%, hsl(270 21% 10%) 100%);
+
+    /* Motion tokens — one motion language everywhere */
+    --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-in-soft: cubic-bezier(0.55, 0, 0.55, 0.2);
+    --transition-smooth: all 0.25s var(--ease-out-soft);
+
+    /* Elevation on dark = deeper shadow + subtle warm edge */
+    --shadow-card: 0 1px 2px hsl(266 40% 2% / 0.5), 0 2px 8px hsl(266 40% 2% / 0.35);
+    --shadow-card-hover: 0 6px 20px -4px hsl(266 40% 2% / 0.6), 0 0 0 1px hsl(268 19% 23%);
+    --glow-ember: 0 4px 24px -6px hsl(11 85% 66% / 0.35);
+  }
+
+  /* Previous light palette, kept available as a secondary theme. */
+  .light {
+    --background: 0 0% 98%;
+    --foreground: 222 24% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 24% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 24% 12%;
+
+    --primary: 11 78% 56%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 222 24% 16%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 220 14% 94%;
+    --accent-foreground: 222 24% 16%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 11 78% 56%;
+
+    --line-strong: 220 13% 84%;
+
     --deck-blue: 200 100% 61%;
     --deck-red: 352 80% 58%;
     --deck-green: 164 29% 56%;
@@ -57,65 +117,34 @@ All colors MUST be HSL.
     --deck-yellow: 49 100% 68%;
     --deck-pink: 330 81% 60%;
     --deck-teal: 185 75% 45%;
-    
-    /* Brand gradients — ember for action, ink for depth */
-    --gradient-primary: linear-gradient(135deg, hsl(19 82% 52%) 0%, hsl(6 72% 44%) 100%);
-    --gradient-ember: linear-gradient(135deg, hsl(32 95% 58%) 0%, hsl(19 82% 49%) 55%, hsl(6 72% 42%) 100%);
-    --gradient-ink: linear-gradient(160deg, hsl(24 25% 12%) 0%, hsl(24 30% 7%) 100%);
-    --gradient-card: linear-gradient(to bottom, hsl(36 40% 99%) 0%, hsl(36 36% 98%) 100%);
 
-    /* Animations & soft shadows */
-    --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    --shadow-card: 0 1px 2px hsl(24 30% 10% / 0.05), 0 1px 3px hsl(24 30% 10% / 0.05);
-    --shadow-card-hover: 0 4px 14px -2px hsl(24 30% 10% / 0.10), 0 2px 6px -2px hsl(24 30% 10% / 0.06);
-    --shadow-ember: 0 6px 20px -6px hsl(19 82% 49% / 0.45);
+    --gradient-card: linear-gradient(to bottom, hsl(0 0% 100%) 0%, hsl(0 0% 99%) 100%);
+
+    --shadow-card: 0 1px 2px hsl(220 9% 10% / 0.04), 0 1px 3px hsl(220 9% 10% / 0.04);
+    --shadow-card-hover: 0 4px 12px -2px hsl(220 9% 10% / 0.08), 0 2px 6px -2px hsl(220 9% 10% / 0.05);
   }
 
+  /* `.dark` mirrors :root so `class="dark"` (next-themes) keeps working. */
   .dark {
-    /* Ink night: warm charcoal, glowing ember */
-    --background: 24 22% 7%;
-    --foreground: 33 30% 94%;
-
-    --card: 24 20% 10%;
-    --card-foreground: 33 30% 94%;
-
-    --popover: 24 20% 10%;
-    --popover-foreground: 33 30% 94%;
-
-    --primary: 21 88% 57%;
-    --primary-foreground: 24 30% 8%;
-
-    --secondary: 24 16% 15%;
-    --secondary-foreground: 33 30% 94%;
-
-    --muted: 24 16% 15%;
-    --muted-foreground: 30 12% 64%;
-
-    --accent: 22 30% 18%;
-    --accent-foreground: 33 40% 90%;
-
-    --destructive: 0 62% 50%;
+    --background: 266 24% 6%;
+    --foreground: 274 28% 95%;
+    --card: 270 21% 11%;
+    --card-foreground: 274 28% 95%;
+    --popover: 268 21% 14%;
+    --popover-foreground: 274 28% 95%;
+    --primary: 11 85% 66%;
+    --primary-foreground: 19 44% 7%;
+    --secondary: 270 21% 11%;
+    --secondary-foreground: 274 28% 95%;
+    --muted: 268 21% 14%;
+    --muted-foreground: 269 13% 67%;
+    --accent: 268 21% 16%;
+    --accent-foreground: 274 28% 95%;
+    --destructive: 0 62% 52%;
     --destructive-foreground: 0 0% 100%;
-
-    --border: 24 14% 18%;
-    --input: 24 14% 18%;
-    --ring: 21 88% 57%;
-
-    --ember: 21 88% 57%;
-    --ember-deep: 6 72% 46%;
-    --ember-glow: 32 95% 60%;
-    --ink: 33 30% 94%;
-    --ink-soft: 30 15% 80%;
-    --paper: 24 20% 10%;
-
-    --gradient-primary: linear-gradient(135deg, hsl(21 88% 58%) 0%, hsl(6 72% 48%) 100%);
-    --gradient-ember: linear-gradient(135deg, hsl(32 95% 60%) 0%, hsl(21 88% 57%) 55%, hsl(6 72% 46%) 100%);
-    --gradient-ink: linear-gradient(160deg, hsl(24 20% 11%) 0%, hsl(24 25% 6%) 100%);
-    --gradient-card: linear-gradient(to bottom, hsl(24 20% 10%) 0%, hsl(24 20% 9%) 100%);
-
-    --shadow-card: 0 4px 6px -1px hsl(0 0% 0% / 0.3), 0 2px 4px -1px hsl(0 0% 0% / 0.2);
-    --shadow-card-hover: 0 10px 15px -3px hsl(0 0% 0% / 0.3), 0 4px 6px -2px hsl(0 0% 0% / 0.2);
-    --shadow-ember: 0 6px 24px -6px hsl(21 88% 57% / 0.5);
+    --border: 268 20% 17%;
+    --input: 268 20% 17%;
+    --ring: 11 85% 66%;
   }
 }
 
@@ -125,14 +154,7 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-  }
-
-  /* Editorial hierarchy: ink-serif display for major headings,
-     clean sans for everything else. */
-  h1, h2 {
-    @apply font-display;
-    letter-spacing: -0.015em;
+    @apply bg-background text-foreground;
   }
 }
 
@@ -155,24 +177,24 @@ All colors MUST be HSL.
   animation: float 15s ease-in-out infinite;
 }
 
-/* Caption entrance for the Scene 0-9 story */
-@keyframes caption-in {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Ambient breathing for the homepage / auth light fields */
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.07); opacity: 0.42; }
+}
+.animate-breathe {
+  animation: breathe 9s ease-in-out infinite;
 }
 
-.animate-caption-in {
-  animation: caption-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+/* Logo swirl draw-on (once per mount) */
+@keyframes swirl-draw {
+  from { stroke-dashoffset: var(--swirl-length, 900); }
+  to { stroke-dashoffset: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-caption-in {
+  .animate-float,
+  .animate-breathe {
     animation: none;
   }
 }

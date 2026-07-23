@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import LogoOrb from "@/components/LogoOrb";
-import GlowSphere from "@/components/GlowSphere";
+import SwirlMark from "@/components/SwirlMark";
 import TurnstileWidget from "@/components/TurnstileWidget";
 import { CheckCircle2 } from "lucide-react";
 
@@ -92,16 +92,18 @@ const Waitlist = () => {
         </div>
       </nav>
 
-      {/* Background Glow Sphere */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-30">
-        <GlowSphere />
+      {/* Ambient ember light */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="animate-breathe absolute -left-[12%] -top-[8%] h-[52vw] w-[52vw] rounded-full opacity-30 blur-3xl [background:radial-gradient(circle,hsl(340_35%_16%)_0%,transparent_65%)]" />
+        <div className="animate-breathe absolute -bottom-[6%] -right-[10%] h-[44vw] w-[44vw] rounded-full opacity-30 blur-3xl [background:radial-gradient(circle,hsl(11_45%_14%)_0%,transparent_65%)] [animation-delay:-4s] [animation-duration:12s]" />
       </div>
 
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4 pt-24">
         <div className="w-full max-w-md space-y-6">
           {/* Header */}
           <div className="text-center space-y-3">
-            <h1 className="text-4xl font-light tracking-wide text-foreground">
+            <SwirlMark className="mx-auto h-16 w-16 drop-shadow-[0_0_24px_rgba(242,121,95,0.25)]" />
+            <h1 className="font-display text-4xl font-medium tracking-tight text-foreground">
               Memorize anything.
               <br />
               Beautifully.
@@ -112,7 +114,7 @@ const Waitlist = () => {
             </p>
           </div>
 
-          <Card className="bg-background/60 backdrop-blur-xl border-border/50 shadow-2xl">
+          <Card className="border-border bg-card/85 shadow-[var(--shadow-card)] backdrop-blur-xl">
             {submitted ? (
               <CardContent className="pt-8 pb-8 text-center space-y-4">
                 <CheckCircle2 className="w-12 h-12 mx-auto text-foreground/80" strokeWidth={1.25} />
@@ -171,7 +173,8 @@ const Waitlist = () => {
 
                     <Button
                       type="submit"
-                      className="w-full bg-foreground text-background hover:bg-foreground/90 font-light tracking-wide"
+                      variant="brand"
+                      className="w-full font-bold"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? "Joining..." : "Join the Waitlist"}

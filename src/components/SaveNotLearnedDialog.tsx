@@ -139,7 +139,7 @@
                    className="w-8 h-8 rounded-full border-2 transition-all hover:scale-110"
                    style={{
                      backgroundColor: color,
-                     borderColor: selectedColor === color ? "#000" : color === "#ffffff" ? "#d1d5db" : "transparent",
+                     borderColor: selectedColor === color ? "hsl(11 85% 66%)" : color === "#ffffff" ? "#d1d5db" : "transparent",
                    }}
                    onClick={() => setSelectedColor(color)}
                  />

@@ -289,19 +289,12 @@ const QuizMode = () => {
               <Link to={`/set/${id}`}>
                 <Button variant="outline">Back to Set</Button>
               </Link>
-              <Button
-                onClick={handleRetake}
-                className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
-              >
+              <Button onClick={handleRetake} variant="brand" className="font-bold">
                 Retake Quiz
               </Button>
             </>
           ) : (
-            <Button
-              onClick={handleComplete}
-              size="lg"
-              className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-8"
-            >
+            <Button onClick={handleComplete} size="lg" variant="brand" className="px-8 font-bold">
               Complete
             </Button>
           )}
