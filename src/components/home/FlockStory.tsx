@@ -171,12 +171,12 @@ function buildWorld(w: number, h: number): World {
   return { parts, cardW, cardH, orbitCX, orbitCY, w, h };
 }
 
-function drawFrame(
-  ctx: CanvasRenderingContext2D,
-  world: World,
-  p: number,
-  time: number,
-) {
+/**
+ * Renders one frame as a pure function of scroll progress `p` — no clock.
+ * The picture is fully determined by scroll position, so motion pauses the
+ * instant scrolling stops and scrubs identically forwards and backwards.
+ */
+function drawFrame(ctx: CanvasRenderingContext2D, world: World, p: number) {
   const { parts, cardW, cardH, orbitCX, orbitCY, w, h } = world;
   ctx.clearRect(0, 0, w, h);
 
@@ -187,7 +187,6 @@ function drawFrame(
   const release = sub(p, SC.releaseStart, SC.releaseEnd);
   const finale = easeInOut(sub(p, SC.finaleStart, SC.finaleEnd));
   const inFormation = form1 > 0 && release < 1;
-  const pulse = finale >= 1 ? 1 + Math.sin(time * 0.9) * 0.025 : 1;
 
   for (let i = 0; i < parts.length; i++) {
     const pt = parts[i];
@@ -216,9 +215,10 @@ function drawFrame(
       else flip = flip * (1 - morph);
     }
 
-    // guardian cells lift out of the grid and orbit the learner
+    // guardian cells lift out of the grid and orbit the learner;
+    // orbit angle advances with scroll, not with a clock
     if (isOrbiter && morph > 0 && finale < 1) {
-      const a = pt.orbitA + time * 0.28 + morph * 1.6;
+      const a = pt.orbitA + morph * 1.6 + Math.max(0, p - SC.morphEnd) * 11;
       const orbR = pt.orbitR * (0.55 + 0.45 * morph);
       const ox = orbitCX + Math.cos(a) * orbR;
       const oy = orbitCY + Math.sin(a) * orbR * 0.62;
@@ -238,9 +238,11 @@ function drawFrame(
       flip *= 1 - release;
       op *= 1 - release * (isOrbiter ? 0.55 : 0.87);
     }
+    // quiet background band behind S6/S7: a static, slightly irregular field
+    // that drifts gently with scroll
     if (q >= 1 && release >= 1 && finale <= 0) {
-      x += Math.sin(time * 0.4 + i * 1.7) * 2.2;
-      y += Math.cos(time * 0.33 + i * 2.3) * 1.8;
+      x += Math.sin(p * 14 + i * 1.7) * 2.2;
+      y += Math.cos(p * 11 + i * 2.3) * 1.8;
     }
 
     // — finale: everything streams into the swirl
@@ -257,7 +259,7 @@ function drawFrame(
 
     const fl = Math.abs(1 - 2 * flip);
     const flipped = flip > 0.5;
-    const s = pt.depth * pulse;
+    const s = pt.depth;
     const cw = cardW * s * fl;
     const chh = cardH * s;
 
@@ -441,7 +443,7 @@ const StaticStory = () => {
     ctx.fillRect(0, 0, w, h);
     const world = buildWorld(w, h);
     // composed frame of the First Desk formation
-    drawFrame(ctx, world, (SC.form1End + SC.morphStart) / 2, 0);
+    drawFrame(ctx, world, (SC.form1End + SC.morphStart) / 2);
   }, []);
   return (
     <div className="relative">
@@ -500,6 +502,7 @@ const FlockStory = () => {
     let raf = 0;
     let running = true;
     let visible = true;
+    let lastP = -1; // last drawn scroll progress (declared before resize uses it)
 
     const resize = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -511,6 +514,7 @@ const FlockStory = () => {
       cv.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       world = buildWorld(w, h);
+      lastP = -1; // force a redraw at the new size
     };
     resize();
     window.addEventListener("resize", resize);
@@ -528,9 +532,13 @@ const FlockStory = () => {
       if (!running || !visible || !world) return;
       const rect = root.getBoundingClientRect();
       const p = clamp01(-rect.top / (rect.height - window.innerHeight));
-      const t = performance.now() / 1000;
+      // Everything on screen is a pure function of p — when the scroll
+      // position hasn't moved, skip the frame entirely so all motion
+      // pauses the instant scrolling stops.
+      if (Math.abs(p - lastP) < 0.00004) return;
+      lastP = p;
 
-      drawFrame(ctx, world, p, t);
+      drawFrame(ctx, world, p);
 
       // S0/S1 — the hero exhales as you scroll into the story
       const hero = heroRef.current;
