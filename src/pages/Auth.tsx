@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,22 +7,54 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Link, useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import LogoOrb from "@/components/LogoOrb";
-import GlowSphere from "@/components/GlowSphere";
+
+/** A few drifting cards on the narrative panel — the flock at rest. */
+const DriftingCards = () => (
+  <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+    {[
+      { left: "12%", top: "16%", d: "0s", t: 0.1 },
+      { left: "68%", top: "10%", d: "-3s", t: 0.35 },
+      { left: "30%", top: "38%", d: "-6s", t: 0.6 },
+      { left: "76%", top: "52%", d: "-9s", t: 0.85 },
+      { left: "18%", top: "68%", d: "-12s", t: 0.5 },
+      { left: "55%", top: "80%", d: "-5s", t: 0.25 },
+    ].map((c, i) => (
+      <span
+        key={i}
+        className="animate-float absolute block h-[13px] w-[20px] rounded-[3px] opacity-50"
+        style={{
+          left: c.left,
+          top: c.top,
+          animationDelay: c.d,
+          background: `hsl(${32 - c.t * 58} ${85 - c.t * 4}% ${64}%)`,
+        }}
+      />
+    ))}
+    <div className="animate-breathe absolute -bottom-[20%] -left-[15%] h-[70%] w-[80%] rounded-full opacity-40 blur-3xl [background:radial-gradient(circle,hsl(11_45%_16%)_0%,transparent_65%)]" />
+  </div>
+);
 
 const Auth = () => {
   const { signIn, signUp, signInWithGoogle } = useAuth();
   const [searchParams] = useSearchParams();
   const nextParam = searchParams.get("next") ?? undefined;
+  // The layout the visitor sees is the one they chose: “Sign in” links carry
+  // ?mode=signin, “Start studying” links carry ?mode=signup.
+  const modeParam = searchParams.get("mode") === "signup" ? "signup" : "login";
+  const [tab, setTab] = useState<string>(modeParam);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  useEffect(() => {
+    setTab(searchParams.get("mode") === "signup" ? "signup" : "login");
+  }, [searchParams]);
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     const { error } = await signInWithGoogle(nextParam);
     setIsGoogleLoading(false);
-    
+
     if (error) {
       toast.error(error.message || "Failed to sign in with Google");
     }
@@ -42,7 +74,7 @@ const Auth = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!loginData.email || !loginData.password) {
       toast.error("Please fill in all fields");
       return;
@@ -59,7 +91,7 @@ const Auth = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!signupData.fullName || !signupData.email || !signupData.password || !signupData.confirmPassword) {
       toast.error("Please fill in all fields");
       return;
@@ -86,48 +118,72 @@ const Auth = () => {
     }
   };
 
+  const inputClass = "h-11 bg-secondary/60 border-border";
+
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="container mx-auto px-4 flex items-center justify-between py-4">
+    <div className="relative min-h-screen overflow-hidden bg-background">
+      <nav className="fixed left-0 right-0 top-0 z-50 border-b border-border/60 bg-background/75 backdrop-blur-lg">
+        <div className="container mx-auto flex items-center justify-between px-4 py-3.5">
           <LogoOrb size="md" showWordmark={true} linkTo="/" />
-          <ThemeToggle />
+          <Link
+            to="/"
+            className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            ← Back to home
+          </Link>
         </div>
       </nav>
 
-      {/* Background Glow Sphere */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-30">
-        <GlowSphere />
-      </div>
-
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center p-4 pt-24">
-        <div className="w-full max-w-md space-y-6">
-          {/* Header */}
-          <div className="text-center space-y-2">
-            <h1 className="text-3xl font-light tracking-wide text-foreground">Welcome</h1>
-            <p className="text-muted-foreground font-light tracking-wide text-sm">
-              Master any subject with visual flashcards
+      <div className="mx-auto grid min-h-screen w-full max-w-6xl grid-cols-1 items-stretch gap-0 px-4 pt-16 lg:grid-cols-[1fr_1.15fr] lg:gap-10">
+        {/* Narrative panel — the desk lamp */}
+        <div className="relative hidden overflow-hidden rounded-3xl border border-border/60 lg:my-10 lg:flex">
+          <DriftingCards />
+          <div className="relative z-10 flex flex-col justify-end p-10">
+            <p className="font-display text-3xl italic leading-snug text-foreground/90">
+              {tab === "signup" ? (
+                <>Your first set takes<br />two minutes.</>
+              ) : (
+                <>Pick up where<br />you left off.</>
+              )}
+            </p>
+            <p className="mt-4 max-w-xs text-sm text-muted-foreground">
+              {tab === "signup"
+                ? "Cards, diagrams, drawings — everything you make is waiting for you, organized."
+                : "Your sets, files and bookmarks are exactly where you left them."}
             </p>
           </div>
+        </div>
 
-          <Card className="bg-background/60 backdrop-blur-xl border-border/50 shadow-2xl">
-            <CardHeader className="text-center pb-4">
-              <CardTitle className="text-foreground font-light tracking-wide text-xl">Get Started</CardTitle>
-              <CardDescription className="text-muted-foreground font-light">
-                Sign in to your account or create a new one
-              </CardDescription>
-              
-              {/* Google Sign In Button */}
-              <div className="pt-4">
+        {/* Form panel */}
+        <div className="flex items-center justify-center py-10">
+          <div className="w-full max-w-md space-y-6">
+            <div className="space-y-2 text-center lg:text-left">
+              <h1 className="font-display text-3xl font-medium tracking-tight text-foreground">
+                {tab === "signup" ? "Create your account" : "Welcome back"}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Master any subject with visual flashcards
+              </p>
+            </div>
+
+            <Card className="border-border bg-card shadow-[var(--shadow-card)]">
+              <CardHeader className="pb-4">
+                <CardTitle className="sr-only">
+                  {tab === "signup" ? "Sign up" : "Sign in"}
+                </CardTitle>
+                <CardDescription className="sr-only">
+                  Sign in to your account or create a new one
+                </CardDescription>
+
+                {/* Google Sign In Button */}
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full bg-background/50 border-border/50 text-foreground hover:bg-foreground/10 font-light tracking-wide"
+                  className="h-11 w-full border-line-strong bg-secondary/40 font-semibold hover:bg-accent"
                   onClick={handleGoogleSignIn}
                   disabled={isGoogleLoading || isLoading}
                 >
-                  <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                  <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24">
                     <path
                       fill="currentColor"
                       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -147,146 +203,139 @@ const Auth = () => {
                   </svg>
                   {isGoogleLoading ? "Connecting..." : "Continue with Google"}
                 </Button>
-              </div>
-              
-              <div className="relative pt-4">
-                <div className="absolute inset-0 flex items-center pt-4">
-                  <span className="w-full border-t border-border/50" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background/60 px-2 text-muted-foreground font-light">Or continue with email</span>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="login" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 bg-muted/50">
-                  <TabsTrigger 
-                    value="login" 
-                    className="font-light tracking-wide text-sm data-[state=active]:bg-foreground data-[state=active]:text-background"
-                  >
-                    Login
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="signup" 
-                    className="font-light tracking-wide text-sm data-[state=active]:bg-foreground data-[state=active]:text-background"
-                  >
-                    Sign Up
-                  </TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="login">
-                  <form onSubmit={handleLogin} className="space-y-4 mt-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="login-email" className="text-foreground font-light tracking-wide text-sm">Email</Label>
-                      <Input
-                        id="login-email"
-                        type="email"
-                        placeholder="your@email.com"
-                        value={loginData.email}
-                        onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                        disabled={isLoading}
-                        required
-                        className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground font-light"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="login-password" className="text-foreground font-light tracking-wide text-sm">Password</Label>
-                      <Input
-                        id="login-password"
-                        type="password"
-                        placeholder="••••••••"
-                        value={loginData.password}
-                        onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                        disabled={isLoading}
-                        required
-                        className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground font-light"
-                      />
-                    </div>
-                    <Button 
-                      type="submit" 
-                      className="w-full bg-foreground text-background hover:bg-foreground/90 font-light tracking-wide" 
-                      disabled={isLoading}
-                    >
-                      {isLoading ? "Signing in..." : "Sign In"}
-                    </Button>
-                  </form>
-                </TabsContent>
-                
-                <TabsContent value="signup">
-                  <form onSubmit={handleSignup} className="space-y-4 mt-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-name" className="text-foreground font-light tracking-wide text-sm">Full Name</Label>
-                      <Input
-                        id="signup-name"
-                        type="text"
-                        placeholder="John Doe"
-                        value={signupData.fullName}
-                        onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
-                        disabled={isLoading}
-                        required
-                        className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground font-light"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-email" className="text-foreground font-light tracking-wide text-sm">Email</Label>
-                      <Input
-                        id="signup-email"
-                        type="email"
-                        placeholder="your@email.com"
-                        value={signupData.email}
-                        onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
-                        disabled={isLoading}
-                        required
-                        className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground font-light"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-password" className="text-foreground font-light tracking-wide text-sm">Password</Label>
-                      <Input
-                        id="signup-password"
-                        type="password"
-                        placeholder="••••••••"
-                        value={signupData.password}
-                        onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
-                        disabled={isLoading}
-                        required
-                        className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground font-light"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-confirm" className="text-foreground font-light tracking-wide text-sm">Confirm Password</Label>
-                      <Input
-                        id="signup-confirm"
-                        type="password"
-                        placeholder="••••••••"
-                        value={signupData.confirmPassword}
-                        onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
-                        disabled={isLoading}
-                        required
-                        className="bg-background/50 border-border/50 text-foreground placeholder:text-muted-foreground font-light"
-                      />
-                    </div>
-                    <Button 
-                      type="submit" 
-                      className="w-full bg-foreground text-background hover:bg-foreground/90 font-light tracking-wide" 
-                      disabled={isLoading}
-                    >
-                      {isLoading ? "Creating account..." : "Create Account"}
-                    </Button>
-                  </form>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
 
-          <div className="text-center">
-            <Link 
-              to="/" 
-              className="text-muted-foreground hover:text-foreground transition-colors font-light tracking-wide text-sm"
-            >
-              ← Back to home
-            </Link>
+                <div className="relative pt-4">
+                  <div className="absolute inset-0 flex items-center pt-4">
+                    <span className="w-full border-t border-border" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase tracking-wider">
+                    <span className="bg-card px-2 text-muted-foreground">Or continue with email</span>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Tabs value={tab} onValueChange={setTab} className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 bg-secondary/70">
+                    <TabsTrigger
+                      value="login"
+                      className="text-sm font-semibold data-[state=active]:bg-accent data-[state=active]:text-foreground"
+                    >
+                      Sign in
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="signup"
+                      className="text-sm font-semibold data-[state=active]:bg-accent data-[state=active]:text-foreground"
+                    >
+                      Sign up
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="login">
+                    <form onSubmit={handleLogin} className="mt-4 space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="login-email" className="text-sm font-medium">Email</Label>
+                        <Input
+                          id="login-email"
+                          type="email"
+                          placeholder="your@email.com"
+                          value={loginData.email}
+                          onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                          disabled={isLoading}
+                          required
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="login-password" className="text-sm font-medium">Password</Label>
+                        <Input
+                          id="login-password"
+                          type="password"
+                          placeholder="••••••••"
+                          value={loginData.password}
+                          onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                          disabled={isLoading}
+                          required
+                          className={inputClass}
+                        />
+                      </div>
+                      <Button
+                        type="submit"
+                        variant="brand"
+                        className="h-11 w-full rounded-lg font-bold"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? "Signing in..." : "Sign In"}
+                      </Button>
+                    </form>
+                  </TabsContent>
+
+                  <TabsContent value="signup">
+                    <form onSubmit={handleSignup} className="mt-4 space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-name" className="text-sm font-medium">Full Name</Label>
+                        <Input
+                          id="signup-name"
+                          type="text"
+                          placeholder="John Doe"
+                          value={signupData.fullName}
+                          onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
+                          disabled={isLoading}
+                          required
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-email" className="text-sm font-medium">Email</Label>
+                        <Input
+                          id="signup-email"
+                          type="email"
+                          placeholder="your@email.com"
+                          value={signupData.email}
+                          onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
+                          disabled={isLoading}
+                          required
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-password" className="text-sm font-medium">Password</Label>
+                        <Input
+                          id="signup-password"
+                          type="password"
+                          placeholder="••••••••"
+                          value={signupData.password}
+                          onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+                          disabled={isLoading}
+                          required
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-confirm" className="text-sm font-medium">Confirm Password</Label>
+                        <Input
+                          id="signup-confirm"
+                          type="password"
+                          placeholder="••••••••"
+                          value={signupData.confirmPassword}
+                          onChange={(e) => setSignupData({ ...signupData, confirmPassword: e.target.value })}
+                          disabled={isLoading}
+                          required
+                          className={inputClass}
+                        />
+                      </div>
+                      <Button
+                        type="submit"
+                        variant="brand"
+                        className="h-11 w-full rounded-lg font-bold"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? "Creating account..." : "Create Account"}
+                      </Button>
+                    </form>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>

@@ -10,6 +10,10 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        // Ember gradient CTA. Text on the gradient is always dark ink —
+        // white fails contrast against the ember midpoint.
+        brand:
+          "text-primary-foreground [background-image:var(--gradient-primary)] shadow-[var(--glow-ember)] hover:brightness-[1.06] active:scale-[0.97] transition-[filter,transform,box-shadow]",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",

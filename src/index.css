@@ -2,14 +2,85 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here.
 All colors MUST be HSL.
+
+"Ember & Ink" — dark-first identity. The default (:root) palette is the dark
+theme: a plum-biased near-black ramp with the logo's amber→coral→pink ember
+gradient reserved for meaning (brand, primary actions, progress, focus).
+The previous light palette is preserved under `.light` for future use.
 */
 
 @layer base {
   :root {
-    /* Neutral, Apple/Linear-like base. Accent is a refined indigo→violet gradient. */
-    --background: 0 0% 98%;             /* #FAFAFA */
+    /* Ink ramp — plum-biased darks (hue ≈ 268°) */
+    --background: 266 24% 6%;            /* ink-0 #0E0B12 — page */
+    --foreground: 274 28% 95%;           /* text-hi #F3EFF6 */
+
+    --card: 270 21% 11%;                 /* ink-2 #1C1622 */
+    --card-foreground: 274 28% 95%;
+
+    --popover: 268 21% 14%;              /* ink-3 #241D2C */
+    --popover-foreground: 274 28% 95%;
+
+    /* Ember — primary action colour. Text on ember is always dark ink. */
+    --primary: 11 85% 66%;               /* #F2795F */
+    --primary-foreground: 19 44% 7%;     /* #1A0F0A — never white on ember */
+
+    --secondary: 270 21% 11%;            /* raised neutral surface */
+    --secondary-foreground: 274 28% 95%;
+
+    --muted: 268 21% 14%;
+    --muted-foreground: 269 13% 67%;     /* text-mid #ABA1B6 */
+
+    /* Accent = subtle hover surface (shadcn semantics), not the brand pink */
+    --accent: 268 21% 16%;
+    --accent-foreground: 274 28% 95%;
+
+    --destructive: 0 62% 52%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 268 20% 17%;               /* line #2A2233 */
+    --input: 268 20% 17%;
+    --ring: 11 85% 66%;
+
+    --radius: 0.875rem;
+
+    /* Brand hues (for gradients, spines, glows) */
+    --brand-amber: 32 92% 61%;           /* #F7A03E */
+    --brand-ember: 11 85% 66%;           /* #F2795F */
+    --brand-pink: 334 81% 65%;           /* #EE5D9B */
+    --success: 150 40% 63%;              /* #7CC7A1 — "learned" */
+    --line-strong: 268 19% 23%;          /* interactive borders #3A3046 */
+
+    /* Deck colors for flashcard sets — same seven slots, recalibrated as
+       luminous pastels that hold on ink surfaces. */
+    --deck-blue: 205 100% 72%;
+    --deck-red: 355 100% 74%;
+    --deck-green: 152 54% 67%;
+    --deck-purple: 264 100% 82%;
+    --deck-yellow: 45 100% 70%;
+    --deck-pink: 330 100% 78%;
+    --deck-teal: 185 66% 61%;
+
+    /* Brand gradient — used only as an accent (CTAs, progress, logo, active states) */
+    --gradient-primary: linear-gradient(118deg, hsl(32 92% 61%) 0%, hsl(11 85% 66%) 52%, hsl(334 81% 65%) 100%);
+    --gradient-card: linear-gradient(to bottom, hsl(270 21% 12%) 0%, hsl(270 21% 10%) 100%);
+
+    /* Motion tokens — one motion language everywhere */
+    --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-in-soft: cubic-bezier(0.55, 0, 0.55, 0.2);
+    --transition-smooth: all 0.25s var(--ease-out-soft);
+
+    /* Elevation on dark = deeper shadow + subtle warm edge */
+    --shadow-card: 0 1px 2px hsl(266 40% 2% / 0.5), 0 2px 8px hsl(266 40% 2% / 0.35);
+    --shadow-card-hover: 0 6px 20px -4px hsl(266 40% 2% / 0.6), 0 0 0 1px hsl(268 19% 23%);
+    --glow-ember: 0 4px 24px -6px hsl(11 85% 66% / 0.35);
+  }
+
+  /* Previous light palette, kept available as a secondary theme. */
+  .light {
+    --background: 0 0% 98%;
     --foreground: 222 24% 12%;
 
     --card: 0 0% 100%;
@@ -18,7 +89,7 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222 24% 12%;
 
-    --primary: 244 70% 58%;             /* indigo */
+    --primary: 11 78% 56%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 14% 96%;
@@ -27,19 +98,18 @@ All colors MUST be HSL.
     --muted: 220 14% 96%;
     --muted-foreground: 220 9% 46%;
 
-    --accent: 270 70% 62%;              /* violet accent */
-    --accent-foreground: 0 0% 100%;
+    --accent: 220 14% 94%;
+    --accent-foreground: 222 24% 16%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 244 70% 58%;
+    --ring: 11 78% 56%;
 
-    --radius: 0.875rem;
+    --line-strong: 220 13% 84%;
 
-    /* Deck colors for flashcard sets - DO NOT MODIFY */
     --deck-blue: 200 100% 61%;
     --deck-red: 352 80% 58%;
     --deck-green: 164 29% 56%;
@@ -47,48 +117,34 @@ All colors MUST be HSL.
     --deck-yellow: 49 100% 68%;
     --deck-pink: 330 81% 60%;
     --deck-teal: 185 75% 45%;
-    
-    /* Brand gradient — used only as an accent (CTAs, highlights, hovers) */
-    --gradient-primary: linear-gradient(135deg, hsl(244 70% 58%) 0%, hsl(270 70% 62%) 100%);
+
     --gradient-card: linear-gradient(to bottom, hsl(0 0% 100%) 0%, hsl(0 0% 99%) 100%);
 
-    /* Animations & soft shadows */
-    --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     --shadow-card: 0 1px 2px hsl(220 9% 10% / 0.04), 0 1px 3px hsl(220 9% 10% / 0.04);
     --shadow-card-hover: 0 4px 12px -2px hsl(220 9% 10% / 0.08), 0 2px 6px -2px hsl(220 9% 10% / 0.05);
   }
 
+  /* `.dark` mirrors :root so `class="dark"` (next-themes) keeps working. */
   .dark {
-    --background: 222 24% 8%;
-    --foreground: 0 0% 96%;
-
-    --card: 222 22% 11%;
-    --card-foreground: 0 0% 96%;
-
-    --popover: 222 22% 11%;
-    --popover-foreground: 0 0% 96%;
-
-    --primary: 244 75% 66%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 222 18% 16%;
-    --secondary-foreground: 0 0% 96%;
-
-    --muted: 222 18% 16%;
-    --muted-foreground: 220 9% 65%;
-
-    --accent: 270 70% 70%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 62% 50%;
+    --background: 266 24% 6%;
+    --foreground: 274 28% 95%;
+    --card: 270 21% 11%;
+    --card-foreground: 274 28% 95%;
+    --popover: 268 21% 14%;
+    --popover-foreground: 274 28% 95%;
+    --primary: 11 85% 66%;
+    --primary-foreground: 19 44% 7%;
+    --secondary: 270 21% 11%;
+    --secondary-foreground: 274 28% 95%;
+    --muted: 268 21% 14%;
+    --muted-foreground: 269 13% 67%;
+    --accent: 268 21% 16%;
+    --accent-foreground: 274 28% 95%;
+    --destructive: 0 62% 52%;
     --destructive-foreground: 0 0% 100%;
-
-    --border: 222 16% 20%;
-    --input: 222 16% 20%;
-    --ring: 244 75% 66%;
-    
-    --shadow-card: 0 4px 6px -1px hsl(0 0% 0% / 0.3), 0 2px 4px -1px hsl(0 0% 0% / 0.2);
-    --shadow-card-hover: 0 10px 15px -3px hsl(0 0% 0% / 0.3), 0 4px 6px -2px hsl(0 0% 0% / 0.2);
+    --border: 268 20% 17%;
+    --input: 268 20% 17%;
+    --ring: 11 85% 66%;
   }
 }
 
@@ -119,6 +175,28 @@ All colors MUST be HSL.
 
 .animate-float {
   animation: float 15s ease-in-out infinite;
+}
+
+/* Ambient breathing for the homepage / auth light fields */
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.07); opacity: 0.42; }
+}
+.animate-breathe {
+  animation: breathe 9s ease-in-out infinite;
+}
+
+/* Logo swirl draw-on (once per mount) */
+@keyframes swirl-draw {
+  from { stroke-dashoffset: var(--swirl-length, 900); }
+  to { stroke-dashoffset: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-breathe {
+    animation: none;
+  }
 }
 
 /* React Flow node styling - remove default white background */

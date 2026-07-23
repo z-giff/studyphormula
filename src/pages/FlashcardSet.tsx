@@ -3,14 +3,8 @@ import { useParams, useNavigate, Link, useSearchParams, useLocation } from "reac
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Plus, ArrowLeft, Play, Palette, Edit, Pencil, Crown, Sparkles, ChevronDown } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
- import { Repeat } from "lucide-react";
+import { Plus, ArrowLeft, Edit, Pencil } from "lucide-react";
+import { MemorizeIcon, SwipeIcon, QuizIcon } from "@/components/StudyModeIcons";
 import { toast } from "sonner";
 import { CreateFlashcardDialog } from "@/components/CreateFlashcardDialog";
 import { EditFlashcardDialog } from "@/components/EditFlashcardDialog";
@@ -21,7 +15,6 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { StackedFlashcardDeck } from "@/components/StackedFlashcardDeck";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import LogoOrb from "@/components/LogoOrb";
-import phormulaLogo from "@/assets/phormula-text-logo.png";
 import { RenameSetDialog } from "@/components/RenameSetDialog";
 
 const PRESET_COLORS = [
@@ -268,7 +261,7 @@ const FlashcardSetPage = () => {
                               className="w-8 h-8 rounded-full border-2 transition-all hover:scale-110"
                               style={{
                                 backgroundColor: color,
-                                borderColor: displayColor === color ? "#000" : color === "#ffffff" ? "#d1d5db" : "transparent",
+                                borderColor: displayColor === color ? "hsl(11 85% 66%)" : color === "#ffffff" ? "#d1d5db" : "transparent",
                               }}
                               onClick={() => handleUpdateSetColor(color)}
                               aria-label={`Use color ${color}`}
@@ -280,7 +273,7 @@ const FlashcardSetPage = () => {
                             style={{
                               backgroundColor: displayColor && !PRESET_COLORS.includes(displayColor) ? displayColor : "transparent",
                               borderStyle: displayColor && !PRESET_COLORS.includes(displayColor) ? "solid" : "dashed",
-                              borderColor: displayColor && !PRESET_COLORS.includes(displayColor) ? "#000" : undefined,
+                              borderColor: displayColor && !PRESET_COLORS.includes(displayColor) ? "hsl(11 85% 66%)" : undefined,
                             }}
                           >
                             <Plus className="h-4 w-4 text-muted-foreground" style={{ display: displayColor && !PRESET_COLORS.includes(displayColor) ? "none" : "block" }} />
@@ -296,7 +289,7 @@ const FlashcardSetPage = () => {
                     </Popover>
                   );
                 })()}
-                <h1 className="text-4xl font-bold">{set.title}</h1>
+                <h1 className="font-display text-4xl font-medium tracking-tight">{set.title}</h1>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -314,36 +307,28 @@ const FlashcardSetPage = () => {
             </div>
 
             {flashcards.length > 0 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="lg" variant="outline">
-                    <GraduationCap className="h-5 w-5 mr-2" />
-                    Study Modes
-                    <ChevronDown className="h-4 w-4 ml-2 opacity-70" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem asChild>
-                    <Link to={`/study/${id}`}>
-                      <Play className="h-4 w-4 mr-2" />
-                      Memorize
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to={`/swipe/${id}`}>
-                      <Repeat className="h-4 w-4 mr-2" />
-                      Swipe Study
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to={`/quiz/${id}`}>
-                      <Crown className="h-4 w-4 mr-2" />
-                      MC Quiz
-                      <span className="ml-auto text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full">Premium</span>
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              /* Study modes — distinct icon system, same destinations */
+              <div className="flex flex-wrap items-center justify-end gap-2.5">
+                <Button asChild size="lg" variant="brand" className="rounded-xl font-bold">
+                  <Link to={`/study/${id}`}>
+                    <MemorizeIcon className="mr-1.5" />
+                    Memorize
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="rounded-xl border-line-strong">
+                  <Link to={`/swipe/${id}`}>
+                    <SwipeIcon className="mr-1.5" />
+                    Swipe Study
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="rounded-xl border-line-strong">
+                  <Link to={`/quiz/${id}`}>
+                    <QuizIcon className="mr-1.5" />
+                    MC Quiz
+                    <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">Premium</span>
+                  </Link>
+                </Button>
+              </div>
             )}
           </div>
         </div>
@@ -353,7 +338,7 @@ const FlashcardSetPage = () => {
             <Plus className="h-4 w-4 mr-2" />
             Add Flashcard
           </Button>
-          <Button onClick={() => setIsBulkEditorOpen(true)}>
+          <Button variant="secondary" className="border border-line-strong" onClick={() => setIsBulkEditorOpen(true)}>
             <Edit className="h-4 w-4 mr-2" />
             Edit Set
           </Button>

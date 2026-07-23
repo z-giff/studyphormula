@@ -7,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { FileText, Layers, GitBranch, Signature } from "lucide-react";
 import { InteractiveFlashcardEditor } from "./InteractiveFlashcardEditor";
 import { FlowchartCanvasEditor } from "./FlowchartCanvasEditor";
 import { DrawingCanvasEditor } from "./DrawingCanvasEditor";
@@ -167,11 +169,29 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
         <form onSubmit={handleSubmit} className="flex flex-col">
           <div className="px-8 pb-6 space-y-7">
             <Tabs value={flashcardType} onValueChange={(v) => setFlashcardType(v as "standard" | "interactive" | "flowchart" | "drawing")}>
-              <TabsList className="grid w-full grid-cols-4 h-10 bg-muted/60 p-1 rounded-lg">
-                <TabsTrigger value="standard" className="rounded-md text-sm font-medium">Standard</TabsTrigger>
-                <TabsTrigger value="interactive" className="rounded-md text-sm font-medium">Interactive</TabsTrigger>
-                <TabsTrigger value="flowchart" className="rounded-md text-sm font-medium">Flowchart</TabsTrigger>
-                <TabsTrigger value="drawing" className="rounded-md text-sm font-medium">Drawing</TabsTrigger>
+              {/* Flashcard types — circular, icon-only controls */}
+              <TabsList className="flex h-auto w-full justify-center gap-5 bg-transparent p-0">
+                {(
+                  [
+                    { value: "standard", label: "Standard", Icon: FileText },
+                    { value: "interactive", label: "Interactive", Icon: Layers },
+                    { value: "flowchart", label: "Flowchart", Icon: GitBranch },
+                    { value: "drawing", label: "Drawing", Icon: Signature },
+                  ] as const
+                ).map(({ value, label, Icon }) => (
+                  <Tooltip key={value}>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger
+                        value={value}
+                        aria-label={`${label} flashcard`}
+                        className="h-14 w-14 rounded-full border border-line-strong bg-secondary p-0 text-muted-foreground shadow-none transition-all hover:border-primary/50 hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-accent data-[state=active]:text-primary data-[state=active]:shadow-[var(--glow-ember)]"
+                      >
+                        <Icon className="h-5 w-5" strokeWidth={1.7} />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-xs">{label}</TooltipContent>
+                  </Tooltip>
+                ))}
               </TabsList>
 
               <TabsContent value="standard" className="space-y-5 mt-6">

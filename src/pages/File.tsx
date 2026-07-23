@@ -131,7 +131,7 @@ export default function FilePage() {
 
           <div className="flex items-center gap-3">
             <Folder className="h-6 w-6 text-muted-foreground" />
-            <h1 className="text-3xl font-bold text-foreground">{fileName}</h1>
+            <h1 className="font-display text-3xl font-medium tracking-tight text-foreground">{fileName}</h1>
           </div>
           <p className="text-muted-foreground mt-2">All sets in this file</p>
         </div>
@@ -147,11 +147,8 @@ export default function FilePage() {
             {sortedSets.map((set) => (
               <Link key={set.id} to={`/set/${set.id}`}>
                 <Card
-                  className="h-48 cursor-pointer hover:shadow-lg transition-all overflow-hidden group relative"
-                  style={{
-                    borderTop: `6px solid ${set.displayColor}`,
-                    background: `linear-gradient(to bottom, ${set.displayColor}15, rgba(255,255,255,0.8))`,
-                  }}
+                  className="h-48 cursor-pointer overflow-hidden group relative bg-card border-border shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] hover:-translate-y-0.5 transition-all"
+                  style={{ borderLeft: `3px solid ${set.displayColor}` }}
                 >
                   <CardHeader className="pr-12">
                     <CardTitle className="text-foreground">

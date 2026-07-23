@@ -317,7 +317,7 @@
                      className="w-10 h-10 rounded-full border-2 transition-all hover:scale-110"
                      style={{
                        backgroundColor: color,
-                       borderColor: formData.color === color ? "#000" : color === "#ffffff" ? "#d1d5db" : "transparent",
+                       borderColor: formData.color === color ? "hsl(11 85% 66%)" : color === "#ffffff" ? "#d1d5db" : "transparent",
                        boxShadow: formData.color === color ? `0 0 0 2px ${color}` : "none",
                      }}
                      onClick={() => setFormData({ ...formData, color })}
@@ -329,7 +329,7 @@
                    style={{
                      backgroundColor: formData.color && !PRESET_COLORS.includes(formData.color) ? formData.color : "transparent",
                      borderStyle: formData.color && !PRESET_COLORS.includes(formData.color) ? "solid" : "dashed",
-                     borderColor: formData.color && !PRESET_COLORS.includes(formData.color) ? "#000" : undefined,
+                     borderColor: formData.color && !PRESET_COLORS.includes(formData.color) ? "hsl(11 85% 66%)" : undefined,
                    }}
                  >
                    <Plus className="h-5 w-5 text-muted-foreground" style={{ display: formData.color && !PRESET_COLORS.includes(formData.color) ? "none" : "block" }} />
