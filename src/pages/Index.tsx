@@ -1,15 +1,12 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import SwirlMark from "@/components/SwirlMark";
+import StoryStage from "@/components/home/StoryStage";
 
 /**
- * Homepage — a deliberately static, centred landing lockup.
- *
- * No animation, particles or background motion here: just the mark, the
- * wordmark, the tagline and the two calls to action, centred in the viewport
- * on the Ember & Ink ground. The auth destinations are unchanged, so the
+ * Homepage — one continuous, scroll-driven story (scenes 0–8) resting on a
+ * quiet footer (scene 9). The auth destinations are unchanged, so the
  * sign-in / sign-up experiences keep their own design and behaviour.
  */
 const Index = () => {
@@ -23,31 +20,50 @@ const Index = () => {
   }, [user, navigate]);
 
   return (
-    <main className="flex min-h-[100svh] flex-col items-center justify-center bg-background px-6 py-16 text-center">
-      <SwirlMark className="h-24 w-24 drop-shadow-[0_0_28px_rgba(242,121,95,0.25)] sm:h-28 sm:w-28" />
+    // NOTE: no `overflow-x: hidden` here — it computes to `overflow: hidden auto`,
+    // which makes this a scroll container and breaks the story stage's
+    // `position: sticky`. Horizontal overflow is contained by the stage itself.
+    <div className="bg-background">
+      <StoryStage />
 
-      <h1 className="mt-5 font-display text-6xl font-medium tracking-tight text-foreground sm:text-7xl">
-        Phormula
-      </h1>
+      {/* S9 · Footer — the resting point of the story */}
+      <footer className="border-t border-border/70 bg-secondary/30">
+        <div className="mx-auto w-full max-w-5xl px-6 py-12">
+          <div className="flex flex-col items-center justify-between gap-8 sm:flex-row sm:items-start">
+            <div className="flex flex-col items-center gap-2.5 sm:items-start">
+              <div className="flex items-center gap-2.5">
+                <SwirlMark className="h-6 w-6" />
+                <span className="font-display text-lg font-medium tracking-tight text-foreground">
+                  Phormula
+                </span>
+              </div>
+              <p className="font-display text-sm italic text-muted-foreground">
+                Reformulating your study methods.
+              </p>
+            </div>
 
-      <p className="mt-3 font-display text-lg italic text-muted-foreground sm:text-xl">
-        Reformulating your study methods.
-      </p>
+            <nav className="flex items-center gap-7 text-sm" aria-label="Footer">
+              <Link
+                to="/auth?mode=signup"
+                className="text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Start studying
+              </Link>
+              <Link
+                to="/auth?mode=signin"
+                className="text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Sign in
+              </Link>
+            </nav>
+          </div>
 
-      <div className="mt-9 flex flex-wrap items-center justify-center gap-3.5">
-        <Button asChild variant="brand" size="lg" className="rounded-xl px-7 font-bold">
-          <Link to="/auth?mode=signup">Start studying</Link>
-        </Button>
-        <Button
-          asChild
-          variant="outline"
-          size="lg"
-          className="rounded-xl border-line-strong bg-transparent px-7 hover:bg-accent"
-        >
-          <Link to="/auth?mode=signin">Sign in</Link>
-        </Button>
-      </div>
-    </main>
+          <p className="mt-9 border-t border-border/60 pt-6 text-center text-xs text-muted-foreground sm:text-left">
+            © 2026 Phormula. All rights reserved.
+          </p>
+        </div>
+      </footer>
+    </div>
   );
 };
 
