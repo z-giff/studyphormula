@@ -48,13 +48,16 @@ const SC = {
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const sub = (p: number, a: number, b: number) => clamp01((p - a) / (b - a));
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+const easeInCubic = (t: number) => t * t * t;
 const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 
 interface Particle {
   hx: number; hy: number;       // grid home
-  sx: number; sy: number;       // spawn origin (off bottom-left)
+  scx: number; scy: number;     // collapsed spawn (near centre — blooms outward)
   swx: number; swy: number;     // swirl formation target
   swt: number;                  // position along the spiral (for gradient)
+  homeAng: number;              // angle centre → home (exit + gather direction)
+  distC: number;                // normalised distance of home from centre (0..1)
   delay: number; tint: number; depth: number;
   inD1: boolean; inD2: boolean; stag1: number; stag2: number;
   orbitA: number; orbitR: number; // for guardian cells that lift into orbit
@@ -64,6 +67,7 @@ interface World {
   parts: Particle[];
   cardW: number; cardH: number;
   orbitCX: number; orbitCY: number;
+  cxF: number; cyF: number;     // composition centre (logo centre)
   w: number; h: number;
 }
 
@@ -118,10 +122,17 @@ function buildWorld(w: number, h: number): World {
   ];
   const [orbitCX, orbitCY] = maskToWorld(figCx, figCy);
 
-  // Swirl formation frame: centered, slightly above middle.
-  const L = Math.min(w, h) * 0.6;
-  const sx0 = w / 2 - L / 2;
-  const sy0 = h / 2 - L / 2 - h * 0.02;
+  // Composition centre — the logo sits slightly above the middle; the flock
+  // blooms out from here, exits back through here, and gathers into the swirl
+  // here, so every phase stays centred and balanced.
+  const cxF = w / 2;
+  const cyF = h * 0.46;
+  const halfDiag = Math.hypot(w / 2, h / 2);
+
+  // Swirl formation frame: centred, slightly above middle.
+  const L = Math.min(w, h) * 0.62;
+  const sx0 = cxF - L / 2;
+  const sy0 = cyF - L / 2;
   const maxD1 = Math.hypot(MASK_COLS, MASK_ROWS) / 2;
 
   const parts: Particle[] = [];
@@ -147,19 +158,25 @@ function buildWorld(w: number, h: number): World {
     const p1 = SPIRAL_POINTS[Math.min(i0 + 1, SPIRAL_POINTS.length - 1)];
     const px = p0[0] + (p1[0] - p0[0]) * fr;
     const py = p0[1] + (p1[1] - p0[1]) * fr;
-    const off = (rand() - 0.5) * 0.11;
+    const off = (rand() - 0.5) * 0.06;
+
+    const hx = (c + 0.5) * cellW;
+    const hy = (r + 0.5) * cellH;
+    // Collapsed spawn: 86% of the way from home back toward the centre, with a
+    // little jitter — the field is nearly gathered at the logo, then blooms out.
+    const scx = cxF + (hx - cxF) * 0.14 + (rand() - 0.5) * 46;
+    const scy = cyF + (hy - cyF) * 0.14 + (rand() - 0.5) * 46;
 
     parts.push({
-      hx: (c + 0.5) * cellW,
-      hy: (r + 0.5) * cellH,
-      sx: -w * 0.08 - rand() * w * 0.45,
-      sy: h * 1.05 + rand() * h * 0.6,
+      hx, hy, scx, scy,
+      homeAng: Math.atan2(hy - cyF, hx - cxF),
+      distC: Math.min(1, Math.hypot(hx - cxF, hy - cyF) / halfDiag),
       swx: sx0 + ((px + off * 30) / 200) * L,
       swy: sy0 + ((py + off * 30) / 200) * L,
       swt: t,
       delay: rand(),
       tint: rand(),
-      depth: 0.75 + rand() * 0.5,
+      depth: 0.78 + rand() * 0.44,
       inD1,
       inD2,
       stag1: m ? Math.hypot(m[0] - d1cx, m[1] - d1cy) / maxD1 : 1,
@@ -168,7 +185,7 @@ function buildWorld(w: number, h: number): World {
       orbitR: Math.min(w, h) * (0.2 + rand() * 0.16),
     });
   }
-  return { parts, cardW, cardH, orbitCX, orbitCY, w, h };
+  return { parts, cardW, cardH, orbitCX, orbitCY, cxF, cyF, w, h };
 }
 
 /**
@@ -177,7 +194,7 @@ function buildWorld(w: number, h: number): World {
  * instant scrolling stops and scrubs identically forwards and backwards.
  */
 function drawFrame(ctx: CanvasRenderingContext2D, world: World, p: number) {
-  const { parts, cardW, cardH, orbitCX, orbitCY, w, h } = world;
+  const { parts, cardW, cardH, orbitCX, orbitCY, cxF, cyF, w, h } = world;
   ctx.clearRect(0, 0, w, h);
 
   if (p < SC.emergeStart - 0.02) return;
@@ -185,76 +202,76 @@ function drawFrame(ctx: CanvasRenderingContext2D, world: World, p: number) {
   const form1 = sub(p, SC.form1Start, SC.form1End);
   const morph = easeInOut(sub(p, SC.morphStart, SC.morphEnd));
   const release = sub(p, SC.releaseStart, SC.releaseEnd);
-  const finale = easeInOut(sub(p, SC.finaleStart, SC.finaleEnd));
+  const finaleRaw = sub(p, SC.finaleStart, SC.finaleEnd);
+  const finale = easeInOut(finaleRaw);
   const inFormation = form1 > 0 && release < 1;
+  // Off-screen radius the flock exits to and gathers back in from.
+  const ringR = Math.hypot(w, h) * 0.62;
+
+  // Between the field's exit (releaseEnd) and the finale, the canvas is
+  // intentionally empty — no lingering cards behind the feature/mission text.
+  const fieldGone = release >= 1 && finaleRaw <= 0;
+  if (fieldGone) return;
 
   for (let i = 0; i < parts.length; i++) {
     const pt = parts[i];
-
-    // — emergence: ride the current from bottom-left to the grid home
-    const q = clamp01(sub(p, SC.emergeStart, SC.settleEnd) * 1.45 - pt.delay * 0.45);
-    if (q <= 0 && finale <= 0) continue;
-    const e = easeOutCubic(q);
-    const dx = pt.hx - pt.sx;
-    const dy = pt.hy - pt.sy;
-    const len = Math.hypot(dx, dy) || 1;
-    const wave = Math.sin(q * 5.5 + pt.delay * 6.28) * 60 * pt.depth * (1 - e);
-    let x = pt.sx + dx * e + (dy / len) * wave;
-    let y = pt.sy + dy * e - (dx / len) * wave;
-    let rot = (1 - e) * (-0.48 + pt.delay * 0.3);
-    let op = Math.min(1, q * 4) * (0.5 + 0.42 * Math.min(pt.depth, 1));
-
-    // — flips: The First Desk, then the morph to The Desk Becomes Yours.
-    // Only some of the guardian's cards lift into orbit; the rest return to
-    // the field in place, so the vacated region reads as a soft absence.
-    let flip = 0;
-    const isOrbiter = pt.inD1 && !pt.inD2 && pt.delay > 0.45;
-    if (pt.inD1 && form1 > 0) flip = clamp01(form1 * 1.9 - pt.stag1 * 0.7);
-    if (morph > 0) {
-      if (pt.inD2) flip = Math.max(flip, clamp01(morph * 1.9 - pt.stag2 * 0.7));
-      else flip = flip * (1 - morph);
-    }
-
-    // guardian cells lift out of the grid and orbit the learner;
-    // orbit angle advances with scroll, not with a clock
-    if (isOrbiter && morph > 0 && finale < 1) {
-      const a = pt.orbitA + morph * 1.6 + Math.max(0, p - SC.morphEnd) * 11;
-      const orbR = pt.orbitR * (0.55 + 0.45 * morph);
-      const ox = orbitCX + Math.cos(a) * orbR;
-      const oy = orbitCY + Math.sin(a) * orbR * 0.62;
-      x = x + (ox - x) * morph;
-      y = y + (oy - y) * morph;
-    }
-
-    // dim the field so the formed image reads
-    if (inFormation && !isOrbiter) {
-      const imgNow = morph > 0.5 ? pt.inD2 : pt.inD1;
-      const dimT = Math.max(form1, morph) * (1 - release);
-      if (!imgNow && dimT > 0) op *= 1 - 0.6 * dimT;
-    }
-
-    // — release into the quiet background band behind S6/S7
-    if (release > 0) {
-      flip *= 1 - release;
-      op *= 1 - release * (isOrbiter ? 0.55 : 0.87);
-    }
-    // quiet background band behind S6/S7: a static, slightly irregular field
-    // that drifts gently with scroll
-    if (q >= 1 && release >= 1 && finale <= 0) {
-      x += Math.sin(p * 14 + i * 1.7) * 2.2;
-      y += Math.cos(p * 11 + i * 2.3) * 1.8;
-    }
-
-    // — finale: everything streams into the swirl
+    let x: number, y: number, op: number, rot = 0, flip = 0;
     let tint = pt.tint;
-    if (finale > 0) {
-      x += (pt.swx - x) * finale;
-      y += (pt.swy - y) * finale;
-      op = op + (0.95 - op) * finale;
-      flip *= 1 - finale;
-      rot *= 1 - finale;
+    const base = 0.55 + 0.4 * Math.min(pt.depth, 1);
+
+    if (finaleRaw > 0) {
+      // — S8 finale: gather inward from an off-screen ring into the swirl.
+      const g = easeOutCubic(finale);
+      const rx = cxF + Math.cos(pt.homeAng) * ringR;
+      const ry = cyF + Math.sin(pt.homeAng) * ringR;
+      x = rx + (pt.swx - rx) * g;
+      y = ry + (pt.swy - ry) * g;
+      op = clamp01(finale * 1.6) * base;
+      rot = (1 - g) * (-0.4 + pt.delay * 0.8);
       tint = pt.tint + (pt.swt - pt.tint) * finale;
+    } else {
+      // — S2/S3 emergence: bloom outward from the centre to the grid home,
+      // staggered so the field fills the viewport evenly (centre-out).
+      const emerge = sub(p, SC.emergeStart, SC.settleEnd);
+      const q = clamp01(emerge * 1.9 - pt.delay * 0.22 - pt.distC * 0.5);
+      if (q <= 0) continue;
+      const e = easeOutCubic(q);
+      const wob = 1 - e;
+      x = pt.scx + (pt.hx - pt.scx) * e + Math.sin(e * 6 + pt.delay * 6.28) * 20 * pt.depth * wob;
+      y = pt.scy + (pt.hy - pt.scy) * e + Math.cos(e * 5 + pt.delay * 6.28) * 20 * pt.depth * wob;
+      rot = wob * (-0.35 + pt.delay * 0.7);
+      op = e * base;
+
+      // — S4/S5 formations: flip image cards to ink; dim the rest.
+      const isOrbiter = pt.inD1 && !pt.inD2 && pt.delay > 0.45;
+      if (pt.inD1 && form1 > 0) flip = clamp01(form1 * 1.9 - pt.stag1 * 0.7);
+      if (morph > 0) {
+        if (pt.inD2) flip = Math.max(flip, clamp01(morph * 1.9 - pt.stag2 * 0.7));
+        else flip = flip * (1 - morph);
+      }
+      if (isOrbiter && morph > 0) {
+        const a = pt.orbitA + morph * 1.6 + Math.max(0, p - SC.morphEnd) * 11;
+        const orbR = pt.orbitR * (0.55 + 0.45 * morph);
+        x += (orbitCX + Math.cos(a) * orbR - x) * morph;
+        y += (orbitCY + Math.sin(a) * orbR * 0.62 - y) * morph;
+      }
+      if (inFormation && !isOrbiter) {
+        const imgNow = morph > 0.5 ? pt.inD2 : pt.inD1;
+        const dimT = Math.max(form1, morph) * (1 - release);
+        if (!imgNow && dimT > 0) op *= 1 - 0.6 * dimT;
+      }
+
+      // — release: fly outward through the centre-axis and fade fully, so the
+      // stage is completely clear for the feature/mission scenes.
+      if (release > 0) {
+        const push = easeInCubic(release) * ringR;
+        x += Math.cos(pt.homeAng) * push;
+        y += Math.sin(pt.homeAng) * push;
+        op *= 1 - release;
+        flip *= 1 - release;
+      }
     }
+
     if (op <= 0.01) continue;
 
     const fl = Math.abs(1 - 2 * flip);
