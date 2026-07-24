@@ -1,15 +1,20 @@
-import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect, useState } from "react";
-import LogoOrb from "@/components/LogoOrb";
 import SwirlMark from "@/components/SwirlMark";
-import FlockStory from "@/components/home/FlockStory";
 
+/**
+ * Homepage — a deliberately static, centred landing lockup.
+ *
+ * No animation, particles or background motion here: just the mark, the
+ * wordmark, the tagline and the two calls to action, centred in the viewport
+ * on the Ember & Ink ground. The auth destinations are unchanged, so the
+ * sign-in / sign-up experiences keep their own design and behaviour.
+ */
 const Index = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [showNav, setShowNav] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -17,69 +22,32 @@ const Index = () => {
     }
   }, [user, navigate]);
 
-  // The nav stays hidden through the hero and fades in once the story begins.
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowNav(window.scrollY > window.innerHeight * 1.1);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* Persistent navigation — visible from Scene 2 onward */}
-      <nav
-        className={`fixed left-0 right-0 top-0 z-50 border-b border-border/60 bg-background/75 backdrop-blur-lg transition-all duration-300 ${
-          showNav ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-full opacity-0"
-        }`}
-      >
-        <div className="container mx-auto flex items-center justify-between px-4 py-3.5">
-          <LogoOrb size="md" showWordmark={true} linkTo="/" />
-          <div className="flex items-center gap-2.5">
-            <Button asChild variant="ghost" className="text-sm font-semibold text-muted-foreground hover:text-foreground">
-              <Link to="/auth?mode=signin">Sign in</Link>
-            </Button>
-            <Button asChild variant="brand" className="rounded-lg text-sm font-bold">
-              <Link to="/auth?mode=signup">Start studying</Link>
-            </Button>
-          </div>
-        </div>
-      </nav>
+    <main className="flex min-h-[100svh] flex-col items-center justify-center bg-background px-6 py-16 text-center">
+      <SwirlMark className="h-24 w-24 drop-shadow-[0_0_28px_rgba(242,121,95,0.25)] sm:h-28 sm:w-28" />
 
-      {/* Scenes 0–8: one continuous scroll story */}
-      <FlockStory />
+      <h1 className="mt-5 font-display text-6xl font-medium tracking-tight text-foreground sm:text-7xl">
+        Phormula
+      </h1>
 
-      {/* Scene 9 — footer */}
-      <footer className="border-t border-border bg-secondary/40 py-14">
-        <div className="container mx-auto px-6">
-          <div className="flex flex-col items-center justify-between gap-8 md:flex-row md:items-start">
-            <div className="flex flex-col items-center gap-3 md:items-start">
-              <LogoOrb size="md" showWordmark={true} linkTo="/" />
-              <p className="font-display text-sm italic text-muted-foreground">
-                Reformulating your study methods.
-              </p>
-            </div>
-            <div className="flex items-center gap-8 text-sm">
-              <Link to="/auth?mode=signin" className="text-muted-foreground transition-colors hover:text-foreground">
-                Sign in
-              </Link>
-              <Link to="/auth?mode=signup" className="text-muted-foreground transition-colors hover:text-foreground">
-                Create account
-              </Link>
-            </div>
-          </div>
-          <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-border/60 pt-6 text-xs text-muted-foreground md:flex-row">
-            <p>© 2026 Phormula. All rights reserved.</p>
-            <p className="flex items-center gap-2">
-              <SwirlMark className="h-4 w-4" />
-              Designed for studying after dark.
-            </p>
-          </div>
-        </div>
-      </footer>
-    </div>
+      <p className="mt-3 font-display text-lg italic text-muted-foreground sm:text-xl">
+        Reformulating your study methods.
+      </p>
+
+      <div className="mt-9 flex flex-wrap items-center justify-center gap-3.5">
+        <Button asChild variant="brand" size="lg" className="rounded-xl px-7 font-bold">
+          <Link to="/auth?mode=signup">Start studying</Link>
+        </Button>
+        <Button
+          asChild
+          variant="outline"
+          size="lg"
+          className="rounded-xl border-line-strong bg-transparent px-7 hover:bg-accent"
+        >
+          <Link to="/auth?mode=signin">Sign in</Link>
+        </Button>
+      </div>
+    </main>
   );
 };
 
