@@ -31,9 +31,12 @@ import {
 
 // Scene ranges as fractions of the scroll container.
 const SC = {
-  heroFadeStart: 0.055,
-  heroFadeEnd: 0.13,
-  emergeStart: 0.125,
+  // The flock begins filling the viewport almost immediately, behind a still
+  // fully-visible hero, so the opening reads as one immersive full-screen
+  // composition; the hero then exhales out once the field has arrived.
+  heroFadeStart: 0.14,
+  heroFadeEnd: 0.26,
+  emergeStart: 0.02,
   settleEnd: 0.36,
   form1Start: 0.395,
   form1End: 0.48,
@@ -329,7 +332,7 @@ const CAPTIONS: {
   {
     id: "cap2",
     text: "Every subject starts as a thousand scattered pieces.",
-    range: [0.17, 0.3],
+    range: [0.26, 0.325],
     className: "right-[6%] top-[30%] max-w-xs text-right md:max-w-sm",
   },
   {
@@ -495,6 +498,7 @@ const StaticStory = () => {
 
 const FlockStory = () => {
   const rootRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const wordRef = useRef<HTMLDivElement>(null);
@@ -513,8 +517,9 @@ const FlockStory = () => {
   useEffect(() => {
     if (reduced) return;
     const root = rootRef.current;
+    const stage = stageRef.current;
     const cv = canvasRef.current;
-    if (!root || !cv) return;
+    if (!root || !stage || !cv) return;
     const ctx = cv.getContext("2d");
     if (!ctx) return;
 
@@ -523,20 +528,31 @@ const FlockStory = () => {
     let running = true;
     let visible = true;
     let lastP = -1; // last drawn scroll progress (declared before resize uses it)
+    let cw = 0, ch = 0; // last measured stage size
 
+    // Size the canvas from the stage element's *measured* box (never from
+    // window.innerWidth/innerHeight, which can differ from the rendered size
+    // inside embeds/iframes or before first layout). This guarantees a
+    // seamless full-bleed fill and a drawing space that matches what's shown.
     const resize = () => {
+      const rect = stage.getBoundingClientRect();
+      const w = Math.round(rect.width);
+      const h = Math.round(rect.height);
+      if (w <= 0 || h <= 0) return;
+      if (w === cw && h === ch) return; // no real change
+      cw = w; ch = h;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const w = window.innerWidth;
-      const h = window.innerHeight;
       cv.width = Math.round(w * dpr);
       cv.height = Math.round(h * dpr);
-      cv.style.width = `${w}px`;
-      cv.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       world = buildWorld(w, h);
       lastP = -1; // force a redraw at the new size
     };
     resize();
+    // ResizeObserver catches every layout change of the stage — panel drags,
+    // iframe resizes, device-frame toggles — that a window 'resize' misses.
+    const ro = new ResizeObserver(() => resize());
+    ro.observe(stage);
     window.addEventListener("resize", resize);
 
     const setOverlay = (id: string, op: number, ty = 14, interactive = false) => {
@@ -551,7 +567,9 @@ const FlockStory = () => {
       raf = requestAnimationFrame(frame);
       if (!running || !visible || !world) return;
       const rect = root.getBoundingClientRect();
-      const p = clamp01(-rect.top / (rect.height - window.innerHeight));
+      // Use the measured stage height so scroll progress is correct inside
+      // embeds where window.innerHeight may not equal the rendered viewport.
+      const p = clamp01(-rect.top / (rect.height - (ch || window.innerHeight)));
       // Everything on screen is a pure function of p — when the scroll
       // position hasn't moved, skip the frame entirely so all motion
       // pauses the instant scrolling stops.
@@ -593,6 +611,7 @@ const FlockStory = () => {
 
     return () => {
       cancelAnimationFrame(raf);
+      ro.disconnect();
       window.removeEventListener("resize", resize);
       document.removeEventListener("visibilitychange", onVis);
       io.disconnect();
@@ -603,13 +622,18 @@ const FlockStory = () => {
 
   return (
     <div ref={rootRef} className="relative h-[640vh] md:h-[880vh]">
-      <div className="sticky top-0 h-screen overflow-hidden">
+      <div ref={stageRef} className="sticky top-0 h-screen w-full overflow-hidden">
         <AmbientGlow />
-        <canvas ref={canvasRef} className="absolute inset-0" aria-hidden />
+        <canvas ref={canvasRef} className="absolute inset-0 block h-full w-full" aria-hidden />
 
-        {/* S0/S1 hero */}
+        {/* S0/S1 hero — a soft radial vignette keeps the lockup legible over
+            the flock without any hard edge; it fades out with the hero. */}
         <div ref={heroRef} className="absolute inset-0 z-10 flex items-center justify-center">
-          <div ref={wordRef} className="transition-none">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 [background:radial-gradient(ellipse_46%_42%_at_50%_47%,hsl(266_24%_6%/0.92)_0%,hsl(266_24%_6%/0.7)_38%,transparent_72%)]"
+          />
+          <div ref={wordRef} className="relative transition-none">
             <HeroLockup animated />
           </div>
         </div>
