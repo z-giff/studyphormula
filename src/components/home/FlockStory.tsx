@@ -53,7 +53,7 @@ const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2,
 
 interface Particle {
   hx: number; hy: number;       // grid home
-  scx: number; scy: number;     // collapsed spawn (near centre — blooms outward)
+  sctX: number; sctY: number;   // scatter offset from home (settles to 0)
   swx: number; swy: number;     // swirl formation target
   swt: number;                  // position along the spiral (for gradient)
   homeAng: number;              // angle centre → home (exit + gather direction)
@@ -162,13 +162,14 @@ function buildWorld(w: number, h: number): World {
 
     const hx = (c + 0.5) * cellW;
     const hy = (r + 0.5) * cellH;
-    // Collapsed spawn: 86% of the way from home back toward the centre, with a
-    // little jitter — the field is nearly gathered at the logo, then blooms out.
-    const scx = cxF + (hx - cxF) * 0.14 + (rand() - 0.5) * 46;
-    const scy = cyF + (hy - cyF) * 0.14 + (rand() - 0.5) * 46;
+    // Scatter offset: cards fade in scattered a few cells from home across the
+    // whole viewport, then settle onto the grid — "a thousand scattered pieces"
+    // that fill the full screen from the moment they arrive.
+    const sctX = (rand() - 0.5) * cellW * 3.4;
+    const sctY = (rand() - 0.5) * cellH * 3.4;
 
     parts.push({
-      hx, hy, scx, scy,
+      hx, hy, sctX, sctY,
       homeAng: Math.atan2(hy - cyF, hx - cxF),
       distC: Math.min(1, Math.hypot(hx - cxF, hy - cyF) / halfDiag),
       swx: sx0 + ((px + off * 30) / 200) * L,
@@ -230,17 +231,19 @@ function drawFrame(ctx: CanvasRenderingContext2D, world: World, p: number) {
       rot = (1 - g) * (-0.4 + pt.delay * 0.8);
       tint = pt.tint + (pt.swt - pt.tint) * finale;
     } else {
-      // — S2/S3 emergence: bloom outward from the centre to the grid home,
-      // staggered so the field fills the viewport evenly (centre-out).
+      // — S2/S3 emergence: cards fade in scattered across the whole viewport
+      // (near their grid homes) and settle onto the grid. Staggered mostly at
+      // random with only a gentle centre-out bias, so the entire screen fills
+      // quickly and evenly rather than growing from a centre blob.
       const emerge = sub(p, SC.emergeStart, SC.settleEnd);
-      const q = clamp01(emerge * 1.9 - pt.delay * 0.22 - pt.distC * 0.5);
+      const q = clamp01(emerge * 2.4 - pt.delay * 0.85 - pt.distC * 0.18);
       if (q <= 0) continue;
       const e = easeOutCubic(q);
       const wob = 1 - e;
-      x = pt.scx + (pt.hx - pt.scx) * e + Math.sin(e * 6 + pt.delay * 6.28) * 20 * pt.depth * wob;
-      y = pt.scy + (pt.hy - pt.scy) * e + Math.cos(e * 5 + pt.delay * 6.28) * 20 * pt.depth * wob;
-      rot = wob * (-0.35 + pt.delay * 0.7);
-      op = e * base;
+      x = pt.hx + pt.sctX * wob + Math.sin(e * 6 + pt.delay * 6.28) * 14 * pt.depth * wob;
+      y = pt.hy + pt.sctY * wob + Math.cos(e * 5 + pt.delay * 6.28) * 14 * pt.depth * wob;
+      rot = wob * (-0.4 + pt.delay * 0.8);
+      op = clamp01(q * 1.6) * base;
 
       // — S4/S5 formations: flip image cards to ink; dim the rest.
       const isOrbiter = pt.inD1 && !pt.inD2 && pt.delay > 0.45;
