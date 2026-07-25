@@ -229,6 +229,7 @@ const StoryStage = () => {
     let awake = true;
     let lastP = -1;
     let sw = 0, sh = 0;
+    let dpr = 1;
 
     // Size from the stage's *measured* box (never window.inner*, which differs
     // inside embeds/iframes and before first layout) so the canvas is always a
@@ -237,9 +238,9 @@ const StoryStage = () => {
       const r = stage.getBoundingClientRect();
       const w = Math.round(r.width);
       const h = Math.round(r.height);
-      if (w <= 0 || h <= 0 || (w === sw && h === sh)) return;
-      sw = w; sh = h;
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const nextDpr = Math.min(window.devicePixelRatio || 1, 2);
+      if (w <= 0 || h <= 0 || (w === sw && h === sh && nextDpr === dpr)) return;
+      sw = w; sh = h; dpr = nextDpr;
       cv.width = Math.round(w * dpr);
       cv.height = Math.round(h * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -249,6 +250,7 @@ const StoryStage = () => {
     resize();
     const ro = new ResizeObserver(resize);
     ro.observe(stage);
+    window.addEventListener("resize", resize);
 
     const setLayer = (id: string, op: number, rise = 16, interactive = false) => {
       const el = layerRefs.current[id];
@@ -270,7 +272,7 @@ const StoryStage = () => {
       if (Math.abs(p - lastP) < 0.00004) return;
       lastP = p;
 
-      drawFrame(ctx, world, p);
+      drawFrame(ctx, world, p, dpr);
 
       // S0 → S1: the lockup holds, then breathes out.
       const hero = heroRef.current;
@@ -307,7 +309,9 @@ const StoryStage = () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
       io.disconnect();
+      window.removeEventListener("resize", resize);
       document.removeEventListener("visibilitychange", onVis);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, cv.width, cv.height);
     };
   }, [reduced]);
