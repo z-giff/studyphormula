@@ -103,7 +103,8 @@ export function buildWorld(w: number, h: number): World {
   const diag = Math.hypot(w, h);
 
   // Card size scales with the viewport so the flock reads the same everywhere.
-  const cardW = Math.max(10, Math.min(24, s * 0.023));
+  // Every card is drawn at exactly this size — uniform, no per-card scaling.
+  const cardW = Math.max(13, Math.min(30, s * 0.029));
   const cardH = cardW * 0.66;
 
   let seed = 20260724;
@@ -319,8 +320,9 @@ export function drawFrame(
 
     const fl = Math.abs(1 - 2 * clamp01(flip));
     const flipped = flip > 0.5;
-    const cw = cardW * c.depth * breathe * Math.max(0.08, fl);
-    const chh = cardH * c.depth * breathe;
+    // Uniform size: depth only affects opacity, never scale.
+    const cw = cardW * breathe * Math.max(0.08, fl);
+    const chh = cardH * breathe;
 
     ctx.globalAlpha = op;
     if (rot !== 0) {
