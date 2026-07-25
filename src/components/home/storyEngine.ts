@@ -122,19 +122,24 @@ export function buildWorld(w: number, h: number): World {
   const l5x = cx, l5y = cy, Rl5 = s * 0.118;
 
   const cards: Card[] = [];
+  // Settled field is a neat grid: evenly spaced rows/columns that overflow the
+  // viewport slightly so there is no visible rectangular edge.
+  const cols = Math.max(1, Math.round(Math.sqrt(N * (w / h))));
+  const rows = Math.ceil(N / cols);
+  const stepX = (w * 1.08) / cols;
+  const stepY = (h * 1.08) / rows;
   for (let i = 0; i < N; i++) {
     const f = i / N;
     // Role mix — fixed proportions keep every formation composed the same way.
     const role: Role =
       f < 0.3 ? "guardian" : f < 0.5 ? "learner" : f < 0.63 ? "bridge" : "ambient";
 
-    // Settled field: golden-angle disc, radius > half-diagonal so it covers
-    // the corners. Uniform density, no grid, no rectangular edge.
-    const ga = i * 2.399963;
-    const gr = Math.sqrt((i + 0.6) / N);
-    const R = diag * 0.54;
-    const fx = cx + Math.cos(ga) * gr * R + (rand() - 0.5) * cardW * 2.2;
-    const fy = cy + Math.sin(ga) * gr * R * 0.96 + (rand() - 0.5) * cardW * 2.2;
+    // Settled field: an even grid, each card directly beside the next.
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    rand(); rand(); // keep the random sequence stable for later formations
+    const fx = cx + (col - (cols - 1) / 2) * stepX;
+    const fy = cy + (row - (rows - 1) / 2) * stepY;
 
     // Entry: off-screen on a broad diagonal current, staggered.
     const entryA = Math.atan2(fy - cy, fx - cx);
