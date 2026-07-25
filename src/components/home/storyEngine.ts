@@ -225,7 +225,7 @@ export function drawFrame(
   p: number,
   dpr = 1,
 ) {
-  const { cards, w, h, cardW, cardH } = world;
+  const { cards, cardW, cardH } = world;
 
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.globalAlpha = 1;
