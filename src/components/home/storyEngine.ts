@@ -277,10 +277,12 @@ export function drawFrame(
       y = lerp(y, c.sy, tSwirl);
     }
 
-    // gentle life: a slow drift tied to scroll, never to a clock
+    // gentle life: a slow drift tied to scroll, never to a clock.
+    // The phase is global (not per-card) so the settled grid moves as one
+    // rigid body — every row and column stays perfectly aligned.
     const live = (1 - tSwirl) * (1 - tConnect * 0.6);
-    x += Math.sin(p * 9 + c.drift) * cardW * 0.35 * live;
-    y += Math.cos(p * 7.5 + c.drift) * cardW * 0.3 * live;
+    x += Math.sin(p * 9) * cardW * 0.35 * live;
+    y += Math.cos(p * 7.5) * cardW * 0.3 * live;
 
     // — opacity: each scene states its own value, so nothing lingers.
     let op = Math.min(1, a * 2.2) * (0.5 + 0.44 * Math.min(c.depth, 1));
