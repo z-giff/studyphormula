@@ -96,7 +96,6 @@ export const SCENES = {
 const cardCount = (w: number) => (w < 640 ? 300 : w < 1024 ? 520 : 850);
 
 export function buildWorld(w: number, h: number): World {
-  const N = cardCount(w);
   const cx = w / 2;
   const cy = h * 0.48;
   const s = Math.min(w, h);
@@ -106,6 +105,14 @@ export function buildWorld(w: number, h: number): World {
   // Every card is drawn at exactly this size — uniform, no per-card scaling.
   const cardW = Math.max(13, Math.min(30, s * 0.029));
   const cardH = cardW * 0.66;
+
+  // Uniform gutters in both axes: the settled field reads as one precise grid.
+  const gap = cardW * 0.55;
+  const stepX = cardW + gap;
+  const stepY = cardH + gap;
+  const cols = Math.ceil((w * 1.06) / stepX) + 1;
+  const rows = Math.ceil((h * 1.06) / stepY) + 1;
+  const N = cols * rows;
 
   let seed = 20260724;
   const rand = () => {
@@ -123,12 +130,8 @@ export function buildWorld(w: number, h: number): World {
   const l5x = cx, l5y = cy, Rl5 = s * 0.118;
 
   const cards: Card[] = [];
-  // Settled field is a neat grid: evenly spaced rows/columns that overflow the
-  // viewport slightly so there is no visible rectangular edge.
-  const cols = Math.max(1, Math.round(Math.sqrt(N * (w / h))));
-  const rows = Math.ceil(N / cols);
-  const stepX = (w * 1.08) / cols;
-  const stepY = (h * 1.08) / rows;
+  // Settled field is a neat grid: equal gutters, overflowing the viewport
+  // slightly so there is no visible rectangular edge.
   for (let i = 0; i < N; i++) {
     const f = i / N;
     // Role mix — fixed proportions keep every formation composed the same way.
