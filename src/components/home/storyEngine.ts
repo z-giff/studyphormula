@@ -211,10 +211,26 @@ export function buildWorld(w: number, h: number): World {
 /**
  * Draw one frame. `p` is scroll progress (0..1) through the sticky stage —
  * the entire picture is a pure function of it.
+ *
+ * Rendering contract (do not break):
+ *   1. reset the transform to identity
+ *   2. clear the ENTIRE backing store (device pixels, not CSS pixels)
+ *   3. re-apply the devicePixelRatio scale
+ *   4. draw once — per-card transforms use save()/restore() only, never
+ *      setTransform(), which would destroy the dpr scale for later cards.
  */
-export function drawFrame(ctx: CanvasRenderingContext2D, world: World, p: number) {
-  const { cards, w, h, cardW, cardH } = world;
-  ctx.clearRect(0, 0, w, h);
+export function drawFrame(
+  ctx: CanvasRenderingContext2D,
+  world: World,
+  p: number,
+  dpr = 1,
+) {
+  const { cards, cardW, cardH } = world;
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1;
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
   const tArrive = seg(p, SCENES.arrive[0], SCENES.arrive[1]);
   const tConnect = easeInOut(seg(p, SCENES.connect[0], SCENES.connect[1]));
@@ -301,7 +317,8 @@ export function drawFrame(ctx: CanvasRenderingContext2D, world: World, p: number
 
     ctx.globalAlpha = op;
     if (rot !== 0) {
-      ctx.setTransform(1, 0, 0, 1, x, y);
+      ctx.save();
+      ctx.translate(x, y);
       ctx.rotate(rot);
       ctx.translate(-x, -y);
     }
@@ -321,7 +338,7 @@ export function drawFrame(ctx: CanvasRenderingContext2D, world: World, p: number
       ctx.fillStyle = emberColor(tint);
       ctx.fill();
     }
-    if (rot !== 0) ctx.setTransform(1, 0, 0, 1, 0, 0);
+    if (rot !== 0) ctx.restore();
   }
   ctx.globalAlpha = 1;
 }
