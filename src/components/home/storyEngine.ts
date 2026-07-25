@@ -88,13 +88,6 @@ export const SCENES = {
   swirl: [0.87, 0.985] as const,      // S8 the swirl and the ask
 };
 
-/**
- * Card count per screen size. Tuned to read as a present, filled field
- * (~12% of the viewport) — enough to feel like a flock, well short of the
- * dense noise that a full grid produces.
- */
-const cardCount = (w: number) => (w < 640 ? 300 : w < 1024 ? 520 : 850);
-
 export function buildWorld(w: number, h: number): World {
   const cx = w / 2;
   const cy = h * 0.48;
