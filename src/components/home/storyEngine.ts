@@ -193,6 +193,7 @@ export function buildWorld(w: number, h: number): World {
       ux, uy, sx, sy, sT,
       role,
       node: -1,
+      nx: fx, ny: fy,
       tint: rand(),
       depth: 0.72 + rand() * 0.5,
       delay: rand(),
@@ -211,10 +212,16 @@ export function buildWorld(w: number, h: number): World {
   NODE_CELLS.forEach(([fxr, fyr], n) => {
     const c0 = Math.min(cols - 2, Math.max(0, Math.round(fxr * (cols - 2))));
     const r0 = Math.min(rows - 2, Math.max(0, Math.round(fyr * (rows - 2))));
+    const bcx = cx + (c0 + 0.5 - (cols - 1) / 2) * stepX;
+    const bcy = cy + (r0 + 0.5 - (rows - 1) / 2) * stepY;
     for (let dr = 0; dr < 2; dr++) {
       for (let dc = 0; dc < 2; dc++) {
         const card = cards[(r0 + dr) * cols + (c0 + dc)];
-        if (card) card.node = n;
+        if (!card) continue;
+        card.node = n;
+        // pull the four cards in until they form one tight square
+        card.nx = bcx + (dc === 0 ? -1 : 1) * (cardW / 2 + gap * 0.12);
+        card.ny = bcy + (dr === 0 ? -1 : 1) * (cardH / 2 + gap * 0.12);
       }
     }
   });
