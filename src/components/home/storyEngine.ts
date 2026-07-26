@@ -346,7 +346,7 @@ export function drawFrame(
     let tint = c.tint;
     if (tSwirl > 0) tint = lerp(c.tint, c.sT, tSwirl);
 
-    const fl = Math.abs(Math.cos((turn * Math.PI) / 2));
+    const fl = Math.abs(Math.cos(turn * Math.PI));
     // 0 = ember face, 1 = concept colour, 2 = white face
     const face = turn <= 0.5 ? 0 : turn <= 1.5 ? 1 : 2;
     // Uniform size: depth only affects opacity, never scale.
