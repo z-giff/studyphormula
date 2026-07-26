@@ -206,8 +206,8 @@ export function buildWorld(w: number, h: number): World {
   //   already sits in the settled grid, so the scene reads as those cards
   //   turning over in place rather than new objects appearing.
   const NODE_CELLS: [number, number][] = [
-    [0.16, 0.22], [0.5, 0.13], [0.84, 0.24],
-    [0.19, 0.68], [0.52, 0.76], [0.83, 0.65],
+    [0.11, 0.16], [0.32, 0.27], [0.64, 0.39],
+    [0.44, 0.53], [0.9, 0.59], [0.56, 0.79],
   ];
   NODE_CELLS.forEach(([fxr, fyr], n) => {
     const c0 = Math.min(cols - 2, Math.max(0, Math.round(fxr * (cols - 2))));
