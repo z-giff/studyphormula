@@ -214,9 +214,10 @@ export function buildWorld(w: number, h: number): World {
         card.ny = bcy + (dr === 0 ? -1 : 1) * (cardH / 2 + gap * 0.12);
       }
     }
+    nodePath.push([bcx, bcy]);
   });
 
-  return { cards, w, h, cardW, cardH };
+  return { cards, w, h, cardW, cardH, nodePath };
 }
 
 /**
