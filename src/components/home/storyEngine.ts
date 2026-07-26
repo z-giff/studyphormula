@@ -263,7 +263,7 @@ export function drawFrame(
 
   // — S5 · the pathway. Thin lines grow node-to-node while the six nodes flip
   //   from their concept colours to white. Nothing moves; nothing lingers.
-  const tPath = easeInOut(seg(p, SCENES.orbit[0] + 0.012, SCENES.orbit[1]));
+  const tPath = easeInOut(seg(p, SCENES.orbit[0] + 0.012, SCENES.orbit[1] - 0.025));
   // The pathway retires before the flock leaves for its halo, so no line is
   // ever left hanging in empty space.
   const pathAlpha = tPath * (1 - easeInOut(seg(p, SCENES.orbit[1], SCENES.modes[0])));
