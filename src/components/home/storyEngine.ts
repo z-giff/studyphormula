@@ -199,6 +199,10 @@ export function buildWorld(w: number, h: number): World {
     [0.11, 0.16], [0.32, 0.27], [0.64, 0.39],
     [0.44, 0.53], [0.9, 0.59], [0.56, 0.79],
   ];
+  // The pathway visits the nodes in this order (indices into NODE_CELLS), so
+  // the line reads top-left → down-right → across, one clean continuous route.
+  const PATH_ORDER = [0, 1, 3, 5, 2, 4];
+  const nodeCentres: [number, number][] = [];
   NODE_CELLS.forEach(([fxr, fyr], n) => {
     const c0 = Math.min(cols - 2, Math.max(0, Math.round(fxr * (cols - 2))));
     const r0 = Math.min(rows - 2, Math.max(0, Math.round(fyr * (rows - 2))));
@@ -214,8 +218,9 @@ export function buildWorld(w: number, h: number): World {
         card.ny = bcy + (dr === 0 ? -1 : 1) * (cardH / 2 + gap * 0.12);
       }
     }
-    nodePath.push([bcx, bcy]);
+    nodeCentres[n] = [bcx, bcy];
   });
+  PATH_ORDER.forEach((n) => nodePath.push(nodeCentres[n]));
 
   return { cards, w, h, cardW, cardH, nodePath };
 }
