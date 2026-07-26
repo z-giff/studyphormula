@@ -127,10 +127,6 @@ export function buildWorld(w: number, h: number): World {
     return seed / 4294967296;
   };
 
-  // — S4 connection: two presences of light, the larger leaning toward the
-  //   smaller, with an arc of cards passing between them.
-  const gx = cx - s * 0.22, gy = cy - s * 0.035, Rg = s * 0.152;
-  const lx = cx + s * 0.19, ly = cy + s * 0.08, Rl = s * 0.098;
   // — S5 independence: the learner moves to centre and grows; the guardian's
   //   cards become the orbit around them.
   const l5x = cx, l5y = cy, Rl5 = s * 0.118;
@@ -156,26 +152,10 @@ export function buildWorld(w: number, h: number): World {
     const ex = fx - Math.cos(entryA - 0.55) * diag * (0.55 + rand() * 0.4) - w * 0.12;
     const ey = fy + Math.sin(0.6) * diag * (0.3 + rand() * 0.3) + h * 0.2;
 
-    // S4 formation position by role.
-    let ccx: number, ccy: number;
-    if (role === "guardian") {
-      const a = rand() * Math.PI * 2, rr = Math.sqrt(rand());
-      ccx = gx + Math.cos(a) * rr * Rg;
-      ccy = gy + Math.sin(a) * rr * Rg * 1.12;
-    } else if (role === "learner") {
-      const a = rand() * Math.PI * 2, rr = Math.sqrt(rand());
-      ccx = lx + Math.cos(a) * rr * Rl;
-      ccy = ly + Math.sin(a) * rr * Rl * 1.12;
-    } else if (role === "bridge") {
-      // a gentle bezier arc from the guardian toward the learner
-      const t = rand();
-      const mx = (gx + lx) / 2, my = Math.min(gy, ly) - s * 0.11;
-      const it = 1 - t;
-      ccx = it * it * gx + 2 * it * t * mx + t * t * lx + (rand() - 0.5) * cardW;
-      ccy = it * it * gy + 2 * it * t * my + t * t * ly + (rand() - 0.5) * cardW;
-    } else {
-      ccx = fx; ccy = fy; // ambient cards stay put and fade back
-    }
+    // S4 no longer moves any card: the six concept nodes are highlighted in
+    // place (assigned after this loop). Keep the RNG stream stepping so the
+    // later formations are composed exactly as before.
+    rand(); rand(); rand(); rand();
 
     // S5: learner contracts at centre; guardian + bridge become its orbit.
     let oox: number, ooy: number;
@@ -208,10 +188,10 @@ export function buildWorld(w: number, h: number): World {
 
     cards.push({
       ex, ey, fx, fy,
-      cx: ccx, cy: ccy,
       ox: oox, oy: ooy,
       ux, uy, sx, sy, sT,
       role,
+      node: -1,
       tint: rand(),
       depth: 0.72 + rand() * 0.5,
       delay: rand(),
@@ -219,6 +199,24 @@ export function buildWorld(w: number, h: number): World {
       drift: rand() * Math.PI * 2,
     });
   }
+
+  // — S4 · six concepts emerge. Each node is a perfect 2x2 block of cards that
+  //   already sits in the settled grid, so the scene reads as those cards
+  //   turning over in place rather than new objects appearing.
+  const NODE_CELLS: [number, number][] = [
+    [0.18, 0.22], [0.5, 0.13], [0.82, 0.24],
+    [0.21, 0.72], [0.52, 0.84], [0.81, 0.7],
+  ];
+  NODE_CELLS.forEach(([fxr, fyr], n) => {
+    const c0 = Math.min(cols - 2, Math.max(0, Math.round(fxr * (cols - 2))));
+    const r0 = Math.min(rows - 2, Math.max(0, Math.round(fyr * (rows - 2))));
+    for (let dr = 0; dr < 2; dr++) {
+      for (let dc = 0; dc < 2; dc++) {
+        const card = cards[(r0 + dr) * cols + (c0 + dc)];
+        if (card) card.node = n;
+      }
+    }
+  });
 
   return { cards, w, h, cardW, cardH };
 }
