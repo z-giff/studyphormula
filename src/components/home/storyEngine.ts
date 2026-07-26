@@ -34,6 +34,8 @@ export interface World {
   cards: Card[];
   w: number; h: number;
   cardW: number; cardH: number;
+  /** S5: centres of the six 2x2 concept nodes, in pathway order. */
+  nodePath: [number, number][];
 }
 
 /* ---------- Ember & Ink palette (canvas needs concrete colours) ---------- */
@@ -128,9 +130,7 @@ export function buildWorld(w: number, h: number): World {
     return seed / 4294967296;
   };
 
-  // — S5 independence: the learner moves to centre and grows; the guardian's
-  //   cards become the orbit around them.
-  const l5x = cx, l5y = cy, Rl5 = s * 0.118;
+  const nodePath: [number, number][] = [];
 
   const cards: Card[] = [];
   // Settled field is a neat grid: equal gutters, overflowing the viewport
@@ -158,20 +158,10 @@ export function buildWorld(w: number, h: number): World {
     // later formations are composed exactly as before.
     rand(); rand(); rand(); rand();
 
-    // S5: learner contracts at centre; guardian + bridge become its orbit.
-    let oox: number, ooy: number;
-    if (role === "learner") {
-      const a = rand() * Math.PI * 2, rr = Math.sqrt(rand());
-      oox = l5x + Math.cos(a) * rr * Rl5;
-      ooy = l5y + Math.sin(a) * rr * Rl5 * 1.12;
-    } else if (role === "guardian" || role === "bridge") {
-      const a = rand() * Math.PI * 2;
-      const rr = s * (0.26 + rand() * 0.075);
-      oox = l5x + Math.cos(a) * rr;
-      ooy = l5y + Math.sin(a) * rr * 0.74;
-    } else {
-      oox = fx; ooy = fy;
-    }
+    // S5 no longer relocates anything: the nodes stay exactly where S4 left
+    // them and simply turn white while the pathway is drawn between them.
+    rand(); rand(); rand();
+    const oox = fx, ooy = fy;
 
     // S6/S7: the flock withdraws to a quiet halo around the edge of the frame,
     // so it stays part of the story but never sits behind the copy.
@@ -224,9 +214,10 @@ export function buildWorld(w: number, h: number): World {
         card.ny = bcy + (dr === 0 ? -1 : 1) * (cardH / 2 + gap * 0.12);
       }
     }
+    nodePath.push([bcx, bcy]);
   });
 
-  return { cards, w, h, cardW, cardH };
+  return { cards, w, h, cardW, cardH, nodePath };
 }
 
 /**
@@ -246,7 +237,7 @@ export function drawFrame(
   p: number,
   dpr = 1,
 ) {
-  const { cards, cardW, cardH } = world;
+  const { cards, cardW, cardH, nodePath } = world;
 
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.globalAlpha = 1;
@@ -263,6 +254,40 @@ export function drawFrame(
 
   // Ambient breathing so a held frame still feels alive without moving.
   const breathe = 1 + Math.sin(p * 40) * 0.006;
+
+  // Global ambient drift — identical for every card, so the grid (and the S5
+  // pathway drawn over it) moves as one rigid body.
+  const liveBase = (1 - tSwirl) * (1 - tConnect * 0.6);
+  const driftX = Math.sin(p * 9) * cardW * 0.35 * liveBase;
+  const driftY = Math.cos(p * 7.5) * cardW * 0.3 * liveBase;
+
+  // — S5 · the pathway. Thin lines grow node-to-node while the six nodes flip
+  //   from their concept colours to white. Nothing moves; nothing lingers.
+  const tPath = easeInOut(seg(p, SCENES.orbit[0] + 0.012, SCENES.orbit[1] - 0.025));
+  // The pathway retires before the flock leaves for its halo, so no line is
+  // ever left hanging in empty space.
+  const pathAlpha = tPath * (1 - easeInOut(seg(p, SCENES.orbit[1], SCENES.modes[0])));
+  if (pathAlpha > 0.01 && nodePath.length > 1) {
+    const segs = nodePath.length - 1;
+    const grown = tPath * segs;
+    ctx.save();
+    ctx.globalAlpha = pathAlpha * 0.85;
+    ctx.strokeStyle = "rgba(255,255,255,0.72)";
+    ctx.lineWidth = 1;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(nodePath[0][0] + driftX, nodePath[0][1] + driftY);
+    for (let n = 0; n < segs; n++) {
+      const k = clamp01(grown - n);
+      if (k <= 0) break;
+      const [ax, ay] = nodePath[n];
+      const [bx, by] = nodePath[n + 1];
+      ctx.lineTo(lerp(ax, bx, k) + driftX, lerp(ay, by, k) + driftY);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
 
   for (let i = 0; i < cards.length; i++) {
     const c = cards[i];
@@ -284,10 +309,6 @@ export function drawFrame(
         y = lerp(y, c.ny, tConnect);
       }
     }
-    if (tOrbit > 0) {
-      x = lerp(x, c.ox, tOrbit);
-      y = lerp(y, c.oy, tOrbit);
-    }
     if (tModes > 0) {
       x = lerp(x, c.ux, tModes);
       y = lerp(y, c.uy, tModes);
@@ -298,11 +319,8 @@ export function drawFrame(
     }
 
     // gentle life: a slow drift tied to scroll, never to a clock.
-    // The phase is global (not per-card) so the settled grid moves as one
-    // rigid body — every row and column stays perfectly aligned.
-    const live = (1 - tSwirl) * (1 - tConnect * 0.6);
-    x += Math.sin(p * 9) * cardW * 0.35 * live;
-    y += Math.cos(p * 7.5) * cardW * 0.3 * live;
+    x += driftX;
+    y += driftY;
 
     // — opacity: each scene states its own value, so nothing lingers.
     let op = Math.min(1, a * 2.2) * (0.5 + 0.44 * Math.min(c.depth, 1));
@@ -313,9 +331,6 @@ export function drawFrame(
       if (c.node >= 0) op = lerp(op, 1, tConnect);
       else op *= 1 - 0.62 * tConnect;
     }
-    if (tOrbit > 0 && c.role === "learner") {
-      op = Math.min(1, op * (1 + 0.25 * tOrbit)); // the learner brightens
-    }
     if (tModes > 0) {
       // a quiet halo framing the product story
       op = lerp(op, 0.2 + 0.16 * c.depth, tModes);
@@ -325,19 +340,17 @@ export function drawFrame(
     }
     if (op <= 0.012) continue;
 
-    // — face: a small share of the bridging cards turn to their ink face as
-    //   they pass between the two presences — information becoming picture —
-    //   while the presences themselves stay lit.
-    // — face: the node cards turn over in place and land on their concept
-    //   colour; everything else keeps its ember face.
-    let flip = 0;
-    if (c.node >= 0) flip = clamp01(tConnect - tOrbit) * (1 - tModes);
+    // — face: node cards turn over twice, always in place — first onto their
+    //   concept colour (S4), then onto white as the pathway is drawn (S5).
+    //   Everything else keeps its ember face.
+    const turn = c.node >= 0 ? tConnect + tOrbit : 0;
 
     let tint = c.tint;
     if (tSwirl > 0) tint = lerp(c.tint, c.sT, tSwirl);
 
-    const fl = Math.abs(1 - 2 * clamp01(flip));
-    const flipped = flip > 0.5;
+    const fl = Math.abs(Math.cos(turn * Math.PI));
+    // 0 = ember face, 1 = concept colour, 2 = white face
+    const face = turn <= 0.5 ? 0 : turn <= 1.5 ? 1 : 2;
     // Uniform size: depth only affects opacity, never scale.
     const cw = cardW * breathe * Math.max(0.08, fl);
     const chh = cardH * breathe;
@@ -355,13 +368,13 @@ export function drawFrame(
     } else {
       ctx.rect(x - cw / 2, y - chh / 2, cw, chh);
     }
-    if (flipped) {
-      ctx.fillStyle = NODE_COLORS[c.node % NODE_COLORS.length];
-      ctx.fill();
-    } else {
-      ctx.fillStyle = emberColor(tint);
-      ctx.fill();
-    }
+    ctx.fillStyle =
+      face === 2
+        ? "#F6F1F4"
+        : face === 1
+          ? NODE_COLORS[c.node % NODE_COLORS.length]
+          : emberColor(tint);
+    ctx.fill();
     if (rot !== 0) ctx.restore();
   }
   ctx.globalAlpha = 1;
