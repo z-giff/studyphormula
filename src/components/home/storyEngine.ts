@@ -130,9 +130,7 @@ export function buildWorld(w: number, h: number): World {
     return seed / 4294967296;
   };
 
-  // — S5 independence: the learner moves to centre and grows; the guardian's
-  //   cards become the orbit around them.
-  const l5x = cx, l5y = cy, Rl5 = s * 0.118;
+  const nodePath: [number, number][] = [];
 
   const cards: Card[] = [];
   // Settled field is a neat grid: equal gutters, overflowing the viewport
