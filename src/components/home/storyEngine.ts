@@ -275,7 +275,15 @@ export function drawFrame(
     let y = lerp(c.ey, c.fy, ea);
     let rot = (1 - ea) * c.spin;
 
-    if (tConnect > 0) rot *= 1 - tConnect; // S4 highlights in place, no travel
+    if (tConnect > 0) {
+      // S4 highlights in place: node cards only close the gutter between
+      // themselves so the four read as one 2x2 tile.
+      rot *= 1 - tConnect;
+      if (c.node >= 0) {
+        x = lerp(x, c.nx, tConnect);
+        y = lerp(y, c.ny, tConnect);
+      }
+    }
     if (tOrbit > 0) {
       x = lerp(x, c.ox, tOrbit);
       y = lerp(y, c.oy, tOrbit);
