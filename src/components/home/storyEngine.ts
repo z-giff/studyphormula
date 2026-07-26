@@ -19,12 +19,12 @@ export type Role = "guardian" | "learner" | "bridge" | "ambient";
 export interface Card {
   ex: number; ey: number;       // entry (off-screen, on the incoming current)
   fx: number; fy: number;       // settled field
-  cx: number; cy: number;       // S4 connection formation
   ox: number; oy: number;       // S5 orbit / independence
   ux: number; uy: number;       // S6 quiet clusters behind the study modes
   sx: number; sy: number;       // S8 swirl
   sT: number;                   // position along the swirl (drives its tint)
   role: Role;
+  node: number;                 // S4: index of the 2x2 highlight node, or -1
   tint: number; depth: number; delay: number; spin: number;
   drift: number;                // per-card phase for the gentle ambient drift
 }
@@ -55,6 +55,19 @@ export const emberColor = (t: number): string =>
 
 export const INK_FACE = "#221829";
 export const INK_EDGE = "rgba(238,93,155,0.75)";
+
+/**
+ * S4 · the six emerging concepts. Muted Ember & Ink hues — warm enough to
+ * belong to the brand, distinct enough to read as six separate ideas.
+ */
+export const NODE_COLORS: string[] = [
+  "#F7A03E", // amber
+  "#F2795F", // ember
+  "#EE5D9B", // pink
+  "#C77DD8", // mauve
+  "#7E8BE0", // dusk blue
+  "#5FBFA8", // muted teal
+];
 
 /* ---------- maths helpers ---------- */
 export const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
