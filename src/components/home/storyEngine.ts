@@ -34,6 +34,8 @@ export interface World {
   cards: Card[];
   w: number; h: number;
   cardW: number; cardH: number;
+  /** S5: centres of the six 2x2 concept nodes, in pathway order. */
+  nodePath: [number, number][];
 }
 
 /* ---------- Ember & Ink palette (canvas needs concrete colours) ---------- */
@@ -158,20 +160,10 @@ export function buildWorld(w: number, h: number): World {
     // later formations are composed exactly as before.
     rand(); rand(); rand(); rand();
 
-    // S5: learner contracts at centre; guardian + bridge become its orbit.
-    let oox: number, ooy: number;
-    if (role === "learner") {
-      const a = rand() * Math.PI * 2, rr = Math.sqrt(rand());
-      oox = l5x + Math.cos(a) * rr * Rl5;
-      ooy = l5y + Math.sin(a) * rr * Rl5 * 1.12;
-    } else if (role === "guardian" || role === "bridge") {
-      const a = rand() * Math.PI * 2;
-      const rr = s * (0.26 + rand() * 0.075);
-      oox = l5x + Math.cos(a) * rr;
-      ooy = l5y + Math.sin(a) * rr * 0.74;
-    } else {
-      oox = fx; ooy = fy;
-    }
+    // S5 no longer relocates anything: the nodes stay exactly where S4 left
+    // them and simply turn white while the pathway is drawn between them.
+    rand(); rand(); rand();
+    const oox = fx, ooy = fy;
 
     // S6/S7: the flock withdraws to a quiet halo around the edge of the frame,
     // so it stays part of the story but never sits behind the copy.
