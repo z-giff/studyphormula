@@ -267,11 +267,7 @@ export function drawFrame(
     let y = lerp(c.ey, c.fy, ea);
     let rot = (1 - ea) * c.spin;
 
-    if (tConnect > 0) {
-      x = lerp(x, c.cx, tConnect);
-      y = lerp(y, c.cy, tConnect);
-      rot *= 1 - tConnect;
-    }
+    if (tConnect > 0) rot *= 1 - tConnect; // S4 highlights in place, no travel
     if (tOrbit > 0) {
       x = lerp(x, c.ox, tOrbit);
       y = lerp(y, c.oy, tOrbit);
@@ -296,11 +292,10 @@ export function drawFrame(
     let op = Math.min(1, a * 2.2) * (0.5 + 0.44 * Math.min(c.depth, 1));
 
     if (tConnect > 0) {
-      // The field recedes; the two presences become light. Keeping them bright
-      // (rather than flipping to ink) is what makes the human scenes legible
-      // on a dark ground.
-      if (c.role === "ambient") op *= 1 - 0.92 * tConnect;
-      else op = lerp(op, 0.92 + 0.08 * c.depth, tConnect);
+      // The grid recedes into the background; the six 2x2 nodes stay bright and
+      // become the focal points.
+      if (c.node >= 0) op = lerp(op, 1, tConnect);
+      else op *= 1 - 0.62 * tConnect;
     }
     if (tOrbit > 0 && c.role === "learner") {
       op = Math.min(1, op * (1 + 0.25 * tOrbit)); // the learner brightens
@@ -317,10 +312,10 @@ export function drawFrame(
     // — face: a small share of the bridging cards turn to their ink face as
     //   they pass between the two presences — information becoming picture —
     //   while the presences themselves stay lit.
+    // — face: the node cards turn over in place and land on their concept
+    //   colour; everything else keeps its ember face.
     let flip = 0;
-    if (c.role === "bridge" && c.delay > 0.55) {
-      flip = Math.max(0, tConnect - tOrbit) * (1 - tModes);
-    }
+    if (c.node >= 0) flip = clamp01(tConnect - tOrbit) * (1 - tModes);
 
     let tint = c.tint;
     if (tSwirl > 0) tint = lerp(c.tint, c.sT, tSwirl);
@@ -345,11 +340,8 @@ export function drawFrame(
       ctx.rect(x - cw / 2, y - chh / 2, cw, chh);
     }
     if (flipped) {
-      ctx.fillStyle = INK_FACE;
+      ctx.fillStyle = NODE_COLORS[c.node % NODE_COLORS.length];
       ctx.fill();
-      ctx.strokeStyle = INK_EDGE;
-      ctx.lineWidth = 1;
-      ctx.stroke();
     } else {
       ctx.fillStyle = emberColor(tint);
       ctx.fill();
