@@ -264,7 +264,9 @@ export function drawFrame(
   // — S5 · the pathway. Thin lines grow node-to-node while the six nodes flip
   //   from their concept colours to white. Nothing moves; nothing lingers.
   const tPath = easeInOut(seg(p, SCENES.orbit[0] + 0.012, SCENES.orbit[1]));
-  const pathAlpha = tPath * (1 - tModes) * (1 - tSwirl);
+  // The pathway retires before the flock leaves for its halo, so no line is
+  // ever left hanging in empty space.
+  const pathAlpha = tPath * (1 - easeInOut(seg(p, SCENES.orbit[1], SCENES.modes[0])));
   if (pathAlpha > 0.01 && nodePath.length > 1) {
     const segs = nodePath.length - 1;
     const grown = tPath * segs;
@@ -341,7 +343,7 @@ export function drawFrame(
     // — face: node cards turn over twice, always in place — first onto their
     //   concept colour (S4), then onto white as the pathway is drawn (S5).
     //   Everything else keeps its ember face.
-    const turn = c.node >= 0 ? (tConnect + tOrbit) * (1 - tModes) : 0;
+    const turn = c.node >= 0 ? tConnect + tOrbit : 0;
 
     let tint = c.tint;
     if (tSwirl > 0) tint = lerp(c.tint, c.sT, tSwirl);
