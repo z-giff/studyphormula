@@ -25,6 +25,7 @@ export interface Card {
   sT: number;                   // position along the swirl (drives its tint)
   role: Role;
   node: number;                 // S4: index of the 2x2 highlight node, or -1
+  nx: number; ny: number;       // S4: tightened position inside its 2x2 block
   tint: number; depth: number; delay: number; spin: number;
   drift: number;                // per-card phase for the gentle ambient drift
 }
