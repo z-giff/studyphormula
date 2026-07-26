@@ -19,12 +19,13 @@ export type Role = "guardian" | "learner" | "bridge" | "ambient";
 export interface Card {
   ex: number; ey: number;       // entry (off-screen, on the incoming current)
   fx: number; fy: number;       // settled field
-  cx: number; cy: number;       // S4 connection formation
   ox: number; oy: number;       // S5 orbit / independence
   ux: number; uy: number;       // S6 quiet clusters behind the study modes
   sx: number; sy: number;       // S8 swirl
   sT: number;                   // position along the swirl (drives its tint)
   role: Role;
+  node: number;                 // S4: index of the 2x2 highlight node, or -1
+  nx: number; ny: number;       // S4: tightened position inside its 2x2 block
   tint: number; depth: number; delay: number; spin: number;
   drift: number;                // per-card phase for the gentle ambient drift
 }
@@ -55,6 +56,19 @@ export const emberColor = (t: number): string =>
 
 export const INK_FACE = "#221829";
 export const INK_EDGE = "rgba(238,93,155,0.75)";
+
+/**
+ * S4 · the six emerging concepts. Muted Ember & Ink hues — warm enough to
+ * belong to the brand, distinct enough to read as six separate ideas.
+ */
+export const NODE_COLORS: string[] = [
+  "#F7A03E", // amber
+  "#F2795F", // ember
+  "#EE5D9B", // pink
+  "#C77DD8", // mauve
+  "#7E8BE0", // dusk blue
+  "#5FBFA8", // muted teal
+];
 
 /* ---------- maths helpers ---------- */
 export const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
@@ -114,10 +128,6 @@ export function buildWorld(w: number, h: number): World {
     return seed / 4294967296;
   };
 
-  // — S4 connection: two presences of light, the larger leaning toward the
-  //   smaller, with an arc of cards passing between them.
-  const gx = cx - s * 0.22, gy = cy - s * 0.035, Rg = s * 0.152;
-  const lx = cx + s * 0.19, ly = cy + s * 0.08, Rl = s * 0.098;
   // — S5 independence: the learner moves to centre and grows; the guardian's
   //   cards become the orbit around them.
   const l5x = cx, l5y = cy, Rl5 = s * 0.118;
@@ -143,26 +153,10 @@ export function buildWorld(w: number, h: number): World {
     const ex = fx - Math.cos(entryA - 0.55) * diag * (0.55 + rand() * 0.4) - w * 0.12;
     const ey = fy + Math.sin(0.6) * diag * (0.3 + rand() * 0.3) + h * 0.2;
 
-    // S4 formation position by role.
-    let ccx: number, ccy: number;
-    if (role === "guardian") {
-      const a = rand() * Math.PI * 2, rr = Math.sqrt(rand());
-      ccx = gx + Math.cos(a) * rr * Rg;
-      ccy = gy + Math.sin(a) * rr * Rg * 1.12;
-    } else if (role === "learner") {
-      const a = rand() * Math.PI * 2, rr = Math.sqrt(rand());
-      ccx = lx + Math.cos(a) * rr * Rl;
-      ccy = ly + Math.sin(a) * rr * Rl * 1.12;
-    } else if (role === "bridge") {
-      // a gentle bezier arc from the guardian toward the learner
-      const t = rand();
-      const mx = (gx + lx) / 2, my = Math.min(gy, ly) - s * 0.11;
-      const it = 1 - t;
-      ccx = it * it * gx + 2 * it * t * mx + t * t * lx + (rand() - 0.5) * cardW;
-      ccy = it * it * gy + 2 * it * t * my + t * t * ly + (rand() - 0.5) * cardW;
-    } else {
-      ccx = fx; ccy = fy; // ambient cards stay put and fade back
-    }
+    // S4 no longer moves any card: the six concept nodes are highlighted in
+    // place (assigned after this loop). Keep the RNG stream stepping so the
+    // later formations are composed exactly as before.
+    rand(); rand(); rand(); rand();
 
     // S5: learner contracts at centre; guardian + bridge become its orbit.
     let oox: number, ooy: number;
@@ -195,10 +189,11 @@ export function buildWorld(w: number, h: number): World {
 
     cards.push({
       ex, ey, fx, fy,
-      cx: ccx, cy: ccy,
       ox: oox, oy: ooy,
       ux, uy, sx, sy, sT,
       role,
+      node: -1,
+      nx: fx, ny: fy,
       tint: rand(),
       depth: 0.72 + rand() * 0.5,
       delay: rand(),
@@ -206,6 +201,30 @@ export function buildWorld(w: number, h: number): World {
       drift: rand() * Math.PI * 2,
     });
   }
+
+  // — S4 · six concepts emerge. Each node is a perfect 2x2 block of cards that
+  //   already sits in the settled grid, so the scene reads as those cards
+  //   turning over in place rather than new objects appearing.
+  const NODE_CELLS: [number, number][] = [
+    [0.16, 0.22], [0.5, 0.13], [0.84, 0.24],
+    [0.19, 0.68], [0.52, 0.76], [0.83, 0.65],
+  ];
+  NODE_CELLS.forEach(([fxr, fyr], n) => {
+    const c0 = Math.min(cols - 2, Math.max(0, Math.round(fxr * (cols - 2))));
+    const r0 = Math.min(rows - 2, Math.max(0, Math.round(fyr * (rows - 2))));
+    const bcx = cx + (c0 + 0.5 - (cols - 1) / 2) * stepX;
+    const bcy = cy + (r0 + 0.5 - (rows - 1) / 2) * stepY;
+    for (let dr = 0; dr < 2; dr++) {
+      for (let dc = 0; dc < 2; dc++) {
+        const card = cards[(r0 + dr) * cols + (c0 + dc)];
+        if (!card) continue;
+        card.node = n;
+        // pull the four cards in until they form one tight square
+        card.nx = bcx + (dc === 0 ? -1 : 1) * (cardW / 2 + gap * 0.12);
+        card.ny = bcy + (dr === 0 ? -1 : 1) * (cardH / 2 + gap * 0.12);
+      }
+    }
+  });
 
   return { cards, w, h, cardW, cardH };
 }
@@ -257,9 +276,13 @@ export function drawFrame(
     let rot = (1 - ea) * c.spin;
 
     if (tConnect > 0) {
-      x = lerp(x, c.cx, tConnect);
-      y = lerp(y, c.cy, tConnect);
+      // S4 highlights in place: node cards only close the gutter between
+      // themselves so the four read as one 2x2 tile.
       rot *= 1 - tConnect;
+      if (c.node >= 0) {
+        x = lerp(x, c.nx, tConnect);
+        y = lerp(y, c.ny, tConnect);
+      }
     }
     if (tOrbit > 0) {
       x = lerp(x, c.ox, tOrbit);
@@ -285,11 +308,10 @@ export function drawFrame(
     let op = Math.min(1, a * 2.2) * (0.5 + 0.44 * Math.min(c.depth, 1));
 
     if (tConnect > 0) {
-      // The field recedes; the two presences become light. Keeping them bright
-      // (rather than flipping to ink) is what makes the human scenes legible
-      // on a dark ground.
-      if (c.role === "ambient") op *= 1 - 0.92 * tConnect;
-      else op = lerp(op, 0.92 + 0.08 * c.depth, tConnect);
+      // The grid recedes into the background; the six 2x2 nodes stay bright and
+      // become the focal points.
+      if (c.node >= 0) op = lerp(op, 1, tConnect);
+      else op *= 1 - 0.62 * tConnect;
     }
     if (tOrbit > 0 && c.role === "learner") {
       op = Math.min(1, op * (1 + 0.25 * tOrbit)); // the learner brightens
@@ -306,10 +328,10 @@ export function drawFrame(
     // — face: a small share of the bridging cards turn to their ink face as
     //   they pass between the two presences — information becoming picture —
     //   while the presences themselves stay lit.
+    // — face: the node cards turn over in place and land on their concept
+    //   colour; everything else keeps its ember face.
     let flip = 0;
-    if (c.role === "bridge" && c.delay > 0.55) {
-      flip = Math.max(0, tConnect - tOrbit) * (1 - tModes);
-    }
+    if (c.node >= 0) flip = clamp01(tConnect - tOrbit) * (1 - tModes);
 
     let tint = c.tint;
     if (tSwirl > 0) tint = lerp(c.tint, c.sT, tSwirl);
@@ -334,11 +356,8 @@ export function drawFrame(
       ctx.rect(x - cw / 2, y - chh / 2, cw, chh);
     }
     if (flipped) {
-      ctx.fillStyle = INK_FACE;
+      ctx.fillStyle = NODE_COLORS[c.node % NODE_COLORS.length];
       ctx.fill();
-      ctx.strokeStyle = INK_EDGE;
-      ctx.lineWidth = 1;
-      ctx.stroke();
     } else {
       ctx.fillStyle = emberColor(tint);
       ctx.fill();
