@@ -119,8 +119,12 @@ const STUDY_MODES = [
   { icon: QuizIcon, name: "MC Quiz" },
 ];
 
-const CardTypeShowcase = ({ active }: { active: boolean }) => (
-  <div className={`mx-auto w-full max-w-4xl px-6 ${active ? "ph-in" : ""}`} data-scene="cards">
+/**
+ * `revealed` is the number of cards that should currently be on screen (0-4),
+ * driven directly by scroll progress — never by a timer.
+ */
+const CardTypeShowcase = ({ revealed = 4, tail = true }: { revealed?: number; tail?: boolean }) => (
+  <div className="mx-auto w-full max-w-6xl px-6" data-scene="cards">
     <style>{`
       @keyframes ph-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
       @keyframes ph-flip { 0%,18% { transform: rotateY(0deg); } 62%,100% { transform: rotateY(180deg); } }
@@ -129,23 +133,23 @@ const CardTypeShowcase = ({ active }: { active: boolean }) => (
       @keyframes ph-type { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
       @keyframes ph-caret { 0% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(46px); opacity: 0; } }
       [data-scene="cards"] .ph-card { opacity: 0; }
-      [data-scene="cards"].ph-in .ph-card { animation: ph-rise .62s cubic-bezier(.22,.9,.28,1) forwards; }
+      [data-scene="cards"] .ph-on .ph-card { animation: ph-rise .62s cubic-bezier(.22,.9,.28,1) forwards; }
       [data-scene="cards"] .ph-tail { opacity: 0; }
-      [data-scene="cards"].ph-in .ph-tail { animation: ph-rise .6s .78s cubic-bezier(.22,.9,.28,1) forwards; }
+      [data-scene="cards"] .ph-tail.ph-on { animation: ph-rise .6s cubic-bezier(.22,.9,.28,1) forwards; }
       [data-scene="cards"] .ph-demo-flip { transform-style: preserve-3d; }
-      [data-scene="cards"].ph-in .ph-demo-flip { animation: ph-flip 2.2s .45s cubic-bezier(.5,0,.2,1) forwards; }
+      [data-scene="cards"] .ph-on .ph-demo-flip { animation: ph-flip 2.2s .45s cubic-bezier(.5,0,.2,1) forwards; }
       [data-scene="cards"] .ph-face { backface-visibility: hidden; }
       [data-scene="cards"] .ph-face-back { transform: rotateY(180deg); }
       [data-scene="cards"] .ph-demo-line { stroke-dasharray: 240; stroke-dashoffset: 240; }
-      [data-scene="cards"].ph-in .ph-demo-line { animation: ph-draw 1.15s .35s ease-out forwards; }
+      [data-scene="cards"] .ph-on .ph-demo-line { animation: ph-draw 1.15s .35s ease-out forwards; }
       [data-scene="cards"] .ph-demo-node { opacity: 0; }
-      [data-scene="cards"].ph-in .ph-demo-node { animation: ph-pop .4s ease-out forwards; }
+      [data-scene="cards"] .ph-on .ph-demo-node { animation: ph-pop .4s ease-out forwards; }
       [data-scene="cards"] .ph-demo-field { opacity: 0; }
-      [data-scene="cards"].ph-in .ph-demo-field { animation: ph-rise .45s .25s ease-out forwards; }
+      [data-scene="cards"] .ph-on .ph-demo-field { animation: ph-rise .45s .25s ease-out forwards; }
       [data-scene="cards"] .ph-demo-type { clip-path: inset(0 100% 0 0); }
-      [data-scene="cards"].ph-in .ph-demo-type { animation: ph-type .8s .6s steps(9) forwards; }
+      [data-scene="cards"] .ph-on .ph-demo-type { animation: ph-type .8s .6s steps(9) forwards; }
       [data-scene="cards"] .ph-demo-caret { opacity: 0; }
-      [data-scene="cards"].ph-in .ph-demo-caret { animation: ph-caret .8s .6s steps(9) forwards; }
+      [data-scene="cards"] .ph-on .ph-demo-caret { animation: ph-caret .8s .6s steps(9) forwards; }
       @media (prefers-reduced-motion: reduce) {
         [data-scene="cards"] .ph-card, [data-scene="cards"] .ph-tail { opacity: 1; animation: none; }
         [data-scene="cards"] .ph-demo-line { stroke-dashoffset: 0; }
@@ -154,40 +158,38 @@ const CardTypeShowcase = ({ active }: { active: boolean }) => (
       }
     `}</style>
 
-    <h2 className="text-center font-display text-3xl font-medium tracking-tight text-foreground sm:text-4xl">
-      Four kinds of cards.
+    <h2 className="text-center font-display text-3xl font-medium tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+      Four Cards, Four Ways to Learn
     </h2>
 
-    <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:gap-7">
       {CARD_TYPES.map((f, i) => (
-        <div
-          key={f.name}
-          className="ph-card overflow-hidden rounded-2xl border border-border bg-card/80 p-4 shadow-[0_18px_40px_-28px_rgba(0,0,0,0.9)] backdrop-blur-sm"
-          style={{ animationDelay: `${0.06 + i * 0.11}s` }}
-        >
-          <div
-            className="h-[96px] w-full overflow-hidden rounded-xl border border-line-strong/70"
-            style={{ background: `linear-gradient(160deg, ${f.accent}14, transparent 70%)` }}
-          >
-            <f.Demo />
-          </div>
-          <div className="mt-3.5 flex items-center gap-3">
-            <span
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-secondary"
-              style={{ borderColor: `${f.accent}59`, color: f.accent }}
+        <div key={f.name} className={i < revealed ? "ph-on" : undefined}>
+          <div className="ph-card overflow-hidden rounded-3xl border border-border bg-card/80 p-5 shadow-[0_26px_60px_-32px_rgba(0,0,0,0.9)] backdrop-blur-sm lg:p-6">
+            <div
+              className="h-[15vh] max-h-[190px] min-h-[110px] w-full overflow-hidden rounded-2xl border border-line-strong/70"
+              style={{ background: `linear-gradient(160deg, ${f.accent}14, transparent 70%)` }}
             >
-              <f.icon className="h-[18px] w-[18px]" strokeWidth={1.7} />
-            </span>
-            <div className="min-w-0">
-              <div className="font-semibold text-foreground">{f.name}</div>
-              <div className="text-sm text-muted-foreground">{f.line}</div>
+              <f.Demo />
+            </div>
+            <div className="mt-4 flex items-center gap-4">
+              <span
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border bg-secondary lg:h-14 lg:w-14"
+                style={{ borderColor: `${f.accent}59`, color: f.accent }}
+              >
+                <f.icon className="h-6 w-6" strokeWidth={1.7} />
+              </span>
+              <div className="min-w-0">
+                <div className="text-lg font-semibold text-foreground lg:text-xl">{f.name}</div>
+                <div className="text-sm text-muted-foreground lg:text-base">{f.line}</div>
+              </div>
             </div>
           </div>
         </div>
       ))}
     </div>
 
-    <div className="ph-tail mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
+    <div className={`ph-tail mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 ${tail && revealed >= 4 ? "ph-on" : ""}`}>
       <span className="font-display text-base italic text-muted-foreground">
         …then study them three ways:
       </span>

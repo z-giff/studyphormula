@@ -54,8 +54,8 @@ const HeroLockup = ({ animated }: { animated: boolean }) => (
   </div>
 );
 
-const ModesBlock = ({ active = true }: { active?: boolean }) => (
-  <CardTypeShowcase active={active} />
+const ModesBlock = ({ revealed = 4 }: { revealed?: number }) => (
+  <CardTypeShowcase revealed={revealed} />
 );
 
 /**
@@ -162,8 +162,8 @@ const StoryStage = () => {
   const [reduced, setReduced] = useState(false);
   // S5 demos play once when the scene arrives, and reset when it leaves so
   // scrubbing back up the page replays them cleanly.
-  const [modesIn, setModesIn] = useState(false);
-  const modesInRef = useRef(false);
+  const [modesRevealed, setModesRevealed] = useState(0);
+  const modesRevealedRef = useRef(0);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -254,10 +254,13 @@ const StoryStage = () => {
       // Copy arrives once the flock has withdrawn to its halo, so cards never
       // travel across the text.
       setLayer("modes", fade(p, 0.645, 0.775), 22, true);
-      const mIn = p > 0.652 && p < 0.8;
-      if (mIn !== modesInRef.current) {
-        modesInRef.current = mIn;
-        setModesIn(mIn);
+      // One card per stage of scroll — purely a function of p, so pausing
+      // pauses the sequence and scrolling back retires cards in reverse.
+      const steps = [0.655, 0.675, 0.695, 0.715];
+      const mCount = p < 0.645 || p > 0.79 ? 0 : steps.filter((s) => p >= s).length;
+      if (mCount !== modesRevealedRef.current) {
+        modesRevealedRef.current = mCount;
+        setModesRevealed(mCount);
       }
       setLayer("proof", fade(p, 0.79, 0.868), 22);
       setLayer("finale", fade(p, SCENES.swirl[0] + 0.045, 1, true), 22, true);
@@ -323,7 +326,7 @@ const StoryStage = () => {
           ref={(el) => { layerRefs.current["modes"] = el; }}
           className="pointer-events-none absolute inset-0 z-10 flex items-center opacity-0"
         >
-          <ModesBlock active={modesIn} />
+          <ModesBlock revealed={modesRevealed} />
         </div>
 
         {/* S7 · Founder's note */}
