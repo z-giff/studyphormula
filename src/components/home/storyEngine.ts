@@ -337,8 +337,9 @@ export function drawFrame(
       else op *= 1 - 0.62 * tConnect;
     }
     if (tModes > 0) {
-      // a quiet halo framing the product story
-      op = lerp(op, 0.2 + 0.16 * c.depth, tModes);
+      // S6 · the flock clears the stage entirely so the four feature cards are
+      // the only thing on screen — no ring, no formation behind the copy.
+      op = lerp(op, 0.03 * c.depth, tModes);
     }
     if (tSwirl > 0) {
       op = lerp(op, 0.55 + 0.45 * Math.min(c.depth, 1), tSwirl);
