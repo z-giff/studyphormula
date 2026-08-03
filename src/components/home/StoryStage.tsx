@@ -160,6 +160,10 @@ const StoryStage = () => {
   const hintRef = useRef<HTMLDivElement>(null);
   const layerRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [reduced, setReduced] = useState(false);
+  // S5 demos play once when the scene arrives, and reset when it leaves so
+  // scrubbing back up the page replays them cleanly.
+  const [modesIn, setModesIn] = useState(false);
+  const modesInRef = useRef(false);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -250,6 +254,11 @@ const StoryStage = () => {
       // Copy arrives once the flock has withdrawn to its halo, so cards never
       // travel across the text.
       setLayer("modes", fade(p, 0.665, 0.775), 22, true);
+      const mIn = p > 0.69 && p < 0.8;
+      if (mIn !== modesInRef.current) {
+        modesInRef.current = mIn;
+        setModesIn(mIn);
+      }
       setLayer("proof", fade(p, 0.79, 0.868), 22);
       setLayer("finale", fade(p, SCENES.swirl[0] + 0.045, 1, true), 22, true);
     };
