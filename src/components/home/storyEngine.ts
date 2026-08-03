@@ -314,10 +314,7 @@ export function drawFrame(
         y = lerp(y, c.ny, tConnect);
       }
     }
-    if (tModes > 0) {
-      x = lerp(x, c.ux, tModes);
-      y = lerp(y, c.uy, tModes);
-    }
+    // S6: no positional change — the flock simply fades out where it stands.
     if (tSwirl > 0) {
       x = lerp(x, c.sx, tSwirl);
       y = lerp(y, c.sy, tSwirl);
