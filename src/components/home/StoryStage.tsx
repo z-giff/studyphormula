@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import SwirlMark from "@/components/SwirlMark";
-import { FileText, Layers, GitBranch, Signature } from "lucide-react";
-import { MemorizeIcon, SwipeIcon, QuizIcon } from "@/components/StudyModeIcons";
+import CardTypeShowcase from "./CardTypeShowcase";
 import {
   buildWorld,
   drawFrame,
