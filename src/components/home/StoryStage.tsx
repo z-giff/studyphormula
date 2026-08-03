@@ -323,7 +323,7 @@ const StoryStage = () => {
           ref={(el) => { layerRefs.current["modes"] = el; }}
           className="pointer-events-none absolute inset-0 z-10 flex items-center opacity-0"
         >
-          <ModesBlock />
+          <ModesBlock active={modesIn} />
         </div>
 
         {/* S7 · Founder's note */}
