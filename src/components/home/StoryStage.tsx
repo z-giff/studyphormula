@@ -55,52 +55,8 @@ const HeroLockup = ({ animated }: { animated: boolean }) => (
   </div>
 );
 
-const CARD_TYPES = [
-  { icon: FileText, name: "Standard", line: "Flip it till it sticks." },
-  { icon: Layers, name: "Interactive", line: "Label the image from memory." },
-  { icon: GitBranch, name: "Flowchart", line: "See how it connects." },
-  { icon: Signature, name: "Drawing", line: "Sketch it to remember it." },
-];
-
-const STUDY_MODES = [
-  { icon: MemorizeIcon, name: "Memorize" },
-  { icon: SwipeIcon, name: "Swipe Study" },
-  { icon: QuizIcon, name: "MC Quiz" },
-];
-
-const ModesBlock = () => (
-  <div className="mx-auto w-full max-w-3xl px-6">
-    <h2 className="text-center font-display text-3xl font-medium tracking-tight text-foreground sm:text-4xl">
-      Four kinds of cards.
-    </h2>
-    <div className="mt-7 grid grid-cols-1 gap-3 sm:grid-cols-2">
-      {CARD_TYPES.map((f) => (
-        <div
-          key={f.name}
-          className="flex items-center gap-4 rounded-2xl border border-border bg-card/70 p-4 backdrop-blur-sm"
-        >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line-strong bg-secondary text-muted-foreground">
-            <f.icon className="h-5 w-5" strokeWidth={1.7} />
-          </span>
-          <div className="min-w-0">
-            <div className="font-semibold text-foreground">{f.name}</div>
-            <div className="text-sm text-muted-foreground">{f.line}</div>
-          </div>
-        </div>
-      ))}
-    </div>
-    <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
-      <span className="font-display text-base italic text-muted-foreground">
-        …then study them three ways:
-      </span>
-      {STUDY_MODES.map((m) => (
-        <span key={m.name} className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
-          <m.icon className="h-[18px] w-[18px] text-primary" />
-          {m.name}
-        </span>
-      ))}
-    </div>
-  </div>
+const ModesBlock = ({ active = true }: { active?: boolean }) => (
+  <CardTypeShowcase active={active} />
 );
 
 /**
