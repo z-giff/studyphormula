@@ -254,7 +254,7 @@ const StoryStage = () => {
       // Copy arrives once the flock has withdrawn to its halo, so cards never
       // travel across the text.
       setLayer("modes", fade(p, 0.665, 0.775), 22, true);
-      const mIn = p > 0.69 && p < 0.8;
+      const mIn = p > 0.672 && p < 0.8;
       if (mIn !== modesInRef.current) {
         modesInRef.current = mIn;
         setModesIn(mIn);
