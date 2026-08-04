@@ -104,21 +104,27 @@ const FinaleBlock = () => (
 const CAPTIONS: { id: string; text: string; range: [number, number]; className: string }[] = [
   {
     id: "capField",
-    text: "Every subject starts as a thousand scattered pieces.",
+    text: "Every new subject begins as a mess of terms,\ndiagrams, and half-understood ideas.",
     range: [0.235, 0.335],
     className: "inset-x-0 top-[15%] mx-auto w-full max-w-md text-center",
   },
   {
     id: "capConnect",
-    text: "We all started with someone beside us.",
+    text: "So you break it down… one card, one concept,\none small step at a time.",
     range: [0.365, 0.465],
-    className: "inset-x-0 bottom-[14%] mx-auto w-full max-w-md text-center",
+    className: "inset-x-0 bottom-[14%] mx-auto w-full max-w-lg text-center",
   },
   {
     id: "capOrbit",
-    text: "Then one day the desk is yours.\nPhormula sits with you.",
+    text: "Slowly, the scattered pieces begin\nto speak to one another.",
     range: [0.49, 0.6],
     className: "inset-x-0 bottom-[13%] mx-auto w-full max-w-lg text-center",
+  },
+  {
+    id: "capNetwork",
+    text: "Understanding becomes easier when you can\nfinally see how everything fits together.",
+    range: [0.605, 0.648],
+    className: "inset-x-0 top-1/2 mx-auto w-full max-w-xl -translate-y-1/2 text-center",
   },
 ];
 
