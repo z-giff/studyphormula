@@ -127,10 +127,54 @@ const CARD_TYPES = [
   { icon: Signature, name: "Drawing", line: "Sketch it to remember it.", accent: ACCENTS.drawing, Demo: DrawingDemo },
 ];
 
+/* ---------- study-mode mini demos ---------- */
+
+const MemorizeMiniDemo = () => (
+  <div className="ph-mini h-full w-full [perspective:520px]">
+    <div className="ph-mini-flip relative mx-auto h-full w-[62px]">
+      <div className="ph-mini-face absolute inset-0 flex items-center justify-center rounded-md border border-line-strong bg-secondary text-[9px] font-semibold text-foreground">
+        Term
+      </div>
+      <div className="ph-mini-face ph-mini-back absolute inset-0 flex items-center justify-center rounded-md border border-[#F7A03E]/45 bg-[#F7A03E]/12 text-[9px] font-semibold text-foreground">
+        Answer
+      </div>
+    </div>
+  </div>
+);
+
+const SwipeMiniDemo = () => (
+  <div className="ph-mini relative h-full w-full">
+    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] font-semibold uppercase tracking-wide text-[#F2795F]/70">
+      ←
+    </span>
+    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-semibold uppercase tracking-wide text-[hsl(var(--success))]/70">
+      →
+    </span>
+    <div className="ph-mini-swipe mx-auto h-full w-[62px] rounded-md border border-line-strong bg-secondary" />
+  </div>
+);
+
+const QuizMiniDemo = () => (
+  <div className="ph-mini flex h-full w-full flex-col justify-center gap-[5px] px-4">
+    {[0, 1, 2].map((i) => (
+      <div
+        key={i}
+        className={`ph-mini-opt flex h-[13px] items-center gap-2 rounded-[5px] border px-2 ${
+          i === 1 ? "ph-mini-opt-sel border-[#EE5D9B]/50 bg-[#EE5D9B]/12" : "border-line-strong/70 bg-secondary"
+        }`}
+        style={{ animationDelay: `${0.15 + i * 0.18}s` }}
+      >
+        <span className={`h-[6px] w-[6px] rounded-full ${i === 1 ? "bg-[#EE5D9B]" : "bg-muted-foreground/40"}`} />
+        <span className={`h-[3px] flex-1 rounded-full ${i === 1 ? "bg-[#EE5D9B]/40" : "bg-muted-foreground/20"}`} />
+      </div>
+    ))}
+  </div>
+);
+
 const STUDY_MODES = [
-  { icon: MemorizeIcon, name: "Memorize" },
-  { icon: SwipeIcon, name: "Swipe Study" },
-  { icon: QuizIcon, name: "MC Quiz" },
+  { icon: MemorizeIcon, name: "Memorize", line: "Recall it until it sticks.", Demo: MemorizeMiniDemo },
+  { icon: SwipeIcon, name: "Swipe Study", line: "Sort what you know from what needs work.", Demo: SwipeMiniDemo },
+  { icon: QuizIcon, name: "MC Quiz", line: "Choose, check, and strengthen your recall.", Demo: QuizMiniDemo },
 ];
 
 /**
@@ -164,11 +208,25 @@ const CardTypeShowcase = ({ revealed = 4, tail = true }: { revealed?: number; ta
       [data-scene="cards"] .ph-on .ph-demo-cell { animation: ph-rise .55s .1s ease-out forwards; }
       [data-scene="cards"] .ph-demo-type { clip-path: inset(0 100% 0 0); }
       [data-scene="cards"] .ph-on .ph-demo-type { animation: ph-type .6s 1.25s steps(9) forwards; }
+      @keyframes ph-swipe { 0%,10% { transform: translateX(0); } 34% { transform: translateX(-16px) rotate(-6deg); } 58% { transform: translateX(16px) rotate(6deg); } 82%,100% { transform: translateX(0) rotate(0deg); } }
+      [data-scene="cards"] .ph-rail { opacity: 0; }
+      [data-scene="cards"] .ph-rail.ph-on { animation: ph-rise .6s cubic-bezier(.22,.9,.28,1) forwards; }
+      [data-scene="cards"] .ph-mode { opacity: 0; }
+      [data-scene="cards"] .ph-rail.ph-on .ph-mode { animation: ph-rise .5s cubic-bezier(.22,.9,.28,1) forwards; }
+      [data-scene="cards"] .ph-mini-flip { transform-style: preserve-3d; }
+      [data-scene="cards"] .ph-rail.ph-on .ph-mini-flip { animation: ph-flip 2s 1s cubic-bezier(.5,0,.2,1) forwards; }
+      [data-scene="cards"] .ph-mini-face { backface-visibility: hidden; }
+      [data-scene="cards"] .ph-mini-back { transform: rotateY(180deg); }
+      [data-scene="cards"] .ph-rail.ph-on .ph-mini-swipe { animation: ph-swipe 2.4s 1.1s cubic-bezier(.4,0,.3,1) forwards; }
+      [data-scene="cards"] .ph-mini-opt { opacity: 0; }
+      [data-scene="cards"] .ph-rail.ph-on .ph-mini-opt { animation: ph-rise .4s ease-out forwards; }
       @media (prefers-reduced-motion: reduce) {
         [data-scene="cards"] .ph-card, [data-scene="cards"] .ph-tail { opacity: 1; animation: none; }
         [data-scene="cards"] .ph-demo-line { stroke-dashoffset: 0; }
         [data-scene="cards"] .ph-demo-node, [data-scene="cards"] .ph-demo-field, [data-scene="cards"] .ph-demo-cell { opacity: 1; }
         [data-scene="cards"] .ph-demo-type { clip-path: none; }
+        [data-scene="cards"] .ph-rail, [data-scene="cards"] .ph-mode, [data-scene="cards"] .ph-mini-opt { opacity: 1; animation: none; }
+        [data-scene="cards"] .ph-mini-flip, [data-scene="cards"] .ph-mini-swipe { animation: none; }
       }
     `}</style>
 
@@ -203,17 +261,35 @@ const CardTypeShowcase = ({ revealed = 4, tail = true }: { revealed?: number; ta
       ))}
     </div>
 
-    <div className={`ph-tail mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 ${tail && revealed >= 4 ? "ph-on" : ""}`}>
-      <span className="font-display text-base italic text-muted-foreground">
-        …then study them three ways:
-      </span>
-      {STUDY_MODES.map((m) => (
-        <span key={m.name} className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
-          <m.icon className="h-[18px] w-[18px] text-primary" />
-          {m.name}
-        </span>
-      ))}
-    </div>
+    <section
+      className={`ph-rail mt-5 w-full overflow-hidden rounded-3xl border border-border bg-card/60 px-5 py-4 shadow-[0_20px_50px_-34px_rgba(0,0,0,0.9)] backdrop-blur-sm lg:px-7 lg:py-5 ${
+        tail && revealed >= 4 ? "ph-on" : ""
+      }`}
+      aria-label="Study modes"
+    >
+      <h3 className="text-center font-display text-base font-medium tracking-tight text-foreground sm:text-lg">
+        Four ways to create. Three ways to master.
+      </h3>
+
+      <div className="mt-3 grid grid-cols-1 divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+        {STUDY_MODES.map((m, i) => (
+          <div
+            key={m.name}
+            className="ph-mode flex flex-col items-center gap-2 px-3 py-3 text-center sm:py-1"
+            style={{ animationDelay: `${0.25 + i * 0.18}s` }}
+          >
+            <div className="flex items-center gap-2">
+              <m.icon className="h-[18px] w-[18px] text-primary" />
+              <span className="text-sm font-semibold text-foreground">{m.name}</span>
+            </div>
+            <p className="max-w-[22ch] text-xs leading-snug text-muted-foreground">{m.line}</p>
+            <div className="h-[46px] w-full max-w-[180px] overflow-hidden rounded-xl border border-line-strong/50 bg-secondary/40 py-1">
+              <m.Demo />
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   </div>
 );
 
