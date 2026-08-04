@@ -172,6 +172,7 @@ const StoryStage = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const hintRef = useRef<HTMLDivElement>(null);
+  const swirlRef = useRef<HTMLDivElement>(null);
   const layerRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [reduced, setReduced] = useState(false);
   // S5 demos play once when the scene arrives, and reset when it leaves so
