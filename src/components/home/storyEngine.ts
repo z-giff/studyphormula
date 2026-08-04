@@ -207,6 +207,16 @@ export function buildWorld(w: number, h: number): World {
       delay: rand(),
       spin: (rand() - 0.5) * 0.9,
       drift: rand() * Math.PI * 2,
+      // Quiet zone: a feathered bottom-left region, anchored in viewport
+      // fractions so it stays put on any laptop/desktop size.
+      quiet: (() => {
+        const nx = fx / w;
+        const ny = fy / h;
+        const qx = 1 - smoothstep(0.24, 0.44, nx);
+        const qy = smoothstep(0.54, 0.74, ny);
+        return clamp01(qx * qy);
+      })(),
+      qDelay: clamp01((fx / w) * 0.9 + (1 - fy / h) * 0.9),
     });
   }
 
