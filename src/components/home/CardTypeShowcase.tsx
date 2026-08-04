@@ -35,16 +35,30 @@ const StandardDemo = () => (
 
 const InteractiveDemo = () => (
   <svg viewBox="0 0 200 96" className="h-full w-full" aria-hidden>
-    <rect x="14" y="14" width="72" height="68" rx="9" fill="#F2795F" opacity="0.14" />
-    <circle cx="50" cy="40" r="15" fill="none" stroke="#F2795F" strokeWidth="1.6" opacity="0.7" />
-    <path d="M32 68c6-12 30-12 36 0" fill="none" stroke="#F2795F" strokeWidth="1.6" opacity="0.7" />
-    <line x1="86" y1="48" x2="106" y2="48" stroke="#F2795F" strokeWidth="1.2" opacity="0.55" />
+    <g className="ph-demo-cell">
+      <ellipse cx="58" cy="48" rx="42" ry="32" fill="#F2795F" opacity="0.12" />
+      <ellipse cx="58" cy="48" rx="42" ry="32" fill="none" stroke="#F2795F" strokeWidth="1.6" opacity="0.8" />
+      <circle cx="52" cy="45" r="12" fill="#EE5D9B" opacity="0.28" />
+      <circle cx="52" cy="45" r="12" fill="none" stroke="#EE5D9B" strokeWidth="1.3" opacity="0.75" />
+      <circle cx="52" cy="45" r="4" fill="#EE5D9B" opacity="0.5" />
+      <ellipse cx="82" cy="64" rx="9" ry="5" fill="none" stroke="#F2795F" strokeWidth="1.1" opacity="0.4" transform="rotate(-20 82 64)" />
+      <ellipse cx="34" cy="68" rx="7" ry="4" fill="none" stroke="#F2795F" strokeWidth="1.1" opacity="0.35" transform="rotate(15 34 68)" />
+      <circle cx="80" cy="32" r="4" fill="none" stroke="#F2795F" strokeWidth="1.1" opacity="0.35" />
+    </g>
+    <path
+      className="ph-demo-line"
+      d="M62 40 L96 22 H118"
+      fill="none"
+      stroke="#F2795F"
+      strokeWidth="1.1"
+      strokeLinecap="round"
+      opacity="0.6"
+    />
     <g className="ph-demo-field">
-      <rect x="108" y="34" width="78" height="28" rx="7" fill="hsl(var(--secondary))" stroke="#F2795F" strokeWidth="1.4" />
-      <text x="120" y="52" fontSize="11" fill="hsl(var(--foreground))" className="ph-demo-type">
+      <rect x="118" y="10" width="70" height="26" rx="7" fill="hsl(var(--secondary))" stroke="#F2795F" strokeWidth="1.4" />
+      <text x="130" y="27" fontSize="11" fill="hsl(var(--foreground))" className="ph-demo-type">
         Nucleus
       </text>
-      <rect className="ph-demo-caret" x="120" y="41" width="1.6" height="14" fill="#F2795F" />
     </g>
   </svg>
 );
@@ -145,15 +159,15 @@ const CardTypeShowcase = ({ revealed = 4, tail = true }: { revealed?: number; ta
       [data-scene="cards"] .ph-demo-node { opacity: 0; }
       [data-scene="cards"] .ph-on .ph-demo-node { animation: ph-pop .4s ease-out forwards; }
       [data-scene="cards"] .ph-demo-field { opacity: 0; }
-      [data-scene="cards"] .ph-on .ph-demo-field { animation: ph-rise .45s .25s ease-out forwards; }
+      [data-scene="cards"] .ph-on .ph-demo-field { animation: ph-rise .45s 1.1s ease-out forwards; }
+      [data-scene="cards"] .ph-demo-cell { opacity: 0; }
+      [data-scene="cards"] .ph-on .ph-demo-cell { animation: ph-rise .55s .1s ease-out forwards; }
       [data-scene="cards"] .ph-demo-type { clip-path: inset(0 100% 0 0); }
-      [data-scene="cards"] .ph-on .ph-demo-type { animation: ph-type .8s .6s steps(9) forwards; }
-      [data-scene="cards"] .ph-demo-caret { opacity: 0; }
-      [data-scene="cards"] .ph-on .ph-demo-caret { animation: ph-caret .8s .6s steps(9) forwards; }
+      [data-scene="cards"] .ph-on .ph-demo-type { animation: ph-type .6s 1.25s steps(9) forwards; }
       @media (prefers-reduced-motion: reduce) {
         [data-scene="cards"] .ph-card, [data-scene="cards"] .ph-tail { opacity: 1; animation: none; }
         [data-scene="cards"] .ph-demo-line { stroke-dashoffset: 0; }
-        [data-scene="cards"] .ph-demo-node, [data-scene="cards"] .ph-demo-field { opacity: 1; }
+        [data-scene="cards"] .ph-demo-node, [data-scene="cards"] .ph-demo-field, [data-scene="cards"] .ph-demo-cell { opacity: 1; }
         [data-scene="cards"] .ph-demo-type { clip-path: none; }
       }
     `}</style>
