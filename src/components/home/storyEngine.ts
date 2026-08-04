@@ -342,8 +342,7 @@ export function drawFrame(
     //   Everything else keeps its ember face.
     const turn = c.node >= 0 ? tConnect + tOrbit : 0;
 
-    let tint = c.tint;
-    if (tSwirl > 0) tint = lerp(c.tint, c.sT, tSwirl);
+    const tint = c.tint;
 
     const fl = Math.abs(Math.cos(turn * Math.PI));
     // 0 = ember face, 1 = concept colour, 2 = white face
