@@ -65,9 +65,12 @@ const ModesBlock = ({ revealed = 4 }: { revealed?: number }) => (
 const ProofBlock = () => (
   <div className="mx-auto w-full max-w-xl px-6 text-center">
     <p className="font-display text-2xl font-light leading-relaxed text-foreground sm:text-[1.7rem]">
-      We believe memorization isn&rsquo;t the enemy of understanding — it&rsquo;s
-      the foundation of it. Phormula exists to make the hours you put in
-      actually count.
+      Phormula began because the way we were expected to study did not match the
+      way we learned.
+    </p>
+    <p className="mt-5 font-display text-xl font-light leading-relaxed text-muted-foreground sm:text-[1.35rem]">
+      So we built a place where ideas could be seen, connected, and remembered
+      differently.
     </p>
     <p className="mt-6 font-handwriting text-3xl text-brand-amber">— the Phormula team</p>
   </div>
@@ -78,6 +81,9 @@ const FinaleBlock = () => (
     <h2 className="font-display text-4xl font-medium tracking-tight text-foreground sm:text-5xl">
       Make it make sense.
     </h2>
+    <p className="mx-auto mt-3 max-w-md font-display text-lg italic text-muted-foreground sm:text-xl">
+      Your way of learning, reformulated.
+    </p>
     <div className="mt-8 flex flex-wrap items-center justify-center gap-3.5">
       <Button asChild variant="brand" size="lg" className="rounded-xl px-8 font-bold">
         <Link to="/auth?mode=signup">Start studying — it&rsquo;s free</Link>
