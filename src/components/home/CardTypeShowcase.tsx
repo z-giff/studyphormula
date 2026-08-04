@@ -1,5 +1,4 @@
 import { FileText, Layers, GitBranch, Signature } from "lucide-react";
-import { MemorizeIcon, SwipeIcon, QuizIcon } from "@/components/StudyModeIcons";
 
 /**
  * S5 · "Four kinds of cards."
@@ -229,21 +228,16 @@ const CardTypeShowcase = ({ revealed = 4, tail = true }: { revealed?: number; ta
         Four ways to create. Three ways to master.
       </h3>
 
-      <div className="mt-3 grid grid-cols-1 divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+      <div className="mt-5 grid grid-cols-1 divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
         {STUDY_MODES.map((m, i) => (
           <div
             key={m.name}
-            className="ph-mode flex flex-col items-center gap-2 px-3 py-3 text-center sm:py-1"
+            className="ph-mode flex flex-col items-center gap-2 px-6 py-5 text-center sm:py-4"
             style={{ animationDelay: `${0.25 + i * 0.18}s` }}
           >
-            <div className="flex items-center gap-2">
-              <m.icon className="h-[18px] w-[18px] text-primary" />
-              <span className="text-sm font-semibold text-foreground">{m.name}</span>
-            </div>
-            <p className="max-w-[22ch] text-xs leading-snug text-muted-foreground">{m.line}</p>
-            <div className="h-[46px] w-full max-w-[180px] overflow-hidden rounded-xl border border-line-strong/50 bg-secondary/40 py-1">
-              <m.Demo />
-            </div>
+            <span className="h-px w-8 rounded-full" style={{ background: `${m.accent}80` }} />
+            <span className="text-base font-semibold tracking-tight text-foreground sm:text-lg">{m.name}</span>
+            <p className="max-w-[24ch] text-sm leading-snug text-muted-foreground">{m.line}</p>
           </div>
         ))}
       </div>
