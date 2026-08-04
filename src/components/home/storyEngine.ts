@@ -98,6 +98,15 @@ export const QUIET = {
   out: [0.345, 0.4] as const,    // and flip back before S4 begins
 };
 
+/**
+ * S4 · the same quiet zone, reused for the second caption. Only the plain
+ * background cards flip — the six concept nodes are left untouched.
+ */
+export const QUIET2 = {
+  in: [0.388, 0.438] as const,
+  out: [0.47, 0.505] as const,
+};
+
 /** The brand swirl in a 200x200 box — matches SwirlMark's geometry. */
 const swirlPoint = (t: number): [number, number] => {
   const ang = (215 * Math.PI) / 180 - t * 1.82 * Math.PI * 2;
@@ -286,6 +295,10 @@ export function drawFrame(
   const quietAmt =
     easeInOut(seg(p, QUIET.in[0], QUIET.in[1])) *
     (1 - easeInOut(seg(p, QUIET.out[0], QUIET.out[1])));
+  // S4 caption: identical treatment, background cards only.
+  const quietAmt2 =
+    easeInOut(seg(p, QUIET2.in[0], QUIET2.in[1])) *
+    (1 - easeInOut(seg(p, QUIET2.out[0], QUIET2.out[1])));
 
   if (tArrive <= 0) return; // S0/S1: the stage is clean for the hero
 
@@ -380,8 +393,9 @@ export function drawFrame(
     // Quiet-zone half-flip: squeeze, then land on the black face.
     let qk = 0;
     let qFlip = 1;
-    if (quietAmt > 0.001 && c.quiet > 0.004) {
-      const q = clamp01((quietAmt * 1.34 - c.qDelay * 0.34) / 1);
+    const qAmt = Math.min(1, quietAmt + (c.node >= 0 ? 0 : quietAmt2));
+    if (qAmt > 0.001 && c.quiet > 0.004) {
+      const q = clamp01((qAmt * 1.34 - c.qDelay * 0.34) / 1);
       if (q > 0) {
         qFlip = Math.max(0.1, Math.abs(Math.cos(q * Math.PI)));
         qk = q > 0.5 ? c.quiet : 0;
@@ -422,13 +436,14 @@ export function drawFrame(
 
   // A very soft feather over the quiet zone — no hard edge, just enough to
   // settle the black cards into the surrounding grid behind the caption.
-  if (quietAmt > 0.01) {
+  const featherAmt = Math.max(quietAmt, quietAmt2);
+  if (featherAmt > 0.01) {
     const gx = world.w * 0.16;
     const gy = world.h * 0.86;
     const gr = Math.max(world.w * 0.42, world.h * 0.5);
     const g = ctx.createRadialGradient(gx, gy, 0, gx, gy, gr);
-    g.addColorStop(0, `rgba(8,7,9,${0.72 * quietAmt})`);
-    g.addColorStop(0.55, `rgba(8,7,9,${0.34 * quietAmt})`);
+    g.addColorStop(0, `rgba(8,7,9,${0.72 * featherAmt})`);
+    g.addColorStop(0.55, `rgba(8,7,9,${0.34 * featherAmt})`);
     g.addColorStop(1, "rgba(8,7,9,0)");
     ctx.globalAlpha = 1;
     ctx.fillStyle = g;
