@@ -277,7 +277,14 @@ const StoryStage = () => {
         setModesRevealed(mCount);
       }
       setLayer("proof", fade(p, 0.79, 0.868), 22);
-      setLayer("finale", fade(p, SCENES.swirl[0] + 0.045, 1, true), 22, true);
+      setLayer("finale", fade(p, SCENES.swirl[0] + 0.02, 1, true), 22, true);
+      // The brand swirl draws itself, scroll-linked, as the finale settles.
+      const swirlPath = swirlRef.current?.querySelector("path");
+      if (swirlPath) {
+        const d = seg(p, SCENES.swirl[0] + 0.03, SCENES.swirl[0] + 0.1);
+        swirlPath.style.strokeDasharray = "900";
+        swirlPath.style.strokeDashoffset = String(900 * (1 - d));
+      }
     };
 
     const io = new IntersectionObserver((e) => { visible = e[0]?.isIntersecting ?? true; }, { threshold: 0 });
