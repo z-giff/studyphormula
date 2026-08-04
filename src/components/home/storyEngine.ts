@@ -28,6 +28,10 @@ export interface Card {
   nx: number; ny: number;       // S4: tightened position inside its 2x2 block
   tint: number; depth: number; delay: number; spin: number;
   drift: number;                // per-card phase for the gentle ambient drift
+  /** S3 caption: 0..1 spatial weight inside the bottom-left quiet zone. */
+  quiet: number;
+  /** S3 caption: 0..1 wave offset, flipping outward from the bottom-left. */
+  qDelay: number;
 }
 
 export interface World {
@@ -79,6 +83,20 @@ export const seg = (p: number, a: number, b: number) => clamp01((p - a) / (b - a
 export const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 export const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+/** Smooth 0..1 ramp between two edges — used to feather the quiet zone. */
+const smoothstep = (a: number, b: number, v: number) => {
+  const t = clamp01((v - a) / (b - a));
+  return t * t * (3 - 2 * t);
+};
+
+/**
+ * S3 · the quiet zone. The bottom-left cards flip to black in a wave so the
+ * caption has a soft, grid-aligned space to sit in. Fully scroll-driven.
+ */
+export const QUIET = {
+  in: [0.252, 0.325] as const,   // cards flip to black
+  out: [0.345, 0.4] as const,    // and flip back before S4 begins
+};
 
 /** The brand swirl in a 200x200 box — matches SwirlMark's geometry. */
 const swirlPoint = (t: number): [number, number] => {
