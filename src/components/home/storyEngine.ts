@@ -107,6 +107,15 @@ export const QUIET2 = {
   out: [0.47, 0.505] as const,
 };
 
+/**
+ * S5 · the same quiet zone once more, for the third caption. It only begins
+ * after the network has fully formed, and again spares the six nodes.
+ */
+export const QUIET3 = {
+  in: [0.528, 0.565] as const,
+  out: [0.588, 0.615] as const,
+};
+
 /** The brand swirl in a 200x200 box — matches SwirlMark's geometry. */
 const swirlPoint = (t: number): [number, number] => {
   const ang = (215 * Math.PI) / 180 - t * 1.82 * Math.PI * 2;
@@ -299,6 +308,10 @@ export function drawFrame(
   const quietAmt2 =
     easeInOut(seg(p, QUIET2.in[0], QUIET2.in[1])) *
     (1 - easeInOut(seg(p, QUIET2.out[0], QUIET2.out[1])));
+  // S5 caption: identical treatment, background cards only.
+  const quietAmt3 =
+    easeInOut(seg(p, QUIET3.in[0], QUIET3.in[1])) *
+    (1 - easeInOut(seg(p, QUIET3.out[0], QUIET3.out[1])));
 
   if (tArrive <= 0) return; // S0/S1: the stage is clean for the hero
 
@@ -393,7 +406,10 @@ export function drawFrame(
     // Quiet-zone half-flip: squeeze, then land on the black face.
     let qk = 0;
     let qFlip = 1;
-    const qAmt = Math.min(1, quietAmt + (c.node >= 0 ? 0 : quietAmt2));
+    const qAmt = Math.min(
+      1,
+      quietAmt + (c.node >= 0 ? 0 : Math.max(quietAmt2, quietAmt3)),
+    );
     if (qAmt > 0.001 && c.quiet > 0.004) {
       const q = clamp01((qAmt * 1.34 - c.qDelay * 0.34) / 1);
       if (q > 0) {
@@ -436,7 +452,7 @@ export function drawFrame(
 
   // A very soft feather over the quiet zone — no hard edge, just enough to
   // settle the black cards into the surrounding grid behind the caption.
-  const featherAmt = Math.max(quietAmt, quietAmt2);
+  const featherAmt = Math.max(quietAmt, quietAmt2, quietAmt3);
   if (featherAmt > 0.01) {
     const gx = world.w * 0.16;
     const gy = world.h * 0.86;
