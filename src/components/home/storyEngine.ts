@@ -282,6 +282,10 @@ export function drawFrame(
   const tOrbit = easeInOut(seg(p, SCENES.orbit[0], SCENES.orbit[1]));
   const tModes = easeInOut(seg(p, SCENES.modes[0], SCENES.modes[1]));
   const tSwirl = easeInOut(seg(p, SCENES.swirl[0], SCENES.swirl[1]));
+  // S3 caption: the bottom-left quiet zone, in and back out again.
+  const quietAmt =
+    easeInOut(seg(p, QUIET.in[0], QUIET.in[1])) *
+    (1 - easeInOut(seg(p, QUIET.out[0], QUIET.out[1])));
 
   if (tArrive <= 0) return; // S0/S1: the stage is clean for the hero
 
@@ -373,10 +377,20 @@ export function drawFrame(
     const tint = c.tint;
 
     const fl = Math.abs(Math.cos(turn * Math.PI));
+    // Quiet-zone half-flip: squeeze, then land on the black face.
+    let qk = 0;
+    let qFlip = 1;
+    if (quietAmt > 0.001 && c.quiet > 0.004) {
+      const q = clamp01((quietAmt * 1.34 - c.qDelay * 0.34) / 1);
+      if (q > 0) {
+        qFlip = Math.max(0.1, Math.abs(Math.cos(q * Math.PI)));
+        qk = q > 0.5 ? c.quiet : 0;
+      }
+    }
     // 0 = ember face, 1 = concept colour, 2 = white face
     const face = turn <= 0.5 ? 0 : turn <= 1.5 ? 1 : 2;
     // Uniform size: depth only affects opacity, never scale.
-    const cw = cardW * breathe * Math.max(0.08, fl);
+    const cw = cardW * breathe * Math.max(0.08, fl) * qFlip;
     const chh = cardH * breathe;
 
     ctx.globalAlpha = op;
@@ -399,6 +413,10 @@ export function drawFrame(
           ? NODE_COLORS[c.node % NODE_COLORS.length]
           : emberColor(tint);
     ctx.fill();
+    if (qk > 0.004) {
+      ctx.fillStyle = `rgba(8,7,9,${qk})`;
+      ctx.fill();
+    }
     if (rot !== 0) ctx.restore();
   }
   ctx.globalAlpha = 1;
