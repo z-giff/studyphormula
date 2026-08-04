@@ -159,15 +159,15 @@ const CardTypeShowcase = ({ revealed = 4, tail = true }: { revealed?: number; ta
       [data-scene="cards"] .ph-demo-node { opacity: 0; }
       [data-scene="cards"] .ph-on .ph-demo-node { animation: ph-pop .4s ease-out forwards; }
       [data-scene="cards"] .ph-demo-field { opacity: 0; }
-      [data-scene="cards"] .ph-on .ph-demo-field { animation: ph-rise .45s .25s ease-out forwards; }
+      [data-scene="cards"] .ph-on .ph-demo-field { animation: ph-rise .45s 1.1s ease-out forwards; }
+      [data-scene="cards"] .ph-demo-cell { opacity: 0; }
+      [data-scene="cards"] .ph-on .ph-demo-cell { animation: ph-rise .55s .1s ease-out forwards; }
       [data-scene="cards"] .ph-demo-type { clip-path: inset(0 100% 0 0); }
-      [data-scene="cards"] .ph-on .ph-demo-type { animation: ph-type .8s .6s steps(9) forwards; }
-      [data-scene="cards"] .ph-demo-caret { opacity: 0; }
-      [data-scene="cards"] .ph-on .ph-demo-caret { animation: ph-caret .8s .6s steps(9) forwards; }
+      [data-scene="cards"] .ph-on .ph-demo-type { animation: ph-type .6s 1.25s steps(9) forwards; }
       @media (prefers-reduced-motion: reduce) {
         [data-scene="cards"] .ph-card, [data-scene="cards"] .ph-tail { opacity: 1; animation: none; }
         [data-scene="cards"] .ph-demo-line { stroke-dashoffset: 0; }
-        [data-scene="cards"] .ph-demo-node, [data-scene="cards"] .ph-demo-field { opacity: 1; }
+        [data-scene="cards"] .ph-demo-node, [data-scene="cards"] .ph-demo-field, [data-scene="cards"] .ph-demo-cell { opacity: 1; }
         [data-scene="cards"] .ph-demo-type { clip-path: none; }
       }
     `}</style>
