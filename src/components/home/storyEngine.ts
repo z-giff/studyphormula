@@ -336,10 +336,8 @@ export function drawFrame(
     if (tModes > 0) {
       // S6 · the flock clears the stage entirely so the four feature cards are
       // the only thing on screen — no ring, no formation behind the copy.
+      // It never returns: S8's swirl is the real brand mark, drawn in the DOM.
       op = lerp(op, 0, tModes);
-    }
-    if (tSwirl > 0) {
-      op = lerp(op, 0.55 + 0.45 * Math.min(c.depth, 1), tSwirl);
     }
     if (op <= 0.012) continue;
 
