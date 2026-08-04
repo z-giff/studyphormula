@@ -118,9 +118,9 @@ const CAPTIONS: { id: string; text: string; range: [number, number]; className: 
   },
   {
     id: "capOrbit",
-    text: "Slowly, the scattered pieces begin\nto speak to one another.",
-    range: [0.49, 0.6],
-    className: "inset-x-0 bottom-[13%] mx-auto w-full max-w-lg text-center",
+    text: "Slowly, the scattered\npieces begin to speak\nto one another.",
+    range: [0.537, 0.607],
+    className: "bottom-[11%] left-[6%] max-w-md text-left leading-relaxed",
   },
   {
     id: "capNetwork",
