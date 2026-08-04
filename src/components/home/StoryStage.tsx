@@ -76,14 +76,16 @@ const ProofBlock = () => (
   </div>
 );
 
-const FinaleBlock = () => (
-  <div className="mx-auto w-full px-6 text-center">
-    <h2 className="font-display text-4xl font-medium tracking-tight text-foreground sm:text-5xl">
-      Make it make sense.
-    </h2>
-    <p className="mx-auto mt-3 max-w-md font-display text-lg italic text-muted-foreground sm:text-xl">
+const FinaleBlock = ({ drawOn = false }: { drawOn?: boolean }) => (
+  <div className="mx-auto flex w-full flex-col items-center px-6 text-center">
+    <SwirlMark
+      data-finale-swirl
+      drawOn={drawOn}
+      className="h-28 w-28 drop-shadow-[0_0_30px_rgba(242,121,95,0.22)] sm:h-32 sm:w-32"
+    />
+    <h2 className="mt-6 font-display text-4xl font-medium tracking-tight text-foreground sm:text-5xl">
       Your way of learning, reformulated.
-    </p>
+    </h2>
     <div className="mt-8 flex flex-wrap items-center justify-center gap-3.5">
       <Button asChild variant="brand" size="lg" className="rounded-xl px-8 font-bold">
         <Link to="/auth?mode=signup">Start studying — it&rsquo;s free</Link>
@@ -170,6 +172,7 @@ const StoryStage = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
   const hintRef = useRef<HTMLDivElement>(null);
+  const swirlRef = useRef<HTMLDivElement>(null);
   const layerRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [reduced, setReduced] = useState(false);
   // S5 demos play once when the scene arrives, and reset when it leaves so
@@ -275,7 +278,14 @@ const StoryStage = () => {
         setModesRevealed(mCount);
       }
       setLayer("proof", fade(p, 0.79, 0.868), 22);
-      setLayer("finale", fade(p, SCENES.swirl[0] + 0.045, 1, true), 22, true);
+      setLayer("finale", fade(p, SCENES.swirl[0] + 0.02, 1, true), 22, true);
+      // The brand swirl draws itself, scroll-linked, as the finale settles.
+      const swirlPath = swirlRef.current?.querySelector("path");
+      if (swirlPath) {
+        const d = seg(p, SCENES.swirl[0] + 0.03, SCENES.swirl[0] + 0.1);
+        swirlPath.style.strokeDasharray = "900";
+        swirlPath.style.strokeDashoffset = String(900 * (1 - d));
+      }
     };
 
     const io = new IntersectionObserver((e) => { visible = e[0]?.isIntersecting ?? true; }, { threshold: 0 });
@@ -352,9 +362,11 @@ const StoryStage = () => {
         {/* S8 · The swirl and the ask */}
         <div
           ref={(el) => { layerRefs.current["finale"] = el; }}
-          className="pointer-events-none absolute inset-x-0 bottom-[8%] z-10 opacity-0"
+          className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center opacity-0"
         >
-          <FinaleBlock />
+          <div ref={swirlRef} className="w-full">
+            <FinaleBlock />
+          </div>
         </div>
       </div>
     </div>

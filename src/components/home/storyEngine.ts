@@ -315,10 +315,6 @@ export function drawFrame(
       }
     }
     // S6: no positional change — the flock simply fades out where it stands.
-    if (tSwirl > 0) {
-      x = lerp(x, c.sx, tSwirl);
-      y = lerp(y, c.sy, tSwirl);
-    }
 
     // gentle life: a slow drift tied to scroll, never to a clock.
     x += driftX;
@@ -336,10 +332,8 @@ export function drawFrame(
     if (tModes > 0) {
       // S6 · the flock clears the stage entirely so the four feature cards are
       // the only thing on screen — no ring, no formation behind the copy.
+      // It never returns: S8's swirl is the real brand mark, drawn in the DOM.
       op = lerp(op, 0, tModes);
-    }
-    if (tSwirl > 0) {
-      op = lerp(op, 0.55 + 0.45 * Math.min(c.depth, 1), tSwirl);
     }
     if (op <= 0.012) continue;
 
@@ -348,8 +342,7 @@ export function drawFrame(
     //   Everything else keeps its ember face.
     const turn = c.node >= 0 ? tConnect + tOrbit : 0;
 
-    let tint = c.tint;
-    if (tSwirl > 0) tint = lerp(c.tint, c.sT, tSwirl);
+    const tint = c.tint;
 
     const fl = Math.abs(Math.cos(turn * Math.PI));
     // 0 = ember face, 1 = concept colour, 2 = white face
