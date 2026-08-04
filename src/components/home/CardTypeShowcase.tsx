@@ -127,54 +127,12 @@ const CARD_TYPES = [
   { icon: Signature, name: "Drawing", line: "Sketch it to remember it.", accent: ACCENTS.drawing, Demo: DrawingDemo },
 ];
 
-/* ---------- study-mode mini demos ---------- */
-
-const MemorizeMiniDemo = () => (
-  <div className="ph-mini h-full w-full [perspective:520px]">
-    <div className="ph-mini-flip relative mx-auto h-full w-[62px]">
-      <div className="ph-mini-face absolute inset-0 flex items-center justify-center rounded-md border border-line-strong bg-secondary text-[9px] font-semibold text-foreground">
-        Term
-      </div>
-      <div className="ph-mini-face ph-mini-back absolute inset-0 flex items-center justify-center rounded-md border border-[#F7A03E]/45 bg-[#F7A03E]/12 text-[9px] font-semibold text-foreground">
-        Answer
-      </div>
-    </div>
-  </div>
-);
-
-const SwipeMiniDemo = () => (
-  <div className="ph-mini relative h-full w-full">
-    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] font-semibold uppercase tracking-wide text-[#F2795F]/70">
-      ←
-    </span>
-    <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-semibold uppercase tracking-wide text-[hsl(var(--success))]/70">
-      →
-    </span>
-    <div className="ph-mini-swipe mx-auto h-full w-[62px] rounded-md border border-line-strong bg-secondary" />
-  </div>
-);
-
-const QuizMiniDemo = () => (
-  <div className="ph-mini flex h-full w-full flex-col justify-center gap-[5px] px-4">
-    {[0, 1, 2].map((i) => (
-      <div
-        key={i}
-        className={`ph-mini-opt flex h-[13px] items-center gap-2 rounded-[5px] border px-2 ${
-          i === 1 ? "ph-mini-opt-sel border-[#EE5D9B]/50 bg-[#EE5D9B]/12" : "border-line-strong/70 bg-secondary"
-        }`}
-        style={{ animationDelay: `${0.15 + i * 0.18}s` }}
-      >
-        <span className={`h-[6px] w-[6px] rounded-full ${i === 1 ? "bg-[#EE5D9B]" : "bg-muted-foreground/40"}`} />
-        <span className={`h-[3px] flex-1 rounded-full ${i === 1 ? "bg-[#EE5D9B]/40" : "bg-muted-foreground/20"}`} />
-      </div>
-    ))}
-  </div>
-);
+/* ---------- study modes (text only) ---------- */
 
 const STUDY_MODES = [
-  { icon: MemorizeIcon, name: "Memorize", line: "Recall it until it sticks.", Demo: MemorizeMiniDemo },
-  { icon: SwipeIcon, name: "Swipe Study", line: "Sort what you know from what needs work.", Demo: SwipeMiniDemo },
-  { icon: QuizIcon, name: "MC Quiz", line: "Choose, check, and strengthen your recall.", Demo: QuizMiniDemo },
+  { name: "Memorize", line: "Recall it until it sticks.", accent: ACCENTS.standard },
+  { name: "Swipe Study", line: "Sort what needs work.", accent: ACCENTS.interactive },
+  { name: "MC Quiz", line: "Test what you remember.", accent: ACCENTS.drawing },
 ];
 
 /**
