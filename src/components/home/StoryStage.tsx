@@ -76,14 +76,16 @@ const ProofBlock = () => (
   </div>
 );
 
-const FinaleBlock = () => (
-  <div className="mx-auto w-full px-6 text-center">
-    <h2 className="font-display text-4xl font-medium tracking-tight text-foreground sm:text-5xl">
-      Make it make sense.
-    </h2>
-    <p className="mx-auto mt-3 max-w-md font-display text-lg italic text-muted-foreground sm:text-xl">
+const FinaleBlock = ({ drawOn = false }: { drawOn?: boolean }) => (
+  <div className="mx-auto flex w-full flex-col items-center px-6 text-center">
+    <SwirlMark
+      data-finale-swirl
+      drawOn={drawOn}
+      className="h-28 w-28 drop-shadow-[0_0_30px_rgba(242,121,95,0.22)] sm:h-32 sm:w-32"
+    />
+    <h2 className="mt-6 font-display text-4xl font-medium tracking-tight text-foreground sm:text-5xl">
       Your way of learning, reformulated.
-    </p>
+    </h2>
     <div className="mt-8 flex flex-wrap items-center justify-center gap-3.5">
       <Button asChild variant="brand" size="lg" className="rounded-xl px-8 font-bold">
         <Link to="/auth?mode=signup">Start studying — it&rsquo;s free</Link>
