@@ -208,11 +208,25 @@ const CardTypeShowcase = ({ revealed = 4, tail = true }: { revealed?: number; ta
       [data-scene="cards"] .ph-on .ph-demo-cell { animation: ph-rise .55s .1s ease-out forwards; }
       [data-scene="cards"] .ph-demo-type { clip-path: inset(0 100% 0 0); }
       [data-scene="cards"] .ph-on .ph-demo-type { animation: ph-type .6s 1.25s steps(9) forwards; }
+      @keyframes ph-swipe { 0%,10% { transform: translateX(0); } 34% { transform: translateX(-16px) rotate(-6deg); } 58% { transform: translateX(16px) rotate(6deg); } 82%,100% { transform: translateX(0) rotate(0deg); } }
+      [data-scene="cards"] .ph-rail { opacity: 0; }
+      [data-scene="cards"] .ph-rail.ph-on { animation: ph-rise .6s cubic-bezier(.22,.9,.28,1) forwards; }
+      [data-scene="cards"] .ph-mode { opacity: 0; }
+      [data-scene="cards"] .ph-rail.ph-on .ph-mode { animation: ph-rise .5s cubic-bezier(.22,.9,.28,1) forwards; }
+      [data-scene="cards"] .ph-mini-flip { transform-style: preserve-3d; }
+      [data-scene="cards"] .ph-rail.ph-on .ph-mini-flip { animation: ph-flip 2s 1s cubic-bezier(.5,0,.2,1) forwards; }
+      [data-scene="cards"] .ph-mini-face { backface-visibility: hidden; }
+      [data-scene="cards"] .ph-mini-back { transform: rotateY(180deg); }
+      [data-scene="cards"] .ph-rail.ph-on .ph-mini-swipe { animation: ph-swipe 2.4s 1.1s cubic-bezier(.4,0,.3,1) forwards; }
+      [data-scene="cards"] .ph-mini-opt { opacity: 0; }
+      [data-scene="cards"] .ph-rail.ph-on .ph-mini-opt { animation: ph-rise .4s ease-out forwards; }
       @media (prefers-reduced-motion: reduce) {
         [data-scene="cards"] .ph-card, [data-scene="cards"] .ph-tail { opacity: 1; animation: none; }
         [data-scene="cards"] .ph-demo-line { stroke-dashoffset: 0; }
         [data-scene="cards"] .ph-demo-node, [data-scene="cards"] .ph-demo-field, [data-scene="cards"] .ph-demo-cell { opacity: 1; }
         [data-scene="cards"] .ph-demo-type { clip-path: none; }
+        [data-scene="cards"] .ph-rail, [data-scene="cards"] .ph-mode, [data-scene="cards"] .ph-mini-opt { opacity: 1; animation: none; }
+        [data-scene="cards"] .ph-mini-flip, [data-scene="cards"] .ph-mini-swipe { animation: none; }
       }
     `}</style>
 
@@ -247,17 +261,35 @@ const CardTypeShowcase = ({ revealed = 4, tail = true }: { revealed?: number; ta
       ))}
     </div>
 
-    <div className={`ph-tail mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 ${tail && revealed >= 4 ? "ph-on" : ""}`}>
-      <span className="font-display text-base italic text-muted-foreground">
-        …then study them three ways:
-      </span>
-      {STUDY_MODES.map((m) => (
-        <span key={m.name} className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
-          <m.icon className="h-[18px] w-[18px] text-primary" />
-          {m.name}
-        </span>
-      ))}
-    </div>
+    <section
+      className={`ph-rail mt-5 w-full overflow-hidden rounded-3xl border border-border bg-card/60 px-5 py-4 shadow-[0_20px_50px_-34px_rgba(0,0,0,0.9)] backdrop-blur-sm lg:px-7 lg:py-5 ${
+        tail && revealed >= 4 ? "ph-on" : ""
+      }`}
+      aria-label="Study modes"
+    >
+      <h3 className="text-center font-display text-base font-medium tracking-tight text-foreground sm:text-lg">
+        Four ways to create. Three ways to master.
+      </h3>
+
+      <div className="mt-3 grid grid-cols-1 divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+        {STUDY_MODES.map((m, i) => (
+          <div
+            key={m.name}
+            className="ph-mode flex flex-col items-center gap-2 px-3 py-3 text-center sm:py-1"
+            style={{ animationDelay: `${0.25 + i * 0.18}s` }}
+          >
+            <div className="flex items-center gap-2">
+              <m.icon className="h-[18px] w-[18px] text-primary" />
+              <span className="text-sm font-semibold text-foreground">{m.name}</span>
+            </div>
+            <p className="max-w-[22ch] text-xs leading-snug text-muted-foreground">{m.line}</p>
+            <div className="h-[46px] w-full max-w-[180px] overflow-hidden rounded-xl border border-line-strong/50 bg-secondary/40 py-1">
+              <m.Demo />
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   </div>
 );
 
