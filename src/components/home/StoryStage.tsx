@@ -362,9 +362,11 @@ const StoryStage = () => {
         {/* S8 · The swirl and the ask */}
         <div
           ref={(el) => { layerRefs.current["finale"] = el; }}
-          className="pointer-events-none absolute inset-x-0 bottom-[8%] z-10 opacity-0"
+          className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center opacity-0"
         >
-          <FinaleBlock />
+          <div ref={swirlRef} className="w-full">
+            <FinaleBlock />
+          </div>
         </div>
       </div>
     </div>
