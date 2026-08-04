@@ -106,9 +106,9 @@ const FinaleBlock = ({ drawOn = false }: { drawOn?: boolean }) => (
 const CAPTIONS: { id: string; text: string; range: [number, number]; className: string }[] = [
   {
     id: "capField",
-    text: "Every new subject begins as a mess of terms,\ndiagrams, and half-understood ideas.",
-    range: [0.235, 0.335],
-    className: "inset-x-0 top-[15%] mx-auto w-full max-w-md text-center",
+    text: "Every new subject\nbegins as a mess of terms,\ndiagrams, and half-understood\nideas.",
+    range: [0.29, 0.355],
+    className: "bottom-[11%] left-[6%] max-w-md text-left leading-relaxed",
   },
   {
     id: "capConnect",
