@@ -419,5 +419,20 @@ export function drawFrame(
     }
     if (rot !== 0) ctx.restore();
   }
+
+  // A very soft feather over the quiet zone — no hard edge, just enough to
+  // settle the black cards into the surrounding grid behind the caption.
+  if (quietAmt > 0.01) {
+    const gx = world.w * 0.16;
+    const gy = world.h * 0.86;
+    const gr = Math.max(world.w * 0.42, world.h * 0.5);
+    const g = ctx.createRadialGradient(gx, gy, 0, gx, gy, gr);
+    g.addColorStop(0, `rgba(8,7,9,${0.72 * quietAmt})`);
+    g.addColorStop(0.55, `rgba(8,7,9,${0.34 * quietAmt})`);
+    g.addColorStop(1, "rgba(8,7,9,0)");
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, world.w, world.h);
+  }
   ctx.globalAlpha = 1;
 }
