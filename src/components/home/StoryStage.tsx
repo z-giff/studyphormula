@@ -124,7 +124,7 @@ const CAPTIONS: { id: string; text: string; range: [number, number]; className: 
     id: "capNetwork",
     text: "Understanding becomes easier when you can\nfinally see how everything fits together.",
     range: [0.605, 0.648],
-    className: "inset-x-0 top-1/2 mx-auto w-full max-w-xl -translate-y-1/2 text-center",
+    className: "inset-x-0 top-[44%] mx-auto w-full max-w-xl text-center",
   },
 ];
 
