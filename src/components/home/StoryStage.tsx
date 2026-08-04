@@ -112,9 +112,9 @@ const CAPTIONS: { id: string; text: string; range: [number, number]; className: 
   },
   {
     id: "capConnect",
-    text: "So you break it down… one card, one concept,\none small step at a time.",
-    range: [0.365, 0.465],
-    className: "inset-x-0 bottom-[14%] mx-auto w-full max-w-lg text-center",
+    text: "So you break it down—one card,\none concept, one small\nstep at a time.",
+    range: [0.4, 0.492],
+    className: "bottom-[11%] left-[6%] max-w-md text-left leading-relaxed",
   },
   {
     id: "capOrbit",
