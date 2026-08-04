@@ -315,10 +315,6 @@ export function drawFrame(
       }
     }
     // S6: no positional change — the flock simply fades out where it stands.
-    if (tSwirl > 0) {
-      x = lerp(x, c.sx, tSwirl);
-      y = lerp(y, c.sy, tSwirl);
-    }
 
     // gentle life: a slow drift tied to scroll, never to a clock.
     x += driftX;
