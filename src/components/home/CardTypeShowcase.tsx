@@ -190,8 +190,11 @@ const CardTypeShowcase = ({ revealed = 4, tail = true }: { revealed?: number; ta
     <h2 className="text-center font-display text-3xl font-medium tracking-tight text-foreground sm:text-4xl lg:text-5xl">
       Four Cards, Four Ways to Learn
     </h2>
+    <p className="mx-auto mt-3 max-w-xl text-center font-display text-base italic text-muted-foreground sm:text-lg">
+      Because not every idea should be studied the same way.
+    </p>
 
-    <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:gap-7">
+    <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:gap-7">
       {CARD_TYPES.map((f, i) => (
         <div key={f.name} className={i < revealed ? "ph-on" : undefined}>
           <div className="ph-card overflow-hidden rounded-3xl border border-border bg-card/80 p-5 shadow-[0_26px_60px_-32px_rgba(0,0,0,0.9)] backdrop-blur-sm lg:p-6">

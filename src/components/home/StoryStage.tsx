@@ -65,9 +65,12 @@ const ModesBlock = ({ revealed = 4 }: { revealed?: number }) => (
 const ProofBlock = () => (
   <div className="mx-auto w-full max-w-xl px-6 text-center">
     <p className="font-display text-2xl font-light leading-relaxed text-foreground sm:text-[1.7rem]">
-      We believe memorization isn&rsquo;t the enemy of understanding — it&rsquo;s
-      the foundation of it. Phormula exists to make the hours you put in
-      actually count.
+      Phormula began because the way we were expected to study did not match the
+      way we learned.
+    </p>
+    <p className="mt-5 font-display text-xl font-light leading-relaxed text-muted-foreground sm:text-[1.35rem]">
+      So we built a place where ideas could be seen, connected, and remembered
+      differently.
     </p>
     <p className="mt-6 font-handwriting text-3xl text-brand-amber">— the Phormula team</p>
   </div>
@@ -78,6 +81,9 @@ const FinaleBlock = () => (
     <h2 className="font-display text-4xl font-medium tracking-tight text-foreground sm:text-5xl">
       Make it make sense.
     </h2>
+    <p className="mx-auto mt-3 max-w-md font-display text-lg italic text-muted-foreground sm:text-xl">
+      Your way of learning, reformulated.
+    </p>
     <div className="mt-8 flex flex-wrap items-center justify-center gap-3.5">
       <Button asChild variant="brand" size="lg" className="rounded-xl px-8 font-bold">
         <Link to="/auth?mode=signup">Start studying — it&rsquo;s free</Link>
@@ -98,21 +104,27 @@ const FinaleBlock = () => (
 const CAPTIONS: { id: string; text: string; range: [number, number]; className: string }[] = [
   {
     id: "capField",
-    text: "Every subject starts as a thousand scattered pieces.",
+    text: "Every new subject begins as a mess of terms,\ndiagrams, and half-understood ideas.",
     range: [0.235, 0.335],
     className: "inset-x-0 top-[15%] mx-auto w-full max-w-md text-center",
   },
   {
     id: "capConnect",
-    text: "We all started with someone beside us.",
+    text: "So you break it down… one card, one concept,\none small step at a time.",
     range: [0.365, 0.465],
-    className: "inset-x-0 bottom-[14%] mx-auto w-full max-w-md text-center",
+    className: "inset-x-0 bottom-[14%] mx-auto w-full max-w-lg text-center",
   },
   {
     id: "capOrbit",
-    text: "Then one day the desk is yours.\nPhormula sits with you.",
+    text: "Slowly, the scattered pieces begin\nto speak to one another.",
     range: [0.49, 0.6],
     className: "inset-x-0 bottom-[13%] mx-auto w-full max-w-lg text-center",
+  },
+  {
+    id: "capNetwork",
+    text: "Understanding becomes easier when you can\nfinally see how everything fits together.",
+    range: [0.605, 0.648],
+    className: "inset-x-0 top-[44%] mx-auto w-full max-w-xl text-center",
   },
 ];
 
