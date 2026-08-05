@@ -92,10 +92,14 @@ const smoothstep = (a: number, b: number, v: number) => {
 /**
  * S3 · the quiet zone. The bottom-left cards flip to black in a wave so the
  * caption has a soft, grid-aligned space to sit in. Fully scroll-driven.
+ *
+ * Its exit deliberately overlaps QUIET2's entry: the darkened space has to
+ * carry continuously from caption 1 into caption 2, or the field flashes back
+ * to full brightness between two dark beats.
  */
 export const QUIET = {
   in: [0.252, 0.325] as const,   // cards flip to black
-  out: [0.345, 0.4] as const,    // and flip back before S4 begins
+  out: [0.378, 0.432] as const,  // hands over to QUIET2 mid-fade
 };
 
 /**
@@ -103,7 +107,7 @@ export const QUIET = {
  * background cards flip — the six concept nodes are left untouched.
  */
 export const QUIET2 = {
-  in: [0.388, 0.438] as const,
+  in: [0.36, 0.41] as const,     // begins before QUIET has finished leaving
   out: [0.47, 0.505] as const,
 };
 
@@ -137,8 +141,10 @@ export const SCENES = {
   field: [0.245, 0.325] as const,     // S3 the field
   connect: [0.35, 0.455] as const,    // S4 someone beside us
   orbit: [0.475, 0.585] as const,     // S5 the desk becomes yours
-  modes: [0.6, 0.69] as const,        // S6 four ways to study
-  proof: [0.745, 0.85] as const,      // S7 founder's note
+  // S6 starts only once the last S5 caption has finished, so the flock is
+  // still on screen for the line that describes it.
+  modes: [0.668, 0.735] as const,     // S6 four ways to study
+  proof: [0.8, 0.888] as const,       // S7 founder's note
   swirl: [0.87, 0.985] as const,      // S8 the swirl and the ask
 };
 
@@ -150,16 +156,28 @@ export function buildWorld(w: number, h: number): World {
 
   // Card size scales with the viewport so the flock reads the same everywhere.
   // Every card is drawn at exactly this size — uniform, no per-card scaling.
-  const cardW = Math.max(13, Math.min(30, s * 0.029));
-  const cardH = cardW * 0.66;
+  let cardW = Math.max(13, Math.min(30, s * 0.029));
 
-  // Uniform gutters in both axes: the settled field reads as one precise grid.
-  const gap = cardW * 0.55;
-  const stepX = cardW + gap;
-  const stepY = cardH + gap;
-  const cols = Math.ceil((w * 1.06) / stepX) + 1;
-  const rows = Math.ceil((h * 1.06) / stepY) + 1;
-  const N = cols * rows;
+  // Draw budget. Sizing from the *smaller* dimension alone means a tall, narrow
+  // phone lands on the 13px floor and ends up drawing MORE cards than a
+  // desktop. Cap the count and grow the cards until the grid fits the budget:
+  // density on desktop is untouched, phones and very large screens get relief.
+  const layout = (cw: number) => {
+    const ch = cw * 0.66;
+    const gp = cw * 0.55;
+    const sx = cw + gp;
+    const sy = ch + gp;
+    const c = Math.ceil((w * 1.06) / sx) + 1;
+    const r = Math.ceil((h * 1.06) / sy) + 1;
+    return { cardH: ch, gap: gp, stepX: sx, stepY: sy, cols: c, rows: r, N: c * r };
+  };
+  const budget = Math.min(w, h) < 560 ? 640 : 1600;
+  let grid = layout(cardW);
+  for (let guard = 0; guard < 4 && grid.N > budget; guard++) {
+    cardW *= Math.sqrt(grid.N / budget);
+    grid = layout(cardW);
+  }
+  const { cardH, gap, stepX, stepY, cols, rows, N } = grid;
 
   let seed = 20260724;
   const rand = () => {
@@ -222,8 +240,13 @@ export function buildWorld(w: number, h: number): World {
       role,
       node: -1,
       nx: fx, ny: fy,
-      tint: rand(),
-      depth: 0.72 + rand() * 0.5,
+      // Tint biased toward the amber/ember half of the ramp, so hot pink reads
+      // as an accent through the field instead of half of it.
+      tint: Math.pow(rand(), 1.5),
+      // Depth is a full 0..1 spread (it drives opacity only). The old 0.72–1.22
+      // range collapsed to 0.82–0.94 on screen, which is why the settled field
+      // read as one flat, vibrating wall with no front-to-back separation.
+      depth: Math.pow(rand(), 1.2),
       delay: rand(),
       spin: (rand() - 0.5) * 0.9,
       drift: rand() * Math.PI * 2,
@@ -329,9 +352,11 @@ export function drawFrame(
   // — S5 · the pathway. Thin lines grow node-to-node while the six nodes flip
   //   from their concept colours to white. Nothing moves; nothing lingers.
   const tPath = easeInOut(seg(p, SCENES.orbit[0] + 0.012, SCENES.orbit[1] - 0.025));
-  // The pathway retires before the flock leaves for its halo, so no line is
-  // ever left hanging in empty space.
-  const pathAlpha = tPath * (1 - easeInOut(seg(p, SCENES.orbit[1], SCENES.modes[0])));
+  // The pathway is held all the way through the "see how everything fits
+  // together" caption — that line is about these connections, so it must not
+  // play over a field that has already dropped them. It then retires inside
+  // the S6 hand-off, so no line is ever left hanging in empty space.
+  const pathAlpha = tPath * (1 - easeInOut(seg(p, 0.665, 0.71)));
   if (pathAlpha > 0.01 && nodePath.length > 1) {
     const segs = nodePath.length - 1;
     const grown = tPath * segs;
@@ -381,7 +406,8 @@ export function drawFrame(
     y += driftY;
 
     // — opacity: each scene states its own value, so nothing lingers.
-    let op = Math.min(1, a * 2.2) * (0.5 + 0.44 * Math.min(c.depth, 1));
+    // Wide depth spread = real front-to-back layering in the field.
+    let op = Math.min(1, a * 2.2) * (0.28 + 0.72 * c.depth);
 
     if (tConnect > 0) {
       // The grid recedes into the background; the six 2x2 nodes stay bright and
@@ -400,7 +426,15 @@ export function drawFrame(
     // — face: node cards turn over twice, always in place — first onto their
     //   concept colour (S4), then onto white as the pathway is drawn (S5).
     //   Everything else keeps its ember face.
-    const turn = c.node >= 0 ? tConnect + tOrbit : 0;
+    //
+    //   The four cards of a node are staggered by a phase that is exactly zero
+    //   at both ends of the turn, so the tile still starts and lands perfectly
+    //   square but never collapses to four bars at the same instant.
+    const turnRaw = c.node >= 0 ? tConnect + tOrbit : 0;
+    const turn =
+      turnRaw > 0
+        ? turnRaw + Math.sin(Math.PI * clamp01(turnRaw / 2)) * (c.delay - 0.5) * 0.16
+        : 0;
 
     const tint = c.tint;
 
@@ -422,8 +456,11 @@ export function drawFrame(
     // 0 = ember face, 1 = concept colour, 2 = white face
     const face = turn <= 0.5 ? 0 : turn <= 1.5 ? 1 : 2;
     // Uniform size: depth only affects opacity, never scale.
-    const cw = cardW * breathe * Math.max(0.08, fl) * qFlip;
-    const chh = cardH * breathe;
+    // The mid-flip floor is deep enough that a turning card still reads as a
+    // card — at 0.08 the four cards of a node became thin glitch-like bars.
+    const cw = cardW * breathe * Math.max(0.34, fl) * qFlip;
+    // A touch of vertical give at mid-turn sells the rotation.
+    const chh = cardH * breathe * (0.94 + 0.06 * fl);
 
     ctx.globalAlpha = op;
     if (rot !== 0) {

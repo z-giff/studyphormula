@@ -187,33 +187,43 @@ const CardTypeShowcase = ({ revealed = 4, tail = true }: { revealed?: number; ta
       }
     `}</style>
 
-    <h2 className="text-center font-display text-3xl font-medium tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+    <h2 className="text-center font-display text-[clamp(1.35rem,4.4vw,3rem)] font-medium leading-tight tracking-tight text-foreground">
       Four Cards, Four Ways to Learn
     </h2>
-    <p className="mx-auto mt-3 max-w-xl text-center font-display text-base italic text-muted-foreground sm:text-lg">
+    <p className="mx-auto mt-[clamp(0.25rem,0.9vh,0.75rem)] max-w-xl text-center font-display text-[clamp(0.8rem,2.4vw,1.125rem)] italic leading-snug text-muted-foreground">
       Because not every idea should be studied the same way.
     </p>
 
-    <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:gap-7">
+    {/* Always 2x2: one column doubles the block height and pushes the scene
+        off a phone screen entirely. */}
+    <div className="mt-[clamp(0.5rem,1.4vh,1rem)] grid grid-cols-2 gap-[clamp(0.5rem,1.6vw,1.75rem)]">
       {CARD_TYPES.map((f, i) => (
-        <div key={f.name} className={i < revealed ? "ph-on" : undefined}>
-          <div className="ph-card overflow-hidden rounded-3xl border border-border bg-card/80 p-5 shadow-[0_26px_60px_-32px_rgba(0,0,0,0.9)] backdrop-blur-sm lg:p-6">
+        <div key={f.name} className={`h-full ${i < revealed ? "ph-on" : ""}`}>
+          {/* h-full + flex: both cards in a row stay the same height even when
+              one label wraps to two lines. */}
+          <div className="ph-card flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card/80 p-[clamp(0.6rem,1.5vh,1.5rem)] shadow-[0_26px_60px_-32px_rgba(0,0,0,0.9)] backdrop-blur-sm sm:rounded-3xl">
             <div
-              className="h-[15vh] max-h-[190px] min-h-[110px] w-full overflow-hidden rounded-2xl border border-line-strong/70"
+              className="h-[clamp(62px,11vh,190px)] w-full shrink-0 overflow-hidden rounded-xl border border-line-strong/70 sm:rounded-2xl"
               style={{ background: `linear-gradient(160deg, ${f.accent}14, transparent 70%)` }}
             >
               <f.Demo />
             </div>
-            <div className="mt-4 flex items-center gap-4">
+            {/* Icon sits above the label on phones so the text keeps the full
+                card width; side-by-side from sm up, as before. */}
+            <div className="mt-[clamp(0.5rem,1.3vh,1rem)] flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-4">
               <span
-                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border bg-secondary lg:h-14 lg:w-14"
+                className="flex h-[clamp(1.9rem,4.6vh,3.5rem)] w-[clamp(1.9rem,4.6vh,3.5rem)] shrink-0 items-center justify-center rounded-full border bg-secondary"
                 style={{ borderColor: `${f.accent}59`, color: f.accent }}
               >
-                <f.icon className="h-6 w-6" strokeWidth={1.7} />
+                <f.icon className="h-[55%] w-[55%]" strokeWidth={1.7} />
               </span>
               <div className="min-w-0">
-                <div className="text-lg font-semibold text-foreground lg:text-xl">{f.name}</div>
-                <div className="text-sm text-muted-foreground lg:text-base">{f.line}</div>
+                <div className="text-[clamp(0.95rem,2.6vw,1.25rem)] font-semibold leading-tight text-foreground">
+                  {f.name}
+                </div>
+                <div className="text-[clamp(0.8rem,2.2vw,1rem)] leading-snug text-muted-foreground">
+                  {f.line}
+                </div>
               </div>
             </div>
           </div>
@@ -222,25 +232,31 @@ const CardTypeShowcase = ({ revealed = 4, tail = true }: { revealed?: number; ta
     </div>
 
     <section
-      className={`ph-rail mt-5 w-full overflow-hidden rounded-3xl border border-border bg-card/60 px-5 py-4 shadow-[0_20px_50px_-34px_rgba(0,0,0,0.9)] backdrop-blur-sm lg:px-7 lg:py-5 ${
+      className={`ph-rail mt-[clamp(0.5rem,1.4vh,1.25rem)] w-full overflow-hidden rounded-2xl border border-border bg-card/60 px-[clamp(0.6rem,1.4vw,1.75rem)] py-[clamp(0.5rem,1.3vh,1.25rem)] shadow-[0_20px_50px_-34px_rgba(0,0,0,0.9)] backdrop-blur-sm sm:rounded-3xl ${
         tail && revealed >= 4 ? "ph-on" : ""
       }`}
       aria-label="Study modes"
     >
-      <h3 className="text-center font-display text-base font-medium tracking-tight text-foreground sm:text-lg">
+      <h3 className="text-center font-display text-[clamp(0.8rem,2.3vw,1.125rem)] font-medium leading-snug tracking-tight text-foreground">
         Four ways to create. Three ways to master.
       </h3>
 
-      <div className="mt-5 grid grid-cols-1 divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+      {/* Three across at every width — stacking these was ~300px of the mobile
+          overflow. Nothing is dropped, only tightened. */}
+      <div className="mt-[clamp(0.4rem,1.2vh,1.25rem)] grid grid-cols-3 divide-x divide-border">
         {STUDY_MODES.map((m, i) => (
           <div
             key={m.name}
-            className="ph-mode flex flex-col items-center gap-2 px-6 py-5 text-center sm:py-4"
+            className="ph-mode flex flex-col items-center gap-1.5 px-[clamp(0.25rem,1vw,1.5rem)] py-[clamp(0.25rem,0.9vh,1rem)] text-center"
             style={{ animationDelay: `${0.25 + i * 0.18}s` }}
           >
-            <span className="h-px w-8 rounded-full" style={{ background: `${m.accent}80` }} />
-            <span className="text-base font-semibold tracking-tight text-foreground sm:text-lg">{m.name}</span>
-            <p className="max-w-[24ch] text-sm leading-snug text-muted-foreground">{m.line}</p>
+            <span className="h-px w-6 rounded-full sm:w-8" style={{ background: `${m.accent}80` }} />
+            <span className="text-[clamp(0.85rem,2.3vw,1.125rem)] font-semibold leading-tight tracking-tight text-foreground">
+              {m.name}
+            </span>
+            <p className="max-w-[24ch] text-[clamp(0.72rem,2vw,0.875rem)] leading-snug text-muted-foreground">
+              {m.line}
+            </p>
           </div>
         ))}
       </div>

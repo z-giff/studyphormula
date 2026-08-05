@@ -64,11 +64,11 @@ const ModesBlock = ({ revealed = 4 }: { revealed?: number }) => (
  */
 const ProofBlock = () => (
   <div className="mx-auto w-full max-w-xl px-6 text-center">
-    <p className="font-display text-2xl font-light leading-relaxed text-foreground sm:text-[1.7rem]">
+    <p className="font-display text-2xl font-light leading-relaxed text-foreground sm:text-3xl">
       Phormula began because the way we were expected to study did not match the
       way we learned.
     </p>
-    <p className="mt-5 font-display text-xl font-light leading-relaxed text-muted-foreground sm:text-[1.35rem]">
+    <p className="mt-5 font-display text-xl font-light leading-relaxed text-muted-foreground sm:text-2xl">
       So we built a place where ideas could be seen, connected, and remembered
       differently.
     </p>
@@ -103,32 +103,43 @@ const FinaleBlock = ({ drawOn = false }: { drawOn?: boolean }) => (
 );
 
 /** Scene copy that sits over the flock, each tied to its scroll window. */
+/**
+ * Copy re-rags itself: the lines are set by a `ch`-based measure rather than
+ * hard newlines, so the ragging stays sane at every size instead of being
+ * frozen to one viewport.
+ */
+const CAPTION_POS = "bottom-[11%] left-[6%] max-w-[20ch] text-left leading-snug";
+
 const CAPTIONS: { id: string; text: string; range: [number, number]; className: string }[] = [
   {
     id: "capField",
-    text: "Every new subject\nbegins as a mess of terms,\ndiagrams, and half-understood\nideas.",
+    text: "Every new subject begins as a mess of terms, diagrams, and half-understood ideas.",
     range: [0.29, 0.355],
-    className: "bottom-[11%] left-[6%] max-w-md text-left leading-relaxed",
+    className: CAPTION_POS,
   },
   {
     id: "capConnect",
-    text: "So you break it down—one card,\none concept, one small\nstep at a time.",
+    text: "So you break it down—one card, one concept, one small step at a time.",
     range: [0.4, 0.492],
-    className: "bottom-[11%] left-[6%] max-w-md text-left leading-relaxed",
+    className: CAPTION_POS,
   },
   {
     id: "capOrbit",
-    text: "Slowly, the scattered\npieces begin to speak\nto one another.",
+    text: "Slowly, the scattered pieces begin to speak to one another.",
     range: [0.537, 0.612],
-    className: "bottom-[11%] left-[6%] max-w-md text-left leading-relaxed",
+    className: CAPTION_POS,
   },
   {
     id: "capNetwork",
-    text: "Understanding becomes\neasier when you can finally\nsee how everything\nfits together.",
+    text: "Understanding becomes easier when you can finally see how everything fits together.",
     range: [0.608, 0.665],
-    className: "bottom-[11%] left-[6%] max-w-md text-left leading-relaxed",
+    className: CAPTION_POS,
   },
 ];
+
+/** Keeps the copy readable over the brightest parts of the flock. */
+const CAPTION_SHADOW =
+  "0 2px 20px hsl(266 24% 6% / 0.9), 0 1px 5px hsl(266 24% 6% / 0.75)";
 
 /** Fade in over the head of a window and out over its tail. */
 const fade = (p: number, a: number, b: number, holdEnd = false) => {
@@ -151,9 +162,7 @@ const StaticStory = () => (
     <section className="mx-auto max-w-2xl space-y-8 px-6 pb-20 text-center">
       {CAPTIONS.map((c) => (
         <p key={c.id} className="font-display text-2xl italic text-muted-foreground">
-          {c.text.split("\n").map((l) => (
-            <span key={l} className="block">{l}</span>
-          ))}
+          {c.text}
         </p>
       ))}
     </section>
@@ -173,6 +182,10 @@ const StoryStage = () => {
   const heroRef = useRef<HTMLDivElement>(null);
   const hintRef = useRef<HTMLDivElement>(null);
   const swirlRef = useRef<HTMLDivElement>(null);
+  // Elements the scroll loop touches every frame, resolved once instead of
+  // being re-queried inside requestAnimationFrame.
+  const heroWordRef = useRef<HTMLHeadingElement | null>(null);
+  const swirlPathRef = useRef<SVGPathElement | null>(null);
   const layerRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [reduced, setReduced] = useState(false);
   // S5 demos play once when the scene arrives, and reset when it leaves so
@@ -205,6 +218,10 @@ const StoryStage = () => {
     let sw = 0, sh = 0;
     let dpr = 1;
 
+    // Cache the two nodes the frame loop mutates.
+    heroWordRef.current = heroRef.current?.querySelector("h1") ?? null;
+    swirlPathRef.current = swirlRef.current?.querySelector("path") ?? null;
+
     // Size from the stage's *measured* box (never window.inner*, which differs
     // inside embeds/iframes and before first layout) so the canvas is always a
     // seamless full-bleed fill with a matching drawing space.
@@ -222,9 +239,19 @@ const StoryStage = () => {
       lastP = -1;
     };
     resize();
-    const ro = new ResizeObserver(resize);
+    // ResizeObserver and the window listener both fire for the same resize;
+    // coalesce them so buildWorld() (which allocates the whole flock) runs once.
+    let resizeRaf = 0;
+    const scheduleResize = () => {
+      if (resizeRaf) return;
+      resizeRaf = requestAnimationFrame(() => {
+        resizeRaf = 0;
+        resize();
+      });
+    };
+    const ro = new ResizeObserver(scheduleResize);
     ro.observe(stage);
-    window.addEventListener("resize", resize);
+    window.addEventListener("resize", scheduleResize);
 
     const setLayer = (id: string, op: number, rise = 16, interactive = false) => {
       const el = layerRefs.current[id];
@@ -258,33 +285,35 @@ const StoryStage = () => {
         hero.style.filter = ex > 0.001 ? `blur(${ex * 9}px)` : "";
         hero.style.pointerEvents = op > 0.6 ? "auto" : "none";
         hero.style.visibility = op <= 0.002 ? "hidden" : "visible";
-        const word = hero.querySelector("h1");
-        if (word) (word as HTMLElement).style.letterSpacing = ex > 0.001 ? `${ex * 0.3}em` : "";
+        if (heroWordRef.current) {
+          heroWordRef.current.style.letterSpacing = ex > 0.001 ? `${ex * 0.3}em` : "";
+        }
       }
       if (hintRef.current) {
         hintRef.current.style.opacity = String(1 - seg(p, 0.008, 0.04));
       }
 
       for (const c of CAPTIONS) setLayer(c.id, fade(p, c.range[0], c.range[1]));
-      // Copy arrives once the flock has withdrawn to its halo, so cards never
-      // travel across the text.
-      setLayer("modes", fade(p, 0.645, 0.775), 22, true);
+      // Copy arrives once the flock has cleared, so cards never travel across
+      // the text. Consecutive scenes deliberately OVERLAP: the outgoing block
+      // is still on screen when the next one starts, otherwise the stage is
+      // left completely empty for a stretch of scrolling.
+      setLayer("modes", fade(p, 0.7, 0.815), 22, true);
       // One card per stage of scroll — purely a function of p, so pausing
       // pauses the sequence and scrolling back retires cards in reverse.
-      const steps = [0.655, 0.675, 0.695, 0.715];
-      const mCount = p < 0.645 || p > 0.79 ? 0 : steps.filter((s) => p >= s).length;
+      const steps = [0.715, 0.73, 0.745, 0.76];
+      const mCount = p < 0.7 || p > 0.83 ? 0 : steps.filter((s) => p >= s).length;
       if (mCount !== modesRevealedRef.current) {
         modesRevealedRef.current = mCount;
         setModesRevealed(mCount);
       }
-      setLayer("proof", fade(p, 0.79, 0.868), 22);
-      setLayer("finale", fade(p, SCENES.swirl[0] + 0.02, 1, true), 22, true);
+      setLayer("proof", fade(p, 0.8, 0.888), 22);
+      setLayer("finale", fade(p, 0.875, 1, true), 22, true);
       // The brand swirl draws itself, scroll-linked, as the finale settles.
-      const swirlPath = swirlRef.current?.querySelector("path");
-      if (swirlPath) {
-        const d = seg(p, SCENES.swirl[0] + 0.03, SCENES.swirl[0] + 0.1);
-        swirlPath.style.strokeDasharray = "900";
-        swirlPath.style.strokeDashoffset = String(900 * (1 - d));
+      if (swirlPathRef.current) {
+        const d = seg(p, 0.885, 0.95);
+        swirlPathRef.current.style.strokeDasharray = "900";
+        swirlPathRef.current.style.strokeDashoffset = String(900 * (1 - d));
       }
     };
 
@@ -296,9 +325,10 @@ const StoryStage = () => {
 
     return () => {
       cancelAnimationFrame(raf);
+      if (resizeRaf) cancelAnimationFrame(resizeRaf);
       ro.disconnect();
       io.disconnect();
-      window.removeEventListener("resize", resize);
+      window.removeEventListener("resize", scheduleResize);
       document.removeEventListener("visibilitychange", onVis);
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, cv.width, cv.height);
@@ -335,11 +365,10 @@ const StoryStage = () => {
           <div
             key={c.id}
             ref={(el) => { layerRefs.current[c.id] = el; }}
-            className={`pointer-events-none absolute z-10 px-6 font-display text-xl italic leading-snug text-foreground/90 opacity-0 sm:text-2xl ${c.className}`}
+            style={{ textShadow: CAPTION_SHADOW }}
+            className={`pointer-events-none absolute z-10 px-6 font-display text-2xl italic text-foreground opacity-0 sm:text-3xl ${c.className}`}
           >
-            {c.text.split("\n").map((l) => (
-              <span key={l} className="block">{l}</span>
-            ))}
+            {c.text}
           </div>
         ))}
 
