@@ -119,14 +119,14 @@ const CAPTIONS: { id: string; text: string; range: [number, number]; className: 
   {
     id: "capOrbit",
     text: "Slowly, the scattered\npieces begin to speak\nto one another.",
-    range: [0.537, 0.607],
+    range: [0.537, 0.612],
     className: "bottom-[11%] left-[6%] max-w-md text-left leading-relaxed",
   },
   {
     id: "capNetwork",
-    text: "Understanding becomes easier when you can\nfinally see how everything fits together.",
-    range: [0.605, 0.648],
-    className: "inset-x-0 top-[44%] mx-auto w-full max-w-xl text-center",
+    text: "Understanding becomes\neasier when you can finally\nsee how everything\nfits together.",
+    range: [0.608, 0.665],
+    className: "bottom-[11%] left-[6%] max-w-md text-left leading-relaxed",
   },
 ];
 

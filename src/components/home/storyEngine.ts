@@ -113,7 +113,9 @@ export const QUIET2 = {
  */
 export const QUIET3 = {
   in: [0.528, 0.565] as const,
-  out: [0.588, 0.615] as const,
+  // Held through the S4→S5 transition so the same darkened space carries the
+  // second caption without ever flashing back to colour.
+  out: [0.668, 0.702] as const,
 };
 
 /** The brand swirl in a 200x200 box — matches SwirlMark's geometry. */
