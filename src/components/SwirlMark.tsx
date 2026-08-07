@@ -19,10 +19,23 @@ interface SwirlMarkProps extends React.SVGProps<SVGSVGElement> {
   strokeWidth?: number;
 }
 
-const SwirlMark = ({ className = "", drawOn = false, strokeWidth = 20, ...rest }: SwirlMarkProps) => {
+const SwirlMark = ({ className = "", drawOn = false, strokeWidth = 20, style, ...rest }: SwirlMarkProps) => {
   const id = useId();
   return (
-    <svg viewBox="0 0 200 200" className={className} aria-hidden="true" focusable="false" {...rest}>
+    // overflow:visible — the spiral's outer tail reaches x ≈ -3.5 once the
+    // 20-unit stroke is applied (geometry starts at x ≈ 6.5), so the default
+    // `svg { overflow: hidden }` sliced it off flat against the viewBox edge.
+    // Painting outside the box restores the rounded end without touching the
+    // path, scale, position or gradient. Must be an inline style: a
+    // presentation attribute loses to the UA stylesheet rule.
+    <svg
+      viewBox="0 0 200 200"
+      className={className}
+      style={{ overflow: "visible", ...style }}
+      aria-hidden="true"
+      focusable="false"
+      {...rest}
+    >
       <defs>
         <linearGradient id={id} x1="0" y1="0" x2="0.6" y2="1">
           <stop offset="0" stopColor="hsl(32 92% 61%)" />
