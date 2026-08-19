@@ -64,12 +64,10 @@ const Email = ({ fullName }: Props) => (
     <Body style={main}>
       <Container style={container}>
         <Section style={card}>
-          <Heading style={heading}>
-            {fullName ? `Thanks for signing up, ${fullName}` : 'Thanks for signing up'}
-          </Heading>
+          <Heading style={heading}>Thanks for signing up</Heading>
           <Text style={paragraph}>
             We're glad you're here. Phormula is being built to help you see ideas,
-            connect them, and remember them differently — with color-coded flashcards,
+            connect them, and remember them differently with color-coded flashcards,
             interactive diagrams, and AI-generated study sets.
           </Text>
           <Text style={paragraph}>
