@@ -108,38 +108,65 @@ const FinaleBlock = ({ drawOn = false }: { drawOn?: boolean }) => (
  * hard newlines, so the ragging stays sane at every size instead of being
  * frozen to one viewport.
  */
-const CAPTION_POS = "bottom-[11%] left-[6%] max-w-[20ch] text-left leading-snug";
+/**
+ * One evolving typographic system: the first two lines are set large and
+ * centred, then the measure shrinks and drifts down-left as the story
+ * becomes structured. `rise` is the distance the block travels while it
+ * fades in, so the move between the two positions reads as one glide.
+ */
+const CENTER_WRAP = "inset-0 flex items-center justify-center px-8";
+const CENTER_TYPE =
+  "max-w-[15ch] text-center text-[clamp(2rem,4.8vw,4.25rem)] leading-[1.14] tracking-[-0.015em]";
+const CORNER_WRAP = "inset-x-0 bottom-[12%] flex justify-start px-[6vw]";
+const CORNER_TYPE =
+  "max-w-[17ch] text-left text-[clamp(1.45rem,2.7vw,2.5rem)] leading-[1.22] tracking-[-0.01em]";
 
-const CAPTIONS: { id: string; text: string; range: [number, number]; className: string }[] = [
+const CAPTIONS: {
+  id: string;
+  text: string;
+  range: [number, number];
+  wrap: string;
+  type: string;
+  rise: number;
+}[] = [
   {
     id: "capField",
     text: "Every new subject begins as a mess of terms, diagrams, and half-understood ideas.",
     range: [0.29, 0.355],
-    className: CAPTION_POS,
+    wrap: CENTER_WRAP,
+    type: CENTER_TYPE,
+    rise: 26,
   },
   {
     id: "capConnect",
     text: "So you break it down—one card, one concept, one small step at a time.",
     range: [0.4, 0.492],
-    className: CAPTION_POS,
+    wrap: CENTER_WRAP,
+    type: CENTER_TYPE,
+    rise: 26,
   },
   {
     id: "capOrbit",
     text: "Slowly, the scattered pieces begin to speak to one another.",
     range: [0.537, 0.612],
-    className: CAPTION_POS,
+    wrap: CORNER_WRAP,
+    type: CORNER_TYPE,
+    // Arrives from higher up the stage, continuing the centred block's path
+    // down toward the corner instead of popping into place.
+    rise: -90,
   },
   {
     id: "capNetwork",
     text: "Understanding becomes easier when you can finally see how everything fits together.",
     range: [0.608, 0.665],
-    className: CAPTION_POS,
+    wrap: CORNER_WRAP,
+    type: CORNER_TYPE,
+    rise: 20,
   },
 ];
 
-/** Keeps the copy readable over the brightest parts of the flock. */
-const CAPTION_SHADOW =
-  "0 2px 20px hsl(266 24% 6% / 0.9), 0 1px 5px hsl(266 24% 6% / 0.75)";
+/** Soft warm halo — atmospheric, never neon. */
+const CAPTION_SHADOW = "var(--story-copy-glow)";
 
 /** Fade in over the head of a window and out over its tail. */
 const fade = (p: number, a: number, b: number, holdEnd = false) => {
@@ -293,7 +320,11 @@ const StoryStage = () => {
         hintRef.current.style.opacity = String(1 - seg(p, 0.008, 0.04));
       }
 
-      for (const c of CAPTIONS) setLayer(c.id, fade(p, c.range[0], c.range[1]));
+      for (const c of CAPTIONS) setLayer(c.id, fade(p, c.range[0], c.range[1]), c.rise);
+      // Scenes 2–3: ease the flock back so the copy leads for a beat. The
+      // cards keep animating exactly as before, only quieter.
+      const hush = Math.min(seg(p, 0.27, 0.315), 1 - seg(p, 0.5, 0.55));
+      cv.style.opacity = String(1 - 0.4 * hush);
       // Copy arrives once the flock has cleared, so cards never travel across
       // the text. Consecutive scenes deliberately OVERLAP: the outgoing block
       // is still on screen when the next one starts, otherwise the stage is
@@ -365,10 +396,14 @@ const StoryStage = () => {
           <div
             key={c.id}
             ref={(el) => { layerRefs.current[c.id] = el; }}
-            style={{ textShadow: CAPTION_SHADOW }}
-            className={`pointer-events-none absolute z-10 px-6 font-display text-2xl italic text-foreground opacity-0 sm:text-3xl ${c.className}`}
+            className={`pointer-events-none absolute z-10 opacity-0 will-change-transform ${c.wrap}`}
           >
-            {c.text}
+            <p
+              style={{ textShadow: CAPTION_SHADOW }}
+              className={`font-display font-light italic text-story-copy [text-wrap:balance] ${c.type}`}
+            >
+              {c.text}
+            </p>
           </div>
         ))}
 
