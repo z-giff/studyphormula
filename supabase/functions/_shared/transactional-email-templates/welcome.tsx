@@ -12,7 +12,7 @@ import {
 import type { TemplateEntry } from './registry.ts'
 
 interface Props {
-  fullName?: string
+  // no personalization fields
 }
 
 const main = {
@@ -57,19 +57,17 @@ const footer = {
   textAlign: 'center' as const,
 }
 
-const Email = ({ fullName }: Props) => (
+const Email = (_props: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
     <Preview>Thanks for joining Phormula — we'll be in touch soon.</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={card}>
-          <Heading style={heading}>
-            {fullName ? `Thanks for signing up, ${fullName}` : 'Thanks for signing up'}
-          </Heading>
+          <Heading style={heading}>Thanks for signing up</Heading>
           <Text style={paragraph}>
             We're glad you're here. Phormula is being built to help you see ideas,
-            connect them, and remember them differently — with color-coded flashcards,
+            connect them, and remember them differently with color-coded flashcards,
             interactive diagrams, and AI-generated study sets.
           </Text>
           <Text style={paragraph}>
@@ -91,5 +89,5 @@ export const template = {
   component: Email,
   subject: 'Welcome to Phormula',
   displayName: 'Welcome Email',
-  previewData: { fullName: 'Alex' },
+  previewData: {},
 } satisfies TemplateEntry
