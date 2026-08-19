@@ -76,6 +76,14 @@ The previous light palette is preserved under `.light` for future use.
     --shadow-card: 0 1px 2px hsl(266 40% 2% / 0.5), 0 2px 8px hsl(266 40% 2% / 0.35);
     --shadow-card-hover: 0 6px 20px -4px hsl(266 40% 2% / 0.6), 0 0 0 1px hsl(268 19% 23%);
     --glow-ember: 0 4px 24px -6px hsl(11 85% 66% / 0.35);
+
+    /* Homepage story copy — warm ember-pink editorial type with a soft halo */
+    --story-copy: 348 62% 84%;
+    --story-copy-glow:
+      0 0 1px hsl(348 62% 84% / 0.55),
+      0 0 14px hsl(340 70% 70% / 0.34),
+      0 0 42px hsl(11 85% 66% / 0.20),
+      0 2px 18px hsl(266 40% 3% / 0.55);
   }
 
   /* Previous light palette, kept available as a secondary theme. */
