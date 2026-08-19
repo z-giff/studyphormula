@@ -114,37 +114,43 @@ const FinaleBlock = ({ drawOn = false }: { drawOn?: boolean }) => (
  * becomes structured. `rise` is the distance the block travels while it
  * fades in, so the move between the two positions reads as one glide.
  */
-const CAPTION_CENTER =
-  "inset-x-0 top-1/2 -translate-y-1/2 mx-auto max-w-[16ch] text-center text-[clamp(2rem,5.2vw,4.5rem)] leading-[1.12] tracking-[-0.012em]";
-const CAPTION_CORNER =
-  "bottom-[12%] left-[6%] max-w-[17ch] text-left text-[clamp(1.5rem,2.9vw,2.6rem)] leading-[1.2] tracking-[-0.008em]";
+const CENTER_WRAP = "inset-0 flex items-center justify-center px-8";
+const CENTER_TYPE =
+  "max-w-[15ch] text-center text-[clamp(2rem,4.8vw,4.25rem)] leading-[1.14] tracking-[-0.015em]";
+const CORNER_WRAP = "inset-x-0 bottom-[12%] flex justify-start px-[6vw]";
+const CORNER_TYPE =
+  "max-w-[17ch] text-left text-[clamp(1.45rem,2.7vw,2.5rem)] leading-[1.22] tracking-[-0.01em]";
 
 const CAPTIONS: {
   id: string;
   text: string;
   range: [number, number];
-  className: string;
+  wrap: string;
+  type: string;
   rise: number;
 }[] = [
   {
     id: "capField",
     text: "Every new subject begins as a mess of terms, diagrams, and half-understood ideas.",
     range: [0.29, 0.355],
-    className: CAPTION_CENTER,
+    wrap: CENTER_WRAP,
+    type: CENTER_TYPE,
     rise: 26,
   },
   {
     id: "capConnect",
     text: "So you break it down—one card, one concept, one small step at a time.",
     range: [0.4, 0.492],
-    className: CAPTION_CENTER,
+    wrap: CENTER_WRAP,
+    type: CENTER_TYPE,
     rise: 26,
   },
   {
     id: "capOrbit",
     text: "Slowly, the scattered pieces begin to speak to one another.",
     range: [0.537, 0.612],
-    className: CAPTION_CORNER,
+    wrap: CORNER_WRAP,
+    type: CORNER_TYPE,
     // Arrives from higher up the stage, continuing the centred block's path
     // down toward the corner instead of popping into place.
     rise: -90,
@@ -153,7 +159,8 @@ const CAPTIONS: {
     id: "capNetwork",
     text: "Understanding becomes easier when you can finally see how everything fits together.",
     range: [0.608, 0.665],
-    className: CAPTION_CORNER,
+    wrap: CORNER_WRAP,
+    type: CORNER_TYPE,
     rise: 20,
   },
 ];
