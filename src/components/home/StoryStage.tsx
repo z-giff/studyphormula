@@ -320,7 +320,11 @@ const StoryStage = () => {
         hintRef.current.style.opacity = String(1 - seg(p, 0.008, 0.04));
       }
 
-      for (const c of CAPTIONS) setLayer(c.id, fade(p, c.range[0], c.range[1]));
+      for (const c of CAPTIONS) setLayer(c.id, fade(p, c.range[0], c.range[1]), c.rise);
+      // Scenes 2–3: ease the flock back so the copy leads for a beat. The
+      // cards keep animating exactly as before, only quieter.
+      const hush = fade(p, 0.27, 0.53, false);
+      cv.style.opacity = String(1 - 0.4 * hush);
       // Copy arrives once the flock has cleared, so cards never travel across
       // the text. Consecutive scenes deliberately OVERLAP: the outgoing block
       // is still on screen when the next one starts, otherwise the stage is
