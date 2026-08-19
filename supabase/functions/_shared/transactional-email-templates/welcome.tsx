@@ -5,6 +5,7 @@ import {
   Head,
   Heading,
   Html,
+  Img,
   Preview,
   Section,
   Text,
@@ -29,8 +30,26 @@ const container = {
 const card = {
   backgroundColor: '#ffffff',
   borderRadius: '16px',
-  padding: '40px',
+  padding: '0 0 40px',
+  overflow: 'hidden' as const,
   boxShadow: '0 4px 24px rgba(0, 0, 0, 0.06)',
+}
+
+const heroWrap = {
+  padding: '0',
+  margin: '0',
+}
+
+const hero = {
+  display: 'block',
+  width: '100%',
+  maxWidth: '520px',
+  height: 'auto',
+  border: '0',
+}
+
+const body = {
+  padding: '32px 40px 0',
 }
 
 const heading = {
@@ -64,6 +83,15 @@ const Email = (_props: Props) => (
     <Body style={main}>
       <Container style={container}>
         <Section style={card}>
+          <Section style={heroWrap}>
+            <Img
+              src="https://phormula.co/__l5e/assets-v1/002d74ba-5a1b-48f4-ac46-190ad651a5c3/swirl-unfurl.gif"
+              alt="Phormula"
+              width="520"
+              style={hero}
+            />
+          </Section>
+          <Section style={body}>
           <Heading style={heading}>Thanks for signing up</Heading>
           <Text style={paragraph}>
             We're glad you're here. Phormula is being built to help you see ideas,
@@ -74,6 +102,7 @@ const Email = (_props: Props) => (
             We're not quite ready for you yet, but we're working hard to get there.
             We'll let you know as soon as the product is ready for you to use.
           </Text>
+          </Section>
         </Section>
         <Text style={footer}>
           You received this because you signed up for Phormula.
