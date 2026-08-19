@@ -23,6 +23,7 @@ export default {
       },
       colors: {
         border: "hsl(var(--border))",
+        "story-copy": "hsl(var(--story-copy))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
