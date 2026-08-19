@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.send_welcome_email_on_confirm() FROM anon, authenticated, PUBLIC;
