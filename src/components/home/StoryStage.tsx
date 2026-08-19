@@ -108,38 +108,58 @@ const FinaleBlock = ({ drawOn = false }: { drawOn?: boolean }) => (
  * hard newlines, so the ragging stays sane at every size instead of being
  * frozen to one viewport.
  */
-const CAPTION_POS = "bottom-[11%] left-[6%] max-w-[20ch] text-left leading-snug";
+/**
+ * One evolving typographic system: the first two lines are set large and
+ * centred, then the measure shrinks and drifts down-left as the story
+ * becomes structured. `rise` is the distance the block travels while it
+ * fades in, so the move between the two positions reads as one glide.
+ */
+const CAPTION_CENTER =
+  "inset-x-0 top-1/2 -translate-y-1/2 mx-auto max-w-[16ch] text-center text-[clamp(2rem,5.2vw,4.5rem)] leading-[1.12] tracking-[-0.012em]";
+const CAPTION_CORNER =
+  "bottom-[12%] left-[6%] max-w-[17ch] text-left text-[clamp(1.5rem,2.9vw,2.6rem)] leading-[1.2] tracking-[-0.008em]";
 
-const CAPTIONS: { id: string; text: string; range: [number, number]; className: string }[] = [
+const CAPTIONS: {
+  id: string;
+  text: string;
+  range: [number, number];
+  className: string;
+  rise: number;
+}[] = [
   {
     id: "capField",
     text: "Every new subject begins as a mess of terms, diagrams, and half-understood ideas.",
     range: [0.29, 0.355],
-    className: CAPTION_POS,
+    className: CAPTION_CENTER,
+    rise: 26,
   },
   {
     id: "capConnect",
     text: "So you break it down—one card, one concept, one small step at a time.",
     range: [0.4, 0.492],
-    className: CAPTION_POS,
+    className: CAPTION_CENTER,
+    rise: 26,
   },
   {
     id: "capOrbit",
     text: "Slowly, the scattered pieces begin to speak to one another.",
     range: [0.537, 0.612],
-    className: CAPTION_POS,
+    className: CAPTION_CORNER,
+    // Arrives from higher up the stage, continuing the centred block's path
+    // down toward the corner instead of popping into place.
+    rise: -90,
   },
   {
     id: "capNetwork",
     text: "Understanding becomes easier when you can finally see how everything fits together.",
     range: [0.608, 0.665],
-    className: CAPTION_POS,
+    className: CAPTION_CORNER,
+    rise: 20,
   },
 ];
 
-/** Keeps the copy readable over the brightest parts of the flock. */
-const CAPTION_SHADOW =
-  "0 2px 20px hsl(266 24% 6% / 0.9), 0 1px 5px hsl(266 24% 6% / 0.75)";
+/** Soft warm halo — atmospheric, never neon. */
+const CAPTION_SHADOW = "var(--story-copy-glow)";
 
 /** Fade in over the head of a window and out over its tail. */
 const fade = (p: number, a: number, b: number, holdEnd = false) => {
