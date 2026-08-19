@@ -16,6 +16,11 @@ interface Props {
   // no personalization fields
 }
 
+const HERO_GIF =
+  'https://phormula.co/__l5e/assets-v1/3da8ec4a-313d-4c88-a15a-dfe468011f50/swirl-unfurl-20fps.gif'
+const HERO_FALLBACK =
+  'https://phormula.co/__l5e/assets-v1/39e42426-b578-4a05-a5d1-9521615052a8/swirl-unfurl-fallback.png'
+
 const main = {
   backgroundColor: '#FAFAFA',
   fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
