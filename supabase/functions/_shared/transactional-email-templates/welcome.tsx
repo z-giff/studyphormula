@@ -71,26 +71,21 @@ const footer = {
 const Email = ({ fullName }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Welcome to Phormula — your way of learning, reformulated.</Preview>
+    <Preview>Thanks for joining Phormula — we'll be in touch soon.</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={card}>
           <Heading style={heading}>
-            {fullName ? `Welcome, ${fullName}` : 'Welcome to Phormula'}
+            {fullName ? `Thanks for signing up, ${fullName}` : 'Thanks for signing up'}
           </Heading>
           <Text style={paragraph}>
-            Thanks for signing up. Phormula is built to help you see ideas, connect them,
-            and remember them differently — with color-coded flashcards, interactive
-            diagrams, and AI-generated study sets.
+            We're glad you're here. Phormula is being built to help you see ideas,
+            connect them, and remember them differently — with color-coded flashcards,
+            interactive diagrams, and AI-generated study sets.
           </Text>
-          <Section style={{ textAlign: 'center', margin: '32px 0' }}>
-            <Button href="https://studyphormula.lovable.app/dashboard" style={cta}>
-              Open your dashboard
-            </Button>
-          </Section>
           <Text style={paragraph}>
-            Start by creating your first set, or explore the study modes designed to
-            match how you actually learn.
+            We're not quite ready for you yet, but we're working hard to get there.
+            We'll let you know as soon as the product is ready for you to use.
           </Text>
         </Section>
         <Text style={footer}>
