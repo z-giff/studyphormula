@@ -12,7 +12,7 @@ import {
 import type { TemplateEntry } from './registry.ts'
 
 interface Props {
-  fullName?: string
+  // no personalization fields
 }
 
 const main = {
@@ -57,7 +57,7 @@ const footer = {
   textAlign: 'center' as const,
 }
 
-const Email = ({ fullName }: Props) => (
+const Email = (_props: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
     <Preview>Thanks for joining Phormula — we'll be in touch soon.</Preview>
@@ -89,5 +89,5 @@ export const template = {
   component: Email,
   subject: 'Welcome to Phormula',
   displayName: 'Welcome Email',
-  previewData: { fullName: 'Alex' },
+  previewData: {},
 } satisfies TemplateEntry
