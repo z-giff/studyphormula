@@ -1,7 +1,6 @@
 import * as React from 'npm:react@18.3.1'
 import {
   Body,
-  Button,
   Container,
   Head,
   Heading,
@@ -49,16 +48,6 @@ const paragraph = {
   margin: '0 0 24px',
 }
 
-const cta = {
-  backgroundColor: '#F2795F',
-  borderRadius: '10px',
-  color: '#1A0F0A',
-  display: 'inline-block',
-  fontSize: '15px',
-  fontWeight: '600',
-  padding: '14px 28px',
-  textDecoration: 'none',
-}
 
 const footer = {
   color: '#8A7F90',
