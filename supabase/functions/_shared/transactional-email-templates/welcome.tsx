@@ -16,6 +16,11 @@ interface Props {
   // no personalization fields
 }
 
+const HERO_GIF =
+  'https://phormula.co/__l5e/assets-v1/3da8ec4a-313d-4c88-a15a-dfe468011f50/swirl-unfurl-20fps.gif'
+const HERO_FALLBACK =
+  'https://phormula.co/__l5e/assets-v1/39e42426-b578-4a05-a5d1-9521615052a8/swirl-unfurl-fallback.png'
+
 const main = {
   backgroundColor: '#FAFAFA',
   fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
@@ -38,6 +43,7 @@ const card = {
 const heroWrap = {
   padding: '0',
   margin: '0',
+  backgroundColor: '#1A0F0A',
 }
 
 const hero = {
@@ -84,11 +90,23 @@ const Email = (_props: Props) => (
       <Container style={container}>
         <Section style={card}>
           <Section style={heroWrap}>
-            <Img
-              src="https://phormula.co/__l5e/assets-v1/002d74ba-5a1b-48f4-ac46-190ad651a5c3/swirl-unfurl.gif"
-              alt="Phormula"
-              width="520"
-              style={hero}
+            {/* Animated GIF for clients that support it */}
+            <div
+              dangerouslySetInnerHTML={{
+                __html: `<!--[if !mso]><!-->`,
+              }}
+            />
+            <Img src={HERO_GIF} alt="Phormula" width="520" style={hero} />
+            <div
+              dangerouslySetInnerHTML={{
+                __html: `<!--<![endif]-->`,
+              }}
+            />
+            {/* Static fallback for Outlook / clients that block animation */}
+            <div
+              dangerouslySetInnerHTML={{
+                __html: `<!--[if mso]><img src="${HERO_FALLBACK}" alt="Phormula" width="520" style="display:block;width:100%;max-width:520px;height:auto;border:0;" /><![endif]-->`,
+              }}
             />
           </Section>
           <Section style={body}>
