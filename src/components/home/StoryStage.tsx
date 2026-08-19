@@ -392,10 +392,14 @@ const StoryStage = () => {
           <div
             key={c.id}
             ref={(el) => { layerRefs.current[c.id] = el; }}
-            style={{ textShadow: CAPTION_SHADOW }}
-            className={`pointer-events-none absolute z-10 px-6 font-display text-2xl italic text-foreground opacity-0 sm:text-3xl ${c.className}`}
+            className={`pointer-events-none absolute z-10 opacity-0 will-change-transform ${c.wrap}`}
           >
-            {c.text}
+            <p
+              style={{ textShadow: CAPTION_SHADOW }}
+              className={`font-display font-light italic text-story-copy [text-wrap:balance] ${c.type}`}
+            >
+              {c.text}
+            </p>
           </div>
         ))}
 
