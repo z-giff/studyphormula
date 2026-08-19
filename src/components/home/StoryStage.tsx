@@ -323,7 +323,7 @@ const StoryStage = () => {
       for (const c of CAPTIONS) setLayer(c.id, fade(p, c.range[0], c.range[1]), c.rise);
       // Scenes 2–3: ease the flock back so the copy leads for a beat. The
       // cards keep animating exactly as before, only quieter.
-      const hush = fade(p, 0.27, 0.53, false);
+      const hush = Math.min(seg(p, 0.27, 0.315), 1 - seg(p, 0.5, 0.55));
       cv.style.opacity = String(1 - 0.4 * hush);
       // Copy arrives once the flock has cleared, so cards never travel across
       // the text. Consecutive scenes deliberately OVERLAP: the outgoing block
