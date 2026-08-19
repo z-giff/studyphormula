@@ -13,6 +13,8 @@ interface TextBox {
   fontSize?: number;
   fontWeight?: string;
   fontColor?: string;
+  /** Local background sampled from the image, so the box hides the label. */
+  bgColor?: string;
 }
 
 interface InteractiveFlashcardStudyProps {
@@ -57,11 +59,13 @@ export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: In
     return cardColor;
   };
 
-  const getBoxBackgroundColor = (id: string) => {
-    const state = validationState[id];
+  const getBoxBackgroundColor = (box: TextBox) => {
+    const state = validationState[box.id];
     if (state === "correct") return "rgba(16, 185, 129, 0.15)";
     if (state === "incorrect") return "rgba(239, 68, 68, 0.15)";
-    return "hsl(var(--background))";
+    // Matches the artwork behind the original label, so the answer field sits
+    // in the diagram instead of on top of it. Older boxes have no sample.
+    return box.bgColor ?? "hsl(var(--background))";
   };
   return (
     <div className="space-y-4">
@@ -78,7 +82,10 @@ export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: In
       </div>
 
       <div className="relative border rounded-lg overflow-hidden">
-        <img src={imageUrl} alt="Flashcard" loading="lazy" decoding="async" className="w-full h-auto" />
+        {/* block, not inline: an inline image leaves a baseline gap under it,
+            which makes this box taller than the artwork and shifts every
+            percentage-positioned mask down by a few pixels. */}
+        <img src={imageUrl} alt="Flashcard" loading="lazy" decoding="async" className="block w-full h-auto" />
 
         {textBoxes.map((box) => (
           <div
@@ -112,7 +119,7 @@ export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: In
                 style={{
                   borderColor: getBoxBorderColor(box.id),
                   borderWidth: "2px",
-                  backgroundColor: getBoxBackgroundColor(box.id),
+                  backgroundColor: getBoxBackgroundColor(box),
                   color: box.fontColor || "#000000",
                   fontSize: `${box.fontSize || 14}px`,
                   fontWeight: box.fontWeight || "normal",

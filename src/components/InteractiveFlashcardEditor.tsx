@@ -5,6 +5,11 @@ import { Label } from "@/components/ui/label";
 import { X, Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { buildLabelMasks } from "@/lib/labelMask";
+
+/** Used when the image cannot be sampled (e.g. a cross-origin URL). */
+const FALLBACK_BG = "#FFFFFF";
+const FALLBACK_FONT = "#000000";
 
 interface TextBox {
   id: string;
@@ -16,6 +21,8 @@ interface TextBox {
   fontSize?: number;
   fontWeight?: string;
   fontColor?: string;
+  /** Local background sampled from the image, so the box hides the label. */
+  bgColor?: string;
 }
 
 interface InteractiveFlashcardEditorProps {
@@ -140,12 +147,14 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
 
       if (data?.textBoxes && Array.isArray(data.textBoxes)) {
         const MIN_CONFIDENCE = 0.86;
-        const REL_X = 0.08;
-        const REL_Y = 0.18;
-        const MIN_PAD_X = 0.35;
-        const MIN_PAD_Y = 0.25;
-        const MAX_PAD_X = 1.1;
-        const MAX_PAD_Y = 0.9;
+        // Fallback padding, only used when the image pixels cannot be read and
+        // the mask has to be derived from the detector's bounds alone.
+        const REL_X = 0.1;
+        const REL_Y = 0.3;
+        const MIN_PAD_X = 0.6;
+        const MIN_PAD_Y = 0.5;
+        const MAX_PAD_X = 2.2;
+        const MAX_PAD_Y = 1.8;
 
         const validDetections = data.textBoxes.filter((box: any) => {
           const text = typeof box?.text === "string" ? box.text.trim() : "";
@@ -168,30 +177,49 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
           );
         });
 
-        const newBoxes: TextBox[] = validDetections.map((box: any) => {
-          const rawX = Number(box.x) || 0;
-          const rawY = Number(box.y) || 0;
-          const rawW = Number(box.width) || 0;
-          const rawH = Number(box.height) || 0;
+        const detectedRects = validDetections.map((box: any) => ({
+          x: Number(box.x) || 0,
+          y: Number(box.y) || 0,
+          width: Number(box.width) || 0,
+          height: Number(box.height) || 0,
+        }));
 
-          const padX = Math.min(MAX_PAD_X, Math.max(MIN_PAD_X, rawW * REL_X));
-          const padY = Math.min(MAX_PAD_Y, Math.max(MIN_PAD_Y, rawH * REL_Y));
+        // Take each detected rectangle back to the image: grow it until it
+        // reaches clear background (so no part of the label survives), and read
+        // the local background colour for the mask and its text colour.
+        const masks = await buildLabelMasks(imageUrl, detectedRects);
 
-          const x = Math.max(0, rawX - padX);
-          const y = Math.max(0, rawY - padY);
-          const width = Math.min(100 - x, rawW + padX * 2);
-          const height = Math.min(100 - y, rawH + padY * 2);
+        const newBoxes: TextBox[] = validDetections.map((box: any, i: number) => {
+          const mask = masks[i];
+          const raw = detectedRects[i];
+
+          // Without pixel access, fall back to generous padding around the
+          // detector's bounds — coverage matters more than a tight fit.
+          const padX = Math.min(MAX_PAD_X, Math.max(MIN_PAD_X, raw.width * REL_X));
+          const padY = Math.min(MAX_PAD_Y, Math.max(MIN_PAD_Y, raw.height * REL_Y));
+          const fallbackX = Math.max(0, raw.x - padX);
+          const fallbackY = Math.max(0, raw.y - padY);
+
+          const geometry = mask ?? {
+            x: fallbackX,
+            y: fallbackY,
+            width: Math.min(100 - fallbackX, raw.width + padX * 2),
+            height: Math.min(100 - fallbackY, raw.height + padY * 2),
+            bgColor: FALLBACK_BG,
+            fontColor: FALLBACK_FONT,
+          };
 
           return {
             id: Math.random().toString(36).substr(2, 9),
-            x,
-            y,
-            width,
-            height,
+            x: geometry.x,
+            y: geometry.y,
+            width: geometry.width,
+            height: geometry.height,
             answer: box.text,
             fontSize: 14,
             fontWeight: "normal",
-            fontColor: "#000000",
+            fontColor: geometry.fontColor,
+            bgColor: geometry.bgColor,
           };
         });
 
@@ -321,25 +349,37 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
         </Button>
       </div>
 
+      {/* The frame may be taller than the artwork, so it cannot be the
+          positioning context: percentage coordinates have to resolve against
+          the image itself or every mask drifts. The inner wrapper hugs the
+          image exactly (block image, no inline baseline gap), which keeps
+          masks locked to their labels at any rendered size. */}
       <div
-        ref={containerRef}
-        className="relative border-2 border-dashed border-border rounded-lg overflow-hidden"
-        onClick={handleImageClick}
+        className="relative flex items-center justify-center border-2 border-dashed border-border rounded-lg overflow-hidden"
         style={{ minHeight: "400px", cursor: isAddingBox ? "crosshair" : "default" }}
       >
-        <img src={imageUrl} alt="Flashcard" loading="lazy" decoding="async" className="w-full h-auto" />
-        
+      <div ref={containerRef} className="relative w-full" onClick={handleImageClick}>
+        <img src={imageUrl} alt="Flashcard" loading="lazy" decoding="async" className="block w-full h-auto" />
+
         {textBoxes.map((box) => (
           <div
             key={box.id}
-            className="absolute border-2 cursor-move group"
+            className="absolute cursor-move group"
             style={{
               left: `${box.x}%`,
               top: `${box.y}%`,
               width: `${box.width}%`,
               height: `${box.height}%`,
-              borderColor: selectedBox === box.id ? "hsl(var(--primary))" : "hsl(var(--primary) / 0.5)",
-              backgroundColor: "hsl(var(--background))",
+              // The mask is painted in the colour sampled from behind the
+              // label, so it reads as the label having been lifted out of the
+              // diagram. Older boxes without a sample keep their former look.
+              backgroundColor: box.bgColor ?? "hsl(var(--background))",
+              // A hairline outline keeps boxes findable while editing without
+              // turning them back into heavy overlays.
+              outline: selectedBox === box.id
+                ? "2px solid hsl(var(--primary))"
+                : "1px solid hsl(var(--primary) / 0.35)",
+              outlineOffset: "-1px",
             }}
             onMouseDown={(e) => {
               if (!isResizing) {
@@ -408,6 +448,7 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
             )}
           </div>
         ))}
+      </div>
       </div>
 
       {selectedBox && (
