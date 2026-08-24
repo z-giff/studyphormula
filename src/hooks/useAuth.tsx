@@ -13,7 +13,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string, next?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string, next?: string) => Promise<{ error: any }>;
   signInWithGoogle: (next?: string) => Promise<{ error: any }>;
-  signInWithApple: (next?: string) => Promise<{ error: any }>;
+  
   signOut: () => Promise<void>;
   loading: boolean;
 }
@@ -105,7 +105,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return { error };
   };
 
-  const signInWithProvider = async (provider: "google" | "apple", next?: string) => {
+  const signInWithProvider = async (provider: "google", next?: string) => {
     // Remember where the user wanted to go; the OAuth redirect must land on a
     // public same-origin URL, never directly on a protected route.
     try {
@@ -133,7 +133,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signInWithGoogle = (next?: string) => signInWithProvider("google", next);
-  const signInWithApple = (next?: string) => signInWithProvider("apple", next);
+  
 
 
 
@@ -148,7 +148,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signUp,
     signIn,
     signInWithGoogle,
-    signInWithApple,
+    
     signOut,
     loading,
   };
