@@ -36,7 +36,7 @@ const DriftingCards = () => (
 );
 
 const Auth = () => {
-  const { signIn, signUp, signInWithGoogle } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInWithApple } = useAuth();
   const [searchParams] = useSearchParams();
   const nextParam = searchParams.get("next") ?? undefined;
   // The layout the visitor sees is the one they chose: “Sign in” links carry
