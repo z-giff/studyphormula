@@ -45,6 +45,7 @@ const Auth = () => {
   const [tab, setTab] = useState<string>(modeParam);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isAppleLoading, setIsAppleLoading] = useState(false);
 
   useEffect(() => {
     setTab(searchParams.get("mode") === "signup" ? "signup" : "login");
