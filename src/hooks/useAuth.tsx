@@ -1,7 +1,11 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { useNavigate } from "react-router-dom";
+
+const PENDING_REDIRECT_KEY = "phormula.pendingRedirect";
+
 
 interface AuthContextType {
   user: User | null;
@@ -22,12 +26,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // After an OAuth redirect the session lands on "/", so send the user to the
+    // page they originally asked for once we know they're signed in.
+    const consumePendingRedirect = (session: Session | null) => {
+      if (!session) return;
+      let pending: string | null = null;
+      try {
+        pending = sessionStorage.getItem(PENDING_REDIRECT_KEY);
+        if (pending) sessionStorage.removeItem(PENDING_REDIRECT_KEY);
+      } catch {
+        /* ignore storage failures */
+      }
+      if (pending && pending.startsWith("/") && !pending.startsWith("//")) {
+        navigate(pending, { replace: true });
+      }
+    };
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        if (event === "SIGNED_IN") consumePendingRedirect(session);
       }
     );
 
@@ -36,10 +57,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      consumePendingRedirect(session);
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
 
   const safeNext = (next?: string) => {
     if (!next || !next.startsWith("/") || next.startsWith("//")) return "/dashboard";
@@ -82,17 +105,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signInWithGoogle = async (next?: string) => {
-    const redirectUrl = `${window.location.origin}${safeNext(next)}`;
-    
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: redirectUrl,
-      },
+    // Remember where the user wanted to go; the OAuth redirect must land on a
+    // public same-origin URL, never directly on a protected route.
+    try {
+      sessionStorage.setItem(PENDING_REDIRECT_KEY, safeNext(next));
+    } catch {
+      /* ignore storage failures */
+    }
+
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
     });
-    
-    return { error };
+
+    if (result.error) {
+      return { error: result.error };
+    }
+
+    if (result.redirected) {
+      // Browser is navigating to Google.
+      return { error: null };
+    }
+
+    // Popup flow: session is already set — go to the intended destination.
+    navigate(safeNext(next));
+    return { error: null };
   };
+
 
   const signOut = async () => {
     await supabase.auth.signOut();
