@@ -5,7 +5,6 @@ import {
   Head,
   Heading,
   Html,
-  Img,
   Preview,
   Section,
   Text,
@@ -90,25 +89,19 @@ const Email = (_props: Props) => (
       <Container style={container}>
         <Section style={card}>
           <Section style={heroWrap}>
-            {/* Animated GIF for clients that support it */}
+            {/* Animated GIF for clients that support it, static PNG for Outlook.
+                Both markers and the <img> must live in one HTML stream. */}
             <div
               dangerouslySetInnerHTML={{
-                __html: `<!--[if !mso]><!-->`,
-              }}
-            />
-            <Img src={HERO_GIF} alt="Phormula" width="520" style={hero} />
-            <div
-              dangerouslySetInnerHTML={{
-                __html: `<!--<![endif]-->`,
-              }}
-            />
-            {/* Static fallback for Outlook / clients that block animation */}
-            <div
-              dangerouslySetInnerHTML={{
-                __html: `<!--[if mso]><img src="${HERO_FALLBACK}" alt="Phormula" width="520" style="display:block;width:100%;max-width:520px;height:auto;border:0;" /><![endif]-->`,
+                __html:
+                  `<!--[if !mso]><!-->` +
+                  `<img src="${HERO_GIF}" alt="Phormula" width="520" style="display:block;width:100%;max-width:520px;height:auto;border:0;" />` +
+                  `<!--<![endif]-->` +
+                  `<!--[if mso]><img src="${HERO_FALLBACK}" alt="Phormula" width="520" style="display:block;width:100%;max-width:520px;height:auto;border:0;" /><![endif]-->`,
               }}
             />
           </Section>
+
           <Section style={body}>
           <Heading style={heading}>Thanks for signing up</Heading>
           <Text style={paragraph}>

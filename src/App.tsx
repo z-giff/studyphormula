@@ -52,6 +52,8 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Waitlist />} />
                 <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+                <Route path="/unsubscribe" element={<Unsubscribe />} />
+
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             )}
