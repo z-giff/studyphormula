@@ -61,6 +61,16 @@ const Auth = () => {
     }
   };
 
+  const handleAppleSignIn = async () => {
+    setIsAppleLoading(true);
+    const { error } = await signInWithApple(nextParam);
+    setIsAppleLoading(false);
+
+    if (error) {
+      toast.error(error.message || "Failed to sign in with Apple");
+    }
+  };
+
   const [loginData, setLoginData] = useState({
     email: "",
     password: "",
