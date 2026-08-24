@@ -82,17 +82,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signInWithGoogle = async (next?: string) => {
-    const redirectUrl = `${window.location.origin}${safeNext(next)}`;
-    
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: redirectUrl,
-      },
+    // Remember where the user wanted to go; the OAuth redirect must land on a
+    // public same-origin URL, never directly on a protected route.
+    try {
+      sessionStorage.setItem(PENDING_REDIRECT_KEY, safeNext(next));
+    } catch {
+      /* ignore storage failures */
+    }
+
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
     });
-    
-    return { error };
+
+    if (result.error) {
+      return { error: result.error };
+    }
+
+    if (result.redirected) {
+      // Browser is navigating to Google.
+      return { error: null };
+    }
+
+    // Popup flow: session is already set — go to the intended destination.
+    navigate(safeNext(next));
+    return { error: null };
   };
+
 
   const signOut = async () => {
     await supabase.auth.signOut();
