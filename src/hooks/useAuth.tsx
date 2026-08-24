@@ -1,7 +1,11 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { useNavigate } from "react-router-dom";
+
+const PENDING_REDIRECT_KEY = "phormula.pendingRedirect";
+
 
 interface AuthContextType {
   user: User | null;
