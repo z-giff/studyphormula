@@ -8,6 +8,8 @@ import LogoOrb from "@/components/LogoOrb";
 import SwirlMark from "@/components/SwirlMark";
 import TurnstileWidget from "@/components/TurnstileWidget";
 import { CheckCircle2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Link } from "react-router-dom";
 
 // Only show social proof once the number is meaningful.
 const SOCIAL_PROOF_THRESHOLD = 25;
@@ -22,6 +24,7 @@ const Waitlist = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState<"new" | "already" | null>(null);
   const [waitlistCount, setWaitlistCount] = useState<number | null>(null);
+  const [acceptedLegal, setAcceptedLegal] = useState(false);
 
   useEffect(() => {
     supabase.functions
@@ -43,6 +46,11 @@ const Waitlist = () => {
 
     if (!email.trim()) {
       toast.error("Please enter your email");
+      return;
+    }
+
+    if (!acceptedLegal) {
+      toast.error("Please accept the Privacy Policy and Terms of Service");
       return;
     }
 
@@ -165,6 +173,30 @@ const Waitlist = () => {
                       className="absolute -left-[9999px] top-0 h-0 w-0 opacity-0"
                     />
 
+                    <div className="flex items-start gap-2.5 text-left">
+                      <Checkbox
+                        id="waitlist-legal"
+                        checked={acceptedLegal}
+                        onCheckedChange={(v) => setAcceptedLegal(v === true)}
+                        disabled={isSubmitting}
+                        className="mt-0.5"
+                      />
+                      <label
+                        htmlFor="waitlist-legal"
+                        className="text-xs font-light leading-relaxed text-muted-foreground"
+                      >
+                        I agree to the{" "}
+                        <Link to="/privacy" target="_blank" className="text-foreground underline underline-offset-2">
+                          Privacy Policy
+                        </Link>{" "}
+                        and{" "}
+                        <Link to="/terms" target="_blank" className="text-foreground underline underline-offset-2">
+                          Terms of Service
+                        </Link>
+                        .
+                      </label>
+                    </div>
+
                     <TurnstileWidget
                       key={turnstileKey}
                       onToken={setTurnstileToken}
@@ -175,7 +207,7 @@ const Waitlist = () => {
                       type="submit"
                       variant="brand"
                       className="w-full font-bold"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !acceptedLegal}
                     >
                       {isSubmitting ? "Joining..." : "Join the Waitlist"}
                     </Button>

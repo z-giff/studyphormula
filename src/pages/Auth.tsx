@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Link, useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LogoOrb from "@/components/LogoOrb";
+import { Checkbox } from "@/components/ui/checkbox";
 
 /** A few drifting cards on the narrative panel — the flock at rest. */
 const DriftingCards = () => (
@@ -45,13 +46,23 @@ const Auth = () => {
   const [tab, setTab] = useState<string>(modeParam);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [acceptedLegal, setAcceptedLegal] = useState(false);
   
 
   useEffect(() => {
     setTab(searchParams.get("mode") === "signup" ? "signup" : "login");
   }, [searchParams]);
 
+  const requireLegal = () => {
+    if (tab === "signup" && !acceptedLegal) {
+      toast.error("Please accept the Privacy Policy and Terms of Service");
+      return false;
+    }
+    return true;
+  };
+
   const handleGoogleSignIn = async () => {
+    if (!requireLegal()) return;
     setIsGoogleLoading(true);
     const { error } = await signInWithGoogle(nextParam);
     setIsGoogleLoading(false);
@@ -106,6 +117,11 @@ const Auth = () => {
 
     if (signupData.password.length < 6) {
       toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    if (!acceptedLegal) {
+      toast.error("Please accept the Privacy Policy and Terms of Service");
       return;
     }
 
@@ -329,11 +345,34 @@ const Auth = () => {
                           className={inputClass}
                         />
                       </div>
+                      <div className="flex items-start gap-2.5">
+                        <Checkbox
+                          id="signup-legal"
+                          checked={acceptedLegal}
+                          onCheckedChange={(v) => setAcceptedLegal(v === true)}
+                          disabled={isLoading}
+                          className="mt-0.5"
+                        />
+                        <label
+                          htmlFor="signup-legal"
+                          className="text-xs leading-relaxed text-muted-foreground"
+                        >
+                          I agree to the{" "}
+                          <Link to="/privacy" target="_blank" className="text-foreground underline underline-offset-2">
+                            Privacy Policy
+                          </Link>{" "}
+                          and{" "}
+                          <Link to="/terms" target="_blank" className="text-foreground underline underline-offset-2">
+                            Terms of Service
+                          </Link>
+                          .
+                        </label>
+                      </div>
                       <Button
                         type="submit"
                         variant="brand"
                         className="h-11 w-full rounded-lg font-bold"
-                        disabled={isLoading}
+                        disabled={isLoading || !acceptedLegal}
                       >
                         {isLoading ? "Creating account..." : "Create Account"}
                       </Button>
