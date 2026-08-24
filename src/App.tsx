@@ -19,6 +19,8 @@ import NotFound from "./pages/NotFound";
  import SwipeStudy from "./pages/SwipeStudy";
 import OAuthConsent from "./pages/OAuthConsent";
 import Unsubscribe from "./pages/Unsubscribe";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +45,8 @@ const App = () => (
                 <Route path="/swipe/:id" element={<SwipeStudy />} />
 <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
                 <Route path="/unsubscribe" element={<Unsubscribe />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/terms" element={<Terms />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
@@ -53,6 +57,8 @@ const App = () => (
                 <Route path="/" element={<Waitlist />} />
                 <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
                 <Route path="/unsubscribe" element={<Unsubscribe />} />
+                <Route path="/privacy" element={<Privacy />} />
+                <Route path="/terms" element={<Terms />} />
 
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
