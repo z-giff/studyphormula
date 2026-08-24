@@ -102,9 +102,35 @@ serve(async (req) => {
       }
     }
 
-    // Confirmation email is sent via Lovable. If that ever moves back into
-    // this function, send it here for new signups only (not duplicates) and
-    // stamp `confirmation_sent_at` on the inserted row.
+    // Send the welcome email for brand-new signups only (never re-send to
+    // duplicates, so resubmitting an address can't spam that inbox).
+    if (!alreadyRegistered) {
+      try {
+        const { error: emailError } = await supabase.functions.invoke(
+          'send-transactional-email',
+          {
+            body: {
+              templateName: 'welcome',
+              recipientEmail: rawEmail,
+              idempotencyKey: `waitlist-welcome-${rawEmail}`,
+              templateData: {},
+            },
+          }
+        );
+        if (emailError) {
+          console.error('Welcome email invoke failed:', emailError);
+        } else {
+          await supabase
+            .from('waitlist')
+            .update({ confirmation_sent_at: new Date().toISOString() })
+            .eq('email', rawEmail);
+        }
+      } catch (emailErr) {
+        // Never fail the signup because the email didn't go out.
+        console.error('Welcome email error:', emailErr);
+      }
+    }
+
 
     const { data: count } = await supabase.rpc('waitlist_count');
 
