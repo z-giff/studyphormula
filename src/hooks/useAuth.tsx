@@ -13,6 +13,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string, next?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string, next?: string) => Promise<{ error: any }>;
   signInWithGoogle: (next?: string) => Promise<{ error: any }>;
+  signInWithApple: (next?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   loading: boolean;
 }
@@ -104,7 +105,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return { error };
   };
 
-  const signInWithGoogle = async (next?: string) => {
+  const signInWithProvider = async (provider: "google" | "apple", next?: string) => {
     // Remember where the user wanted to go; the OAuth redirect must land on a
     // public same-origin URL, never directly on a protected route.
     try {
@@ -113,7 +114,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       /* ignore storage failures */
     }
 
-    const result = await lovable.auth.signInWithOAuth("google", {
+    const result = await lovable.auth.signInWithOAuth(provider, {
       redirect_uri: window.location.origin,
     });
 
@@ -122,7 +123,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     if (result.redirected) {
-      // Browser is navigating to Google.
+      // Browser is navigating to the provider.
       return { error: null };
     }
 
@@ -130,6 +131,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     navigate(safeNext(next));
     return { error: null };
   };
+
+  const signInWithGoogle = (next?: string) => signInWithProvider("google", next);
+  const signInWithApple = (next?: string) => signInWithProvider("apple", next);
+
 
 
   const signOut = async () => {
@@ -143,6 +148,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signUp,
     signIn,
     signInWithGoogle,
+    signInWithApple,
     signOut,
     loading,
   };

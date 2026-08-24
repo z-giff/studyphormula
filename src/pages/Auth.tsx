@@ -36,7 +36,7 @@ const DriftingCards = () => (
 );
 
 const Auth = () => {
-  const { signIn, signUp, signInWithGoogle } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInWithApple } = useAuth();
   const [searchParams] = useSearchParams();
   const nextParam = searchParams.get("next") ?? undefined;
   // The layout the visitor sees is the one they chose: “Sign in” links carry
@@ -45,6 +45,7 @@ const Auth = () => {
   const [tab, setTab] = useState<string>(modeParam);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isAppleLoading, setIsAppleLoading] = useState(false);
 
   useEffect(() => {
     setTab(searchParams.get("mode") === "signup" ? "signup" : "login");
@@ -57,6 +58,16 @@ const Auth = () => {
 
     if (error) {
       toast.error(error.message || "Failed to sign in with Google");
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    setIsAppleLoading(true);
+    const { error } = await signInWithApple(nextParam);
+    setIsAppleLoading(false);
+
+    if (error) {
+      toast.error(error.message || "Failed to sign in with Apple");
     }
   };
 
@@ -203,6 +214,24 @@ const Auth = () => {
                   </svg>
                   {isGoogleLoading ? "Connecting..." : "Continue with Google"}
                 </Button>
+
+                {/* Apple Sign In Button */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mt-3 h-11 w-full border-line-strong bg-secondary/40 font-semibold hover:bg-accent"
+                  onClick={handleAppleSignIn}
+                  disabled={isAppleLoading || isGoogleLoading || isLoading}
+                >
+                  <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      fill="currentColor"
+                      d="M16.365 1.43c0 1.14-.42 2.2-1.12 3.01-.84.98-2.2 1.74-3.32 1.65a3.6 3.6 0 0 1 1.13-2.9c.79-.86 2.16-1.5 3.31-1.76zM20.5 17.02c-.55 1.27-.82 1.83-1.53 2.95-.99 1.57-2.39 3.52-4.12 3.53-1.54.02-1.94-1-4.03-.99-2.09.01-2.53 1.01-4.07.99-1.73-.02-3.05-1.78-4.04-3.34C-.06 15.79-.35 10.7 1.35 8c1.2-1.92 3.1-3.05 4.89-3.05 1.82 0 2.96 1.01 4.47 1.01 1.46 0 2.35-1.01 4.46-1.01 1.59 0 3.28.87 4.48 2.37-3.94 2.17-3.3 7.83.85 9.7z"
+                    />
+                  </svg>
+                  {isAppleLoading ? "Connecting..." : "Continue with Apple"}
+                </Button>
+
 
                 <div className="relative pt-4">
                   <div className="absolute inset-0 flex items-center pt-4">
