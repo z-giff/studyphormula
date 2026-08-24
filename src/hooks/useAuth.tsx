@@ -13,6 +13,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string, next?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string, next?: string) => Promise<{ error: any }>;
   signInWithGoogle: (next?: string) => Promise<{ error: any }>;
+  signInWithApple: (next?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   loading: boolean;
 }
