@@ -1,73 +1,113 @@
-# Welcome to your Lovable project
+# Phormula
 
-## Project info
+**Make it make sense.**
 
-**URL**: https://lovable.dev/projects/433d666d-36e1-48fb-b18a-6a38c6549b0a
+Phormula is a visual study tool for people who learn by seeing. Instead of a plain
+two-sided card, a Phormula flashcard can be a labelled diagram, a flowchart, or a
+sketch — and the app turns your own notes, slides, and PDFs into study sets for you.
 
-## How can I edit this code?
+- **Site:** [phormula.co](https://phormula.co/)
+- **Status:** pre-launch. Until `VITE_LAUNCHED` is `"true"`, every route funnels to
+  the waitlist page — see [`docs/WAITLIST.md`](./docs/WAITLIST.md) for the gate and
+  the developer bypass.
 
-There are several ways of editing your application.
+## What's in it
 
-**Use Lovable**
+**Four kinds of flashcard**
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/433d666d-36e1-48fb-b18a-6a38c6549b0a) and start prompting.
+| Type | What it is |
+| --- | --- |
+| Standard | Term and definition, with an optional image |
+| Interactive | An image with labelled hotspots you fill in from memory |
+| Flowchart | A node-and-edge diagram built on a canvas, with a colour palette per node |
+| Drawing | A freehand sketch you reproduce |
 
-Changes made via Lovable will be committed automatically to this repo.
+**Four ways to study a set**
 
-**Use your preferred IDE**
+- **Study** — flip through the deck, bookmark what you want to revisit, and save
+  what you didn't know into its own set.
+- **Quiz** — answer under test conditions and get scored.
+- **Swipe** — a fast knew-it / didn't-know-it pass through the stack.
+- **Interactive** — label the diagram itself rather than flipping a card.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+**Getting cards in**
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **AI generation** from pasted text or an uploaded `.txt`, `.md`, `.doc(x)`,
+  `.ppt(x)`, or `.pdf`. Long documents are split into sections, each with its own
+  card quota, so nothing gets skimmed.
+- **Text detection** on images, so a photo of a page becomes cards.
+- **Import** from `.csv`, `.xlsx`, or `.xls`.
+- **Manual creation** and a bulk editor for fast cleanup.
 
-Follow these steps:
+**Organisation** — sets live in files, cards can be copied or moved between sets,
+and bookmarks collect into a set of their own.
+
+## Tech stack
+
+- **Vite** + **React 18** + **TypeScript**
+- **Tailwind CSS** and **shadcn/ui** (Radix primitives), **Framer Motion** for motion
+- **Supabase** — Postgres with row-level security, auth, storage, and Deno edge
+  functions (AI generation, text detection, waitlist, transactional email)
+- **React Router**, **TanStack Query**, **React Flow** (flowcharts), **pdf.js**,
+  **SheetJS**, **Cloudflare Turnstile**
+
+## Running it locally
+
+Requires Node.js 18+ (install via [nvm](https://github.com/nvm-sh/nvm#installing-and-updating)).
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+git clone https://github.com/z-giff/studyphormula.git
+cd studyphormula
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The dev server runs on [http://localhost:8080](http://localhost:8080).
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Create a `.env` in the project root before starting:
 
-**Use GitHub Codespaces**
+```sh
+VITE_SUPABASE_URL=            # your Supabase project URL
+VITE_SUPABASE_PUBLISHABLE_KEY=# the anon/publishable key
+VITE_SUPABASE_PROJECT_ID=     # project ref
+VITE_TURNSTILE_SITE_KEY=      # Cloudflare Turnstile site key (waitlist captcha)
+VITE_LAUNCHED=false           # "true" opens the full app instead of the waitlist
+VITE_DEV_ACCESS_KEY=          # visit /?dev=<key> to bypass the waitlist gate
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Every `VITE_*` value ships inside the JS bundle, so none of them are secrets.
+Server-side keys (service role, AI provider, Turnstile secret) belong in Supabase
+edge function secrets, never here.
 
-## What technologies are used for this project?
+### Scripts
 
-This project is built with:
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Dev server with hot reload |
+| `npm run build` | Production build |
+| `npm run build:dev` | Build in development mode |
+| `npm run preview` | Serve the production build locally |
+| `npm run lint` | ESLint over the repo |
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Project layout
 
-## How can I deploy this project?
+```
+src/
+  pages/         Route-level screens (dashboard, set, study/quiz/swipe, waitlist, legal)
+  components/    Card editors, canvases, dialogs, and the shadcn/ui primitives
+  integrations/  Supabase client and generated database types
+  lib/           Launch gate, label masking, MCP tool definitions
+supabase/
+  functions/     Deno edge functions
+  migrations/    Schema history
+docs/
+  WAITLIST.md    Pre-launch gate and operations
+  design/        Rebrand and motion direction
+  legal/         Privacy policy and terms drafts
+```
 
-Simply open [Lovable](https://lovable.dev/projects/433d666d-36e1-48fb-b18a-6a38c6549b0a) and click on Share -> Publish.
+## Contributing
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Branch off `main`, keep changes focused, and run `npm run lint` and `npm run build`
+before opening a pull request. Database changes go in a new file under
+`supabase/migrations/` rather than edits to an existing migration.
