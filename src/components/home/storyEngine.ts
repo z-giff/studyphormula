@@ -28,10 +28,6 @@ export interface Card {
   nx: number; ny: number;       // S4: tightened position inside its 2x2 block
   tint: number; depth: number; delay: number; spin: number;
   drift: number;                // per-card phase for the gentle ambient drift
-  /** S3 caption: 0..1 spatial weight inside the bottom-left quiet zone. */
-  quiet: number;
-  /** S3 caption: 0..1 wave offset, flipping outward from the bottom-left. */
-  qDelay: number;
 }
 
 export interface World {
@@ -83,44 +79,14 @@ export const seg = (p: number, a: number, b: number) => clamp01((p - a) / (b - a
 export const easeInOut = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 export const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-/** Smooth 0..1 ramp between two edges — used to feather the quiet zone. */
-const smoothstep = (a: number, b: number, v: number) => {
-  const t = clamp01((v - a) / (b - a));
-  return t * t * (3 - 2 * t);
-};
 
 /**
- * S3 · the quiet zone. The bottom-left cards flip to black in a wave so the
- * caption has a soft, grid-aligned space to sit in. Fully scroll-driven.
- *
- * Its exit deliberately overlaps QUIET2's entry: the darkened space has to
- * carry continuously from caption 1 into caption 2, or the field flashes back
- * to full brightness between two dark beats.
+ * NOTE: the captions used to sit in a "quiet zone" — a corner of the field
+ * whose cards flipped onto a black face behind a dark radial feather. It read
+ * as a shadowed block torn out of the background rather than part of it, so it
+ * is gone: the field is now one continuous surface for the whole story, and
+ * the copy is carried by its own halo plus the stage-wide hush in StoryStage.
  */
-export const QUIET = {
-  in: [0.252, 0.325] as const,   // cards flip to black
-  out: [0.378, 0.432] as const,  // hands over to QUIET2 mid-fade
-};
-
-/**
- * S4 · the same quiet zone, reused for the second caption. Only the plain
- * background cards flip — the six concept nodes are left untouched.
- */
-export const QUIET2 = {
-  in: [0.36, 0.41] as const,     // begins before QUIET has finished leaving
-  out: [0.47, 0.505] as const,
-};
-
-/**
- * S5 · the same quiet zone once more, for the third caption. It only begins
- * after the network has fully formed, and again spares the six nodes.
- */
-export const QUIET3 = {
-  in: [0.528, 0.565] as const,
-  // Held through the S4→S5 transition so the same darkened space carries the
-  // second caption without ever flashing back to colour.
-  out: [0.668, 0.702] as const,
-};
 
 /** The brand swirl in a 200x200 box — matches SwirlMark's geometry. */
 const swirlPoint = (t: number): [number, number] => {
@@ -250,16 +216,6 @@ export function buildWorld(w: number, h: number): World {
       delay: rand(),
       spin: (rand() - 0.5) * 0.9,
       drift: rand() * Math.PI * 2,
-      // Quiet zone: a feathered bottom-left region, anchored in viewport
-      // fractions so it stays put on any laptop/desktop size.
-      quiet: (() => {
-        const nx = fx / w;
-        const ny = fy / h;
-        const qx = 1 - smoothstep(0.24, 0.44, nx);
-        const qy = smoothstep(0.54, 0.74, ny);
-        return clamp01(qx * qy);
-      })(),
-      qDelay: clamp01((fx / w) * 0.9 + (1 - fy / h) * 0.9),
     });
   }
 
@@ -325,18 +281,6 @@ export function drawFrame(
   const tOrbit = easeInOut(seg(p, SCENES.orbit[0], SCENES.orbit[1]));
   const tModes = easeInOut(seg(p, SCENES.modes[0], SCENES.modes[1]));
   const tSwirl = easeInOut(seg(p, SCENES.swirl[0], SCENES.swirl[1]));
-  // S3 caption: the bottom-left quiet zone, in and back out again.
-  const quietAmt =
-    easeInOut(seg(p, QUIET.in[0], QUIET.in[1])) *
-    (1 - easeInOut(seg(p, QUIET.out[0], QUIET.out[1])));
-  // S4 caption: identical treatment, background cards only.
-  const quietAmt2 =
-    easeInOut(seg(p, QUIET2.in[0], QUIET2.in[1])) *
-    (1 - easeInOut(seg(p, QUIET2.out[0], QUIET2.out[1])));
-  // S5 caption: identical treatment, background cards only.
-  const quietAmt3 =
-    easeInOut(seg(p, QUIET3.in[0], QUIET3.in[1])) *
-    (1 - easeInOut(seg(p, QUIET3.out[0], QUIET3.out[1])));
 
   if (tArrive <= 0) return; // S0/S1: the stage is clean for the hero
 
@@ -439,26 +383,12 @@ export function drawFrame(
     const tint = c.tint;
 
     const fl = Math.abs(Math.cos(turn * Math.PI));
-    // Quiet-zone half-flip: squeeze, then land on the black face.
-    let qk = 0;
-    let qFlip = 1;
-    const qAmt = Math.min(
-      1,
-      quietAmt + (c.node >= 0 ? 0 : Math.max(quietAmt2, quietAmt3)),
-    );
-    if (qAmt > 0.001 && c.quiet > 0.004) {
-      const q = clamp01((qAmt * 1.34 - c.qDelay * 0.34) / 1);
-      if (q > 0) {
-        qFlip = Math.max(0.1, Math.abs(Math.cos(q * Math.PI)));
-        qk = q > 0.5 ? c.quiet : 0;
-      }
-    }
     // 0 = ember face, 1 = concept colour, 2 = white face
     const face = turn <= 0.5 ? 0 : turn <= 1.5 ? 1 : 2;
     // Uniform size: depth only affects opacity, never scale.
     // The mid-flip floor is deep enough that a turning card still reads as a
     // card — at 0.08 the four cards of a node became thin glitch-like bars.
-    const cw = cardW * breathe * Math.max(0.34, fl) * qFlip;
+    const cw = cardW * breathe * Math.max(0.34, fl);
     // A touch of vertical give at mid-turn sells the rotation.
     const chh = cardH * breathe * (0.94 + 0.06 * fl);
 
@@ -482,27 +412,8 @@ export function drawFrame(
           ? NODE_COLORS[c.node % NODE_COLORS.length]
           : emberColor(tint);
     ctx.fill();
-    if (qk > 0.004) {
-      ctx.fillStyle = `rgba(8,7,9,${qk})`;
-      ctx.fill();
-    }
     if (rot !== 0) ctx.restore();
   }
 
-  // A very soft feather over the quiet zone — no hard edge, just enough to
-  // settle the black cards into the surrounding grid behind the caption.
-  const featherAmt = Math.max(quietAmt, quietAmt2, quietAmt3);
-  if (featherAmt > 0.01) {
-    const gx = world.w * 0.16;
-    const gy = world.h * 0.86;
-    const gr = Math.max(world.w * 0.42, world.h * 0.5);
-    const g = ctx.createRadialGradient(gx, gy, 0, gx, gy, gr);
-    g.addColorStop(0, `rgba(8,7,9,${0.72 * featherAmt})`);
-    g.addColorStop(0.55, `rgba(8,7,9,${0.34 * featherAmt})`);
-    g.addColorStop(1, "rgba(8,7,9,0)");
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, world.w, world.h);
-  }
   ctx.globalAlpha = 1;
 }
