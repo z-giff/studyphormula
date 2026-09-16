@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Check, X } from "lucide-react";
+import { BOX_BORDER_COLOR, BOX_BORDER_WIDTH, formatOf } from "@/lib/textBoxStyle";
 
 interface TextBox {
   id: string;
@@ -13,17 +14,16 @@ interface TextBox {
   fontSize?: number;
   fontWeight?: string;
   fontColor?: string;
-  /** Local background sampled from the image, so the box hides the label. */
+  /** Fill that hides the label underneath. White until the user changes it. */
   bgColor?: string;
 }
 
 interface InteractiveFlashcardStudyProps {
   imageUrl: string;
   textBoxes: TextBox[];
-  cardColor: string;
 }
 
-export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: InteractiveFlashcardStudyProps) => {
+export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes }: InteractiveFlashcardStudyProps) => {
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   const [validationState, setValidationState] = useState<Record<string, "correct" | "incorrect" | null>>({});
   const [checked, setChecked] = useState(false);
@@ -52,20 +52,20 @@ export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: In
     setChecked(false);
   };
 
+  // Checking answers recolours the outline as feedback; until then every box
+  // wears the same black one it was created with.
   const getBoxBorderColor = (id: string) => {
     const state = validationState[id];
     if (state === "correct") return "#10B981";
     if (state === "incorrect") return "#EF4444";
-    return cardColor;
+    return BOX_BORDER_COLOR;
   };
 
   const getBoxBackgroundColor = (box: TextBox) => {
     const state = validationState[box.id];
     if (state === "correct") return "rgba(16, 185, 129, 0.15)";
     if (state === "incorrect") return "rgba(239, 68, 68, 0.15)";
-    // Matches the artwork behind the original label, so the answer field sits
-    // in the diagram instead of on top of it. Older boxes have no sample.
-    return box.bgColor ?? "hsl(var(--background))";
+    return formatOf(box).bgColor;
   };
   return (
     <div className="space-y-4">
@@ -87,53 +87,57 @@ export const InteractiveFlashcardStudy = ({ imageUrl, textBoxes, cardColor }: In
             percentage-positioned mask down by a few pixels. */}
         <img src={imageUrl} alt="Flashcard" loading="lazy" decoding="async" className="block w-full h-auto" />
 
-        {textBoxes.map((box) => (
-          <div
-            key={box.id}
-            className="absolute"
-            style={{
-              left: `${box.x}%`,
-              top: `${box.y}%`,
-              width: `${box.width}%`,
-              height: `${box.height}%`,
-            }}
-          >
-            <div 
-              className="relative w-full h-full cursor-text"
-              onClick={(e) => {
-                const input = e.currentTarget.querySelector('input');
-                if (input) input.focus();
+        {textBoxes.map((box) => {
+          const format = formatOf(box);
+
+          return (
+            <div
+              key={box.id}
+              className="absolute"
+              style={{
+                left: `${box.x}%`,
+                top: `${box.y}%`,
+                width: `${box.width}%`,
+                height: `${box.height}%`,
               }}
             >
-              <Input
-                value={userAnswers[box.id] || ""}
-                onChange={(e) => handleAnswerChange(box.id, e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleCheckAll();
-                  }
+              <div 
+                className="relative w-full h-full cursor-text"
+                onClick={(e) => {
+                  const input = e.currentTarget.querySelector('input');
+                  if (input) input.focus();
                 }}
-                disabled={checked && validationState[box.id] === "correct"}
-                className="h-full px-1 text-center cursor-text"
-                style={{
-                  borderColor: getBoxBorderColor(box.id),
-                  borderWidth: "2px",
-                  backgroundColor: getBoxBackgroundColor(box),
-                  color: box.fontColor || "#000000",
-                  fontSize: `${box.fontSize || 14}px`,
-                  fontWeight: box.fontWeight || "normal",
-                }}
-              />
-              {validationState[box.id] === "correct" && (
-                <Check className="absolute -right-6 top-1/2 -translate-y-1/2 h-4 w-4 text-green-600" />
-              )}
-              {validationState[box.id] === "incorrect" && (
-                <X className="absolute -right-6 top-1/2 -translate-y-1/2 h-4 w-4 text-red-600" />
-              )}
+              >
+                <Input
+                  value={userAnswers[box.id] || ""}
+                  onChange={(e) => handleAnswerChange(box.id, e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleCheckAll();
+                    }
+                  }}
+                  disabled={checked && validationState[box.id] === "correct"}
+                  className="h-full px-1 text-center cursor-text"
+                  style={{
+                    borderColor: getBoxBorderColor(box.id),
+                    borderWidth: `${BOX_BORDER_WIDTH}px`,
+                    backgroundColor: getBoxBackgroundColor(box),
+                    color: format.fontColor,
+                    fontSize: `${format.fontSize}px`,
+                    fontWeight: format.fontWeight,
+                  }}
+                />
+                {validationState[box.id] === "correct" && (
+                  <Check className="absolute -right-6 top-1/2 -translate-y-1/2 h-4 w-4 text-green-600" />
+                )}
+                {validationState[box.id] === "incorrect" && (
+                  <X className="absolute -right-6 top-1/2 -translate-y-1/2 h-4 w-4 text-red-600" />
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {checked && (

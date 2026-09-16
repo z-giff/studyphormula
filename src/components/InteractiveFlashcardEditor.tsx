@@ -2,14 +2,20 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { X, Wand2 } from "lucide-react";
+import { Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { buildLabelMasks } from "@/lib/labelMask";
-
-/** Used when the image cannot be sampled (e.g. a cross-origin URL). */
-const FALLBACK_BG = "#FFFFFF";
-const FALLBACK_FONT = "#000000";
+import { TextBoxFormatToolbar } from "@/components/TextBoxFormatToolbar";
+import {
+  BOX_BORDER,
+  DEFAULT_BOX_COLOR,
+  DEFAULT_FONT_COLOR,
+  DEFAULT_FONT_SIZE,
+  DEFAULT_FONT_WEIGHT,
+  TextBoxFormat,
+  formatOf,
+} from "@/lib/textBoxStyle";
 
 interface TextBox {
   id: string;
@@ -21,7 +27,7 @@ interface TextBox {
   fontSize?: number;
   fontWeight?: string;
   fontColor?: string;
-  /** Local background sampled from the image, so the box hides the label. */
+  /** Fill that hides the label underneath. White until the user changes it. */
   bgColor?: string;
 }
 
@@ -54,7 +60,14 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
   }, [editingBox]);
 
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isAddingBox || !containerRef.current) return;
+    if (!containerRef.current) return;
+
+    // A click on the artwork itself is a click away from the selected box.
+    if (!isAddingBox) {
+      setSelectedBox(null);
+      setEditingBox(null);
+      return;
+    }
 
     const rect = containerRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -67,9 +80,10 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
       width: 15,
       height: 5,
       answer: "",
-      fontSize: 14,
-      fontWeight: "normal",
-      fontColor: "#000000",
+      fontSize: DEFAULT_FONT_SIZE,
+      fontWeight: DEFAULT_FONT_WEIGHT,
+      fontColor: DEFAULT_FONT_COLOR,
+      bgColor: DEFAULT_BOX_COLOR,
     };
 
     onChange([...textBoxes, newBox]);
@@ -81,8 +95,21 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
     onChange(textBoxes.map(box => box.id === id ? { ...box, answer } : box));
   };
 
-  const handleFontChange = (id: string, property: string, value: any) => {
-    onChange(textBoxes.map(box => box.id === id ? { ...box, [property]: value } : box));
+  const handleFormatChange = (id: string, patch: Partial<TextBoxFormat>) => {
+    onChange(textBoxes.map(box => box.id === id ? { ...box, ...patch } : box));
+  };
+
+  /** Copy one box's whole look onto every box on this image. */
+  const handleApplyToAll = (id: string) => {
+    const source = textBoxes.find(box => box.id === id);
+    if (!source) return;
+
+    const format = formatOf(source);
+    onChange(textBoxes.map(box => ({ ...box, ...format })));
+    toast({
+      title: "Formatting applied",
+      description: `Updated ${textBoxes.length} text box${textBoxes.length !== 1 ? "es" : ""}`,
+    });
   };
 
   const handleDragStart = useCallback((e: React.MouseEvent, id: string) => {
@@ -184,9 +211,8 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
           height: Number(box.height) || 0,
         }));
 
-        // Take each detected rectangle back to the image: grow it until it
-        // reaches clear background (so no part of the label survives), and read
-        // the local background colour for the mask and its text colour.
+        // Take each detected rectangle back to the image and grow it until it
+        // reaches clear background, so no part of the label survives.
         const masks = await buildLabelMasks(imageUrl, detectedRects);
 
         const newBoxes: TextBox[] = validDetections.map((box: any, i: number) => {
@@ -205,10 +231,11 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
             y: fallbackY,
             width: Math.min(100 - fallbackX, raw.width + padX * 2),
             height: Math.min(100 - fallbackY, raw.height + padY * 2),
-            bgColor: FALLBACK_BG,
-            fontColor: FALLBACK_FONT,
           };
 
+          // Every detection comes out looking the same — white box, black
+          // answer — so a freshly detected diagram is uniform. The toolbar is
+          // where a user departs from that, per box or across all of them.
           return {
             id: Math.random().toString(36).substr(2, 9),
             x: geometry.x,
@@ -216,10 +243,10 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
             width: geometry.width,
             height: geometry.height,
             answer: box.text,
-            fontSize: 14,
-            fontWeight: "normal",
-            fontColor: geometry.fontColor,
-            bgColor: geometry.bgColor,
+            fontSize: DEFAULT_FONT_SIZE,
+            fontWeight: DEFAULT_FONT_WEIGHT,
+            fontColor: DEFAULT_FONT_COLOR,
+            bgColor: DEFAULT_BOX_COLOR,
           };
         });
 
@@ -326,6 +353,8 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
     document.addEventListener("mouseup", handleMouseUp);
   }, [textBoxes, onChange]);
 
+  const selectedBoxData = textBoxes.find(box => box.id === selectedBox) ?? null;
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
@@ -361,118 +390,120 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
       <div ref={containerRef} className="relative w-full" onClick={handleImageClick}>
         <img src={imageUrl} alt="Flashcard" loading="lazy" decoding="async" className="block w-full h-auto" />
 
-        {textBoxes.map((box) => (
-          <div
-            key={box.id}
-            className="absolute cursor-move group"
-            style={{
-              left: `${box.x}%`,
-              top: `${box.y}%`,
-              width: `${box.width}%`,
-              height: `${box.height}%`,
-              // The mask is painted in the colour sampled from behind the
-              // label, so it reads as the label having been lifted out of the
-              // diagram. Older boxes without a sample keep their former look.
-              backgroundColor: box.bgColor ?? "hsl(var(--background))",
-              // A hairline outline keeps boxes findable while editing without
-              // turning them back into heavy overlays.
-              outline: selectedBox === box.id
-                ? "2px solid hsl(var(--primary))"
-                : "1px solid hsl(var(--primary) / 0.35)",
-              outlineOffset: "-1px",
-            }}
-            onMouseDown={(e) => {
-              if (!isResizing) {
-                handleDragStart(e, box.id);
-              }
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedBox(box.id);
-              setEditingBox(box.id);
-            }}
-          >
-            {editingBox === box.id ? (
-              <input
-                ref={inlineInputRef}
-                type="text"
-                value={box.answer}
-                onChange={(e) => handleAnswerChange(box.id, e.target.value)}
-                onBlur={() => setEditingBox(null)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === "Escape") {
-                    setEditingBox(null);
-                  }
-                }}
-                className="absolute inset-0 w-full h-full bg-transparent border-none outline-none text-center"
-                style={{ 
-                  fontSize: `${box.fontSize || 14}px`,
-                  fontWeight: box.fontWeight || "normal",
-                  color: box.fontColor || "#000000",
-                }}
-                placeholder="Enter answer..."
-              />
-            ) : (
-              box.answer && (
-                <div 
-                  className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                  style={{ 
-                    fontSize: `${box.fontSize || 14}px`,
-                    fontWeight: box.fontWeight || "normal",
-                    color: box.fontColor || "#000000",
+        {textBoxes.map((box) => {
+          const format = formatOf(box);
+
+          return (
+            <div
+              key={box.id}
+              className="absolute cursor-move group"
+              style={{
+                left: `${box.x}%`,
+                top: `${box.y}%`,
+                width: `${box.width}%`,
+                height: `${box.height}%`,
+                backgroundColor: format.bgColor,
+                // The same outline every box carries in study mode. box-sizing is
+                // border-box, so it sits inside the detected bounds rather than
+                // growing the mask past the label it has to cover.
+                border: BOX_BORDER,
+                // Selection is a separate ring outside that border, so the edge
+                // the student will see is never restyled by the editor's state.
+                outline: selectedBox === box.id ? "2px solid hsl(var(--primary))" : undefined,
+                outlineOffset: "2px",
+              }}
+              onMouseDown={(e) => {
+                if (!isResizing) {
+                  handleDragStart(e, box.id);
+                }
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedBox(box.id);
+                setEditingBox(box.id);
+              }}
+            >
+              {editingBox === box.id ? (
+                <input
+                  ref={inlineInputRef}
+                  type="text"
+                  value={box.answer}
+                  onChange={(e) => handleAnswerChange(box.id, e.target.value)}
+                  onBlur={() => setEditingBox(null)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === "Escape") {
+                      setEditingBox(null);
+                    }
                   }}
-                >
-                  {box.answer}
-                </div>
-              )
-            )}
-            {selectedBox === box.id && !isResizing && !isDragging && (
-              <>
-                <div 
-                  className="absolute w-3 h-3 bg-primary border border-background rounded-full -top-1.5 -left-1.5 cursor-nw-resize opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                  onMouseDown={(e) => handleResizeStart(e, box.id, "nw")}
+                  className="absolute inset-0 w-full h-full bg-transparent border-none outline-none text-center"
+                  style={{ 
+                    fontSize: `${format.fontSize}px`,
+                    fontWeight: format.fontWeight,
+                    color: format.fontColor,
+                  }}
+                  placeholder="Enter answer..."
                 />
-                <div 
-                  className="absolute w-3 h-3 bg-primary border border-background rounded-full -top-1.5 -right-1.5 cursor-ne-resize opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                  onMouseDown={(e) => handleResizeStart(e, box.id, "ne")}
-                />
-                <div 
-                  className="absolute w-3 h-3 bg-primary border border-background rounded-full -bottom-1.5 -left-1.5 cursor-sw-resize opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                  onMouseDown={(e) => handleResizeStart(e, box.id, "sw")}
-                />
-                <div 
-                  className="absolute w-3 h-3 bg-primary border border-background rounded-full -bottom-1.5 -right-1.5 cursor-se-resize opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                  onMouseDown={(e) => handleResizeStart(e, box.id, "se")}
-                />
-              </>
-            )}
-          </div>
-        ))}
+              ) : (
+                box.answer && (
+                  <div 
+                    className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                    style={{ 
+                      fontSize: `${format.fontSize}px`,
+                      fontWeight: format.fontWeight,
+                      color: format.fontColor,
+                    }}
+                  >
+                    {box.answer}
+                  </div>
+                )
+              )}
+              {selectedBox === box.id && !isResizing && !isDragging && (
+                <>
+                  <div 
+                    className="absolute w-3 h-3 bg-primary border border-background rounded-full -top-1.5 -left-1.5 cursor-nw-resize opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                    onMouseDown={(e) => handleResizeStart(e, box.id, "nw")}
+                  />
+                  <div 
+                    className="absolute w-3 h-3 bg-primary border border-background rounded-full -top-1.5 -right-1.5 cursor-ne-resize opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                    onMouseDown={(e) => handleResizeStart(e, box.id, "ne")}
+                  />
+                  <div 
+                    className="absolute w-3 h-3 bg-primary border border-background rounded-full -bottom-1.5 -left-1.5 cursor-sw-resize opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                    onMouseDown={(e) => handleResizeStart(e, box.id, "sw")}
+                  />
+                  <div 
+                    className="absolute w-3 h-3 bg-primary border border-background rounded-full -bottom-1.5 -right-1.5 cursor-se-resize opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                    onMouseDown={(e) => handleResizeStart(e, box.id, "se")}
+                  />
+                </>
+              )}
+            </div>
+          );
+        })}
+
+        {/* Hidden mid-gesture: the bar would otherwise chase the box around. */}
+        {selectedBoxData && !isDragging && !isResizing && (
+          <TextBoxFormatToolbar
+            key={selectedBoxData.id}
+            anchor={selectedBoxData}
+            format={formatOf(selectedBoxData)}
+            onFormatChange={(patch) => handleFormatChange(selectedBoxData.id, patch)}
+            onApplyToAll={() => handleApplyToAll(selectedBoxData.id)}
+            onDelete={() => handleDeleteBox(selectedBoxData.id)}
+          />
+        )}
       </div>
       </div>
 
-      {selectedBox && (
-        <div className="p-4 border rounded-lg space-y-4">
-          <div className="flex items-center justify-between">
-            <Label>Edit Selected Text Box</Label>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => handleDeleteBox(selectedBox)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-          <div>
-            <Label htmlFor="answer">Correct Answer</Label>
-            <Input
-              id="answer"
-              value={textBoxes.find(b => b.id === selectedBox)?.answer || ""}
-              onChange={(e) => handleAnswerChange(selectedBox, e.target.value)}
-              placeholder="Enter the correct answer"
-            />
-          </div>
+      {selectedBoxData && (
+        <div className="p-4 border rounded-lg space-y-2">
+          <Label htmlFor="answer">Correct Answer</Label>
+          <Input
+            id="answer"
+            value={selectedBoxData.answer}
+            onChange={(e) => handleAnswerChange(selectedBoxData.id, e.target.value)}
+            placeholder="Enter the correct answer"
+          />
         </div>
       )}
 

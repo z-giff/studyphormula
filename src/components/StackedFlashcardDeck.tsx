@@ -187,7 +187,6 @@ export const StackedFlashcardDeck = ({
                               <InteractiveFlashcardStudy
                                 imageUrl={card.image_url}
                                 textBoxes={card.interactive_data.textBoxes}
-                                cardColor={cardColor}
                               />
                             ) : (
                               <p className="text-sm text-muted-foreground text-center">
