@@ -88,7 +88,7 @@ const FinaleBlock = ({ drawOn = false }: { drawOn?: boolean }) => (
     </h2>
     <div className="mt-8 flex flex-wrap items-center justify-center gap-3.5">
       <Button asChild variant="brand" size="lg" className="rounded-xl px-8 font-bold">
-        <Link to="/auth?mode=signup">Start studying — it&rsquo;s free</Link>
+        <Link to="/auth?mode=signup">Start studying. It&rsquo;s free.</Link>
       </Button>
       <Button
         asChild
@@ -140,7 +140,7 @@ const CAPTIONS: {
   },
   {
     id: "capConnect",
-    text: "So you break it down—one card, one concept, one small step at a time.",
+    text: "So you break it down, one card, one concept, one small step at a time.",
     range: [0.4, 0.492],
     wrap: CORNER_WRAP,
     type: CORNER_TYPE,
