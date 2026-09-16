@@ -255,7 +255,6 @@ const StudyMode = () => {
                 <InteractiveFlashcardStudy
                   imageUrl={currentCard.image_url || ""}
                   textBoxes={currentCard.interactive_data.textBoxes}
-                  cardColor={cardColor}
                 />
               </Card>
             ) : currentCard.flashcard_type === "flowchart" && currentCard.interactive_data ? (

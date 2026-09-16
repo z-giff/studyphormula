@@ -8,6 +8,9 @@ interface NodeColorPaletteProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
+  /** Where the palette opens. Defaults suit a node toolbar sitting to the left. */
+  side?: "top" | "right" | "bottom" | "left";
+  align?: "start" | "center" | "end";
 }
 
 // Full color palette matching the reference design - 10 columns x 7 rows
@@ -34,6 +37,8 @@ export const NodeColorPalette = ({
   open,
   onOpenChange,
   children,
+  side = "right",
+  align = "start",
 }: NodeColorPaletteProps) => {
   const [customColors, setCustomColors] = useState<string[]>([]);
   const [showColorWheel, setShowColorWheel] = useState(false);
@@ -71,8 +76,8 @@ export const NodeColorPalette = ({
       <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent 
         className="w-auto p-3" 
-        side="right" 
-        align="start"
+        side={side} 
+        align={align}
         sideOffset={8}
       >
         <div className="space-y-3">

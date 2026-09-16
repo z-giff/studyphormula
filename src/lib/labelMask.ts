@@ -4,14 +4,14 @@
  * The detector returns a rough rectangle for each label it reads. That is not
  * good enough to hide an answer from a student: a box that is a few pixels off,
  * or sized to one line of a two-line label, leaves the answer readable. These
- * helpers take each detected rectangle back to the uploaded image and:
+ * helpers take each detected rectangle back to the uploaded image and grow it
+ * outward until every side reaches clear background, so the whole label — all
+ * lines of it — ends up inside the mask.
  *
- *   1. grow the rectangle outward until every side reaches clear background,
- *      so the whole label — all lines of it — sits inside the mask;
- *   2. sample the background immediately around the label so the mask can be
- *      painted in the local background colour and disappear into the diagram;
- *   3. pick black or white answer text from the sampled background's relative
- *      luminance, so the answer stays legible on light and dark artwork alike.
+ * Only geometry is decided here. How a mask is painted lives in textBoxStyle,
+ * which gives every box the same white fill and black text for the user to
+ * change afterwards; the background colours sampled below exist purely to tell
+ * ink from paper while an edge is growing.
  *
  * Everything is expressed as percentages of the image, so a mask keeps its
  * place when the image is displayed at any size.
@@ -23,13 +23,6 @@ export interface LabelRect {
   y: number;
   width: number;
   height: number;
-}
-
-export interface LabelMask extends LabelRect {
-  /** Local background colour behind the label, as #rrggbb. */
-  bgColor: string;
-  /** Black or white — whichever reads better on bgColor. */
-  fontColor: string;
 }
 
 /** Largest canvas dimension we sample from. Keeps big uploads cheap. */
@@ -180,31 +173,11 @@ function growEdge(
   return found;
 }
 
-/** WCAG relative luminance of an sRGB colour. */
-function relativeLuminance([r, g, b]: number[]): number {
-  const channel = (v: number) => {
-    const c = v / 255;
-    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-  };
-  return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
-}
-
-/**
- * Black or white, whichever contrasts more with `rgb`. The crossover sits at
- * luminance 0.179, where contrast against white and against black is equal.
- */
-export function readableTextColor(rgb: number[]): string {
-  return relativeLuminance(rgb) > 0.1791 ? "#000000" : "#FFFFFF";
-}
-
-const toHex = ([r, g, b]: number[]) =>
-  `#${[r, g, b].map((v) => clamp(Math.round(v), 0, 255).toString(16).padStart(2, "0")).join("")}`;
-
 /**
  * Refine one detected rectangle against the image pixels.
  * Returns null when the region cannot be analysed.
  */
-function maskForRect(s: Sampler, rect: LabelRect): LabelMask | null {
+function maskForRect(s: Sampler, rect: LabelRect): LabelRect | null {
   const px = {
     left: Math.round((rect.x / 100) * s.width),
     top: Math.round((rect.y / 100) * s.height),
@@ -249,29 +222,23 @@ function maskForRect(s: Sampler, rect: LabelRect): LabelMask | null {
     bottom: clamp(grown.bottom + padY, 1, s.height),
   };
 
-  // Re-sample now that the rectangle is centred on the label: the ring is
-  // cleaner, so the colour is a better match for the surrounding artwork.
-  const bg = sampleBackground(s, padded, 3) ?? firstBg;
-
   return {
     x: (padded.left / s.width) * 100,
     y: (padded.top / s.height) * 100,
     width: ((padded.right - padded.left) / s.width) * 100,
     height: ((padded.bottom - padded.top) / s.height) * 100,
-    bgColor: toHex(bg),
-    fontColor: readableTextColor(bg),
   };
 }
 
 /**
  * Analyse every detected rectangle against the uploaded image.
- * Resolves to one mask per input rectangle, or null where analysis failed
+ * Resolves to one refined rectangle per input, or null where analysis failed
  * (unreadable image, cross-origin canvas) so the caller can fall back.
  */
 export async function buildLabelMasks(
   imageUrl: string,
   rects: LabelRect[],
-): Promise<(LabelMask | null)[]> {
+): Promise<(LabelRect | null)[]> {
   if (rects.length === 0) return [];
 
   try {
