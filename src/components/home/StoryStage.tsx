@@ -109,10 +109,11 @@ const FinaleBlock = ({ drawOn = false }: { drawOn?: boolean }) => (
  * frozen to one viewport.
  */
 /**
- * One evolving typographic system: the first two lines are set large and
- * centred, then the measure shrinks and drifts down-left as the story
- * becomes structured. `rise` is the distance the block travels while it
- * fades in, so the move between the two positions reads as one glide.
+ * One evolving typographic system: the opening line is set large and centred,
+ * picking up where the hero lockup left off. From the second line on, the
+ * measure shrinks and the copy settles into the bottom-left corner — one
+ * position held for the rest of the story. `rise` is the distance the block
+ * travels while it fades in, so the move into the corner reads as one glide.
  */
 const CENTER_WRAP = "inset-0 flex items-center justify-center px-8";
 const CENTER_TYPE =
@@ -141,9 +142,11 @@ const CAPTIONS: {
     id: "capConnect",
     text: "So you break it down—one card, one concept, one small step at a time.",
     range: [0.4, 0.492],
-    wrap: CENTER_WRAP,
-    type: CENTER_TYPE,
-    rise: 26,
+    wrap: CORNER_WRAP,
+    type: CORNER_TYPE,
+    // Arrives from higher up the stage, so the hand-off from the centred
+    // opening line down into the corner reads as one glide.
+    rise: -90,
   },
   {
     id: "capOrbit",
@@ -151,9 +154,7 @@ const CAPTIONS: {
     range: [0.537, 0.612],
     wrap: CORNER_WRAP,
     type: CORNER_TYPE,
-    // Arrives from higher up the stage, continuing the centred block's path
-    // down toward the corner instead of popping into place.
-    rise: -90,
+    rise: 20,
   },
   {
     id: "capNetwork",
@@ -321,9 +322,11 @@ const StoryStage = () => {
       }
 
       for (const c of CAPTIONS) setLayer(c.id, fade(p, c.range[0], c.range[1]), c.rise);
-      // Scenes 2–3: ease the flock back so the copy leads for a beat. The
-      // cards keep animating exactly as before, only quieter.
-      const hush = Math.min(seg(p, 0.27, 0.315), 1 - seg(p, 0.5, 0.55));
+      // Ease the whole flock back — evenly, across the entire frame — for as
+      // long as there is copy over it, so the type leads without any part of
+      // the field being darkened separately. The cards keep animating exactly
+      // as before, only quieter. It releases before the modes scene arrives.
+      const hush = Math.min(seg(p, 0.27, 0.315), 1 - seg(p, 0.645, 0.7));
       cv.style.opacity = String(1 - 0.4 * hush);
       // Copy arrives once the flock has cleared, so cards never travel across
       // the text. Consecutive scenes deliberately OVERLAP: the outgoing block
