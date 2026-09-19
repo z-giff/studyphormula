@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,6 +12,7 @@ import { InteractiveFlashcardEditor } from "./InteractiveFlashcardEditor";
 import { FlowchartCanvasEditor } from "./FlowchartCanvasEditor";
 import { DrawingCanvasEditor } from "./DrawingCanvasEditor";
 import { ImageUploader } from "./ImageUploader";
+import { FlashcardTextarea } from "./FlashcardTextarea";
 
 
 interface CreateFlashcardDialogProps {
@@ -197,24 +197,25 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
               <TabsContent value="standard" className="space-y-5 mt-6">
                 <div className="space-y-1.5">
                   <Label htmlFor="term" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Term</Label>
-                  <Input
+                  <FlashcardTextarea
                     id="term"
                     placeholder="What is the mitochondria?"
                     value={formData.term}
-                    onChange={(e) => setFormData({ ...formData, term: e.target.value })}
+                    onValueChange={(term) => setFormData({ ...formData, term })}
                     disabled={isLoading}
                     required
-                    className="h-11"
+                    rows={2}
+                    className="min-h-11 resize-none"
                   />
                 </div>
 
                 <div className="space-y-1.5">
                   <Label htmlFor="definition" className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Definition</Label>
-                  <Textarea
+                  <FlashcardTextarea
                     id="definition"
                     placeholder="The powerhouse of the cell…"
                     value={formData.definition}
-                    onChange={(e) => setFormData({ ...formData, definition: e.target.value })}
+                    onValueChange={(definition) => setFormData({ ...formData, definition })}
                     disabled={isLoading}
                     rows={4}
                     required

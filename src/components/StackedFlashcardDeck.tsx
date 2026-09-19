@@ -6,6 +6,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { DrawingCanvasDisplay } from "@/components/DrawingCanvasDisplay";
 import { FlowchartCanvasDisplay } from "@/components/FlowchartCanvasDisplay";
 import { InteractiveFlashcardStudy } from "@/components/InteractiveFlashcardStudy";
+import { FlashcardText } from "@/components/FlashcardText";
 
 interface Flashcard {
   id: string;
@@ -176,12 +177,11 @@ export const StackedFlashcardDeck = ({
                         onClick={(e) => e.stopPropagation()}
                       >
                         <CardContent className="flex flex-col h-full p-6 gap-4">
-                          <h3
-                            className="text-2xl font-bold text-center"
+                          <FlashcardText
+                            text={card.term}
+                            className="text-2xl font-bold"
                             style={{ color: textColor }}
-                          >
-                            {card.term}
-                          </h3>
+                          />
                           <div className="flex-1 overflow-auto bg-background rounded-lg p-3">
                             {card.image_url && card.interactive_data?.textBoxes ? (
                               <InteractiveFlashcardStudy
@@ -219,7 +219,11 @@ export const StackedFlashcardDeck = ({
                               className="w-full max-h-32 object-contain rounded-lg mb-4"
                             />
                           )}
-                          <h3 className="text-2xl font-bold" style={{ color: textColor }}>{card.term}</h3>
+                          <FlashcardText
+                            text={card.term}
+                            className="max-h-full overflow-y-auto text-2xl font-bold"
+                            style={{ color: textColor }}
+                          />
                         </CardContent>
                       </Card>
 
@@ -262,7 +266,11 @@ export const StackedFlashcardDeck = ({
                               </button>
                             </div>
                           ) : (
-                            <p className="text-lg" style={{ color: textColor }}>{card.definition}</p>
+                            <FlashcardText
+                              text={card.definition}
+                              className="max-h-full overflow-y-auto text-lg"
+                              style={{ color: textColor }}
+                            />
                           )}
                         </CardContent>
                       </Card>

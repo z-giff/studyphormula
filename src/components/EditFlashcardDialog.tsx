@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -13,6 +12,7 @@ import { InteractiveFlashcardEditor } from "@/components/InteractiveFlashcardEdi
 import { FlowchartCanvasEditor } from "@/components/FlowchartCanvasEditor";
 import { DrawingCanvasEditor } from "@/components/DrawingCanvasEditor";
 import { ImageUploader } from "@/components/ImageUploader";
+import { FlashcardTextarea } from "./FlashcardTextarea";
 
 const FLASHCARD_COLORS = [
   "#000000",
@@ -265,23 +265,25 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
             <TabsContent value="standard" className="space-y-4 mt-4">
               <div className="space-y-2">
                 <Label htmlFor="edit-term">Term / Question *</Label>
-                <Input
+                <FlashcardTextarea
                   id="edit-term"
                   placeholder="e.g., What is the mitochondria?"
                   value={formData.term}
-                  onChange={(e) => setFormData({ ...formData, term: e.target.value })}
+                  onValueChange={(term) => setFormData({ ...formData, term })}
                   disabled={isLoading}
                   required={flashcardType === "standard"}
+                  rows={2}
+                  className="min-h-11 resize-none"
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="edit-definition">Definition / Answer *</Label>
-                <Textarea
+                <FlashcardTextarea
                   id="edit-definition"
                   placeholder="The powerhouse of the cell..."
                   value={formData.definition}
-                  onChange={(e) => setFormData({ ...formData, definition: e.target.value })}
+                  onValueChange={(definition) => setFormData({ ...formData, definition })}
                   disabled={isLoading}
                   rows={4}
                   required={flashcardType === "standard"}

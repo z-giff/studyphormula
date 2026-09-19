@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { getContrastColor } from "@/lib/utils";
 import { InteractiveFlashcardStudy } from "@/components/InteractiveFlashcardStudy";
+import { FlashcardText } from "@/components/FlashcardText";
 import { FlowchartCanvasDisplay } from "@/components/FlowchartCanvasDisplay";
 import { DrawingCanvasDisplay } from "@/components/DrawingCanvasDisplay";
 
@@ -278,7 +279,7 @@ const StudyMode = () => {
                 >
                   {!isFlipped ? (
                     <div className="text-center space-y-6 flex-1 flex flex-col items-center justify-center">
-                      <h2 className="text-4xl font-bold break-words">{currentCard.term}</h2>
+                      <FlashcardText text={currentCard.term} className="text-4xl font-bold" />
                       <p className="text-sm opacity-70 mt-8">Click to reveal flowchart</p>
                     </div>
                   ) : (
@@ -314,7 +315,7 @@ const StudyMode = () => {
                 >
                   {!isFlipped ? (
                     <div className="text-center space-y-6 flex-1 flex flex-col items-center justify-center">
-                      <h2 className="text-4xl font-bold break-words">{currentCard.term}</h2>
+                      <FlashcardText text={currentCard.term} className="text-4xl font-bold" />
                       <p className="text-sm opacity-70 mt-8">Click to reveal drawing</p>
                     </div>
                   ) : (
@@ -357,7 +358,7 @@ const StudyMode = () => {
 
                   {!isFlipped ? (
                     <>
-                      <h2 className="text-4xl font-bold break-words">{currentCard.term}</h2>
+                      <FlashcardText text={currentCard.term} className="text-4xl font-bold" />
                       <p className="text-sm opacity-70 mt-8">Click to reveal answer</p>
                     </>
                   ) : (
@@ -369,9 +370,10 @@ const StudyMode = () => {
                           className="max-h-64 mx-auto rounded-lg object-contain mb-6"
                         />
                       )}
-                      <p className="text-2xl leading-relaxed whitespace-pre-wrap break-words">
-                        {currentCard.definition}
-                      </p>
+                      <FlashcardText
+                        text={currentCard.definition}
+                        className="text-2xl leading-relaxed"
+                      />
                     </>
                   )}
                 </div>
