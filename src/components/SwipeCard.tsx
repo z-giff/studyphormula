@@ -4,6 +4,7 @@
  import { getContrastColor } from "@/lib/utils";
  import { FlowchartCanvasDisplay } from "@/components/FlowchartCanvasDisplay";
  import { DrawingCanvasDisplay } from "@/components/DrawingCanvasDisplay";
+ import { FlashcardText } from "@/components/FlashcardText";
  
  interface SwipeCardProps {
    card: {
@@ -54,7 +55,7 @@
            {!isFlipped ? (
              <div className="flex-1 flex flex-col items-center justify-center text-center">
                <p className="text-sm uppercase tracking-wide opacity-80 mb-4">Term</p>
-               <h2 className="text-2xl font-bold break-words">{card.term}</h2>
+               <FlashcardText text={card.term} className="text-2xl font-bold" />
                <p className="text-sm opacity-70 mt-8">Tap to reveal flowchart</p>
              </div>
            ) : (
@@ -79,7 +80,7 @@
            {!isFlipped ? (
              <div className="flex-1 flex flex-col items-center justify-center text-center">
                <p className="text-sm uppercase tracking-wide opacity-80 mb-4">Term</p>
-               <h2 className="text-2xl font-bold break-words">{card.term}</h2>
+               <FlashcardText text={card.term} className="text-2xl font-bold" />
                <p className="text-sm opacity-70 mt-8">Tap to reveal drawing</p>
              </div>
            ) : (
@@ -102,7 +103,7 @@
          </p>
          {!isFlipped ? (
            <>
-             <h2 className="text-2xl md:text-3xl font-bold break-words">{card.term}</h2>
+             <FlashcardText text={card.term} className="text-2xl md:text-3xl font-bold" />
              <p className="text-sm opacity-70 mt-8">Tap to reveal answer</p>
            </>
          ) : (
@@ -114,9 +115,7 @@
                  className="max-h-32 mx-auto rounded-lg object-contain mb-4"
                />
              )}
-             <p className="text-xl leading-relaxed whitespace-pre-wrap break-words">
-               {card.definition}
-             </p>
+             <FlashcardText text={card.definition} className="text-xl leading-relaxed" />
            </>
          )}
        </div>
