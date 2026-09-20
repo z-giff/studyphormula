@@ -1,7 +1,7 @@
 # Phormula Privacy Policy
 
-**Last updated:** [DATE]
-**Effective:** [DATE]
+**Last updated:** September 20, 2026
+**Effective:** September 20, 2026
 
 ## 1. Introduction
 
@@ -15,8 +15,8 @@ European Economic Area ("EEA"), the United Kingdom, or Switzerland, Section 12 s
 under the GDPR and UK GDPR. If you are a resident of California or another US state with a
 comprehensive privacy law, Sections 13 and 14 set out your rights under those laws.
 
-The data controller responsible for your personal information is **[LEGAL ENTITY NAME]**,
-[REGISTERED ADDRESS]. You can reach us at **support@phormula.co**.
+The data controller responsible for your personal information is **Aryan Maiti**,
+1324 Quinpool Ct, Mississauga, Canada. You can reach us at **support@phormula.co**.
 
 By using Phormula, you agree to the practices described in this policy. If you do not agree, please
 do not use the Service.
@@ -152,7 +152,7 @@ on our instructions and under a written agreement.
 | **OpenAI** | Flashcard generation model | Text you submit for flashcard generation |
 | **Google** | Text-detection model; Google Sign-In; web fonts | Images submitted for text detection; authentication data if you use Google Sign-In |
 | **Cloudflare** | Bot protection (Turnstile) on public forms | Browser signals and IP address |
-| **[PAYMENT PROCESSOR]** | Payment and subscription processing | Billing details, which are collected and stored by the processor, not by us |
+| **Payment processor** | Payment and subscription processing, if paid plans become available | Billing details, which would be collected and stored by the processor, not by us |
 
 We will update this table when our providers change. Google Fonts are loaded from Google's servers
 when you visit Phormula, which means Google receives your IP address as part of that request.
@@ -210,7 +210,7 @@ reset your preferences.
 
 ## 8. International Data Transfers
 
-Phormula is operated from [COUNTRY], and our providers process data in the United States and other
+Phormula is operated from Canada, and our providers process data in the United States and other
 countries. If you are located in the EEA, the UK, or Switzerland, this means your personal
 information will be transferred outside your home jurisdiction to countries that may not provide the
 same level of data protection.
@@ -228,17 +228,17 @@ We keep personal information only as long as we need it:
 | --- | --- |
 | Account information | For as long as your account is active |
 | Study content (sets, cards, sections, folders) | For as long as your account is active, or until you delete it |
-| Waitlist email addresses | Until you unsubscribe, or until [PERIOD] after launch |
-| Email delivery logs | [PERIOD] from the date of sending |
+| Waitlist email addresses | Until you unsubscribe or the information is no longer needed for the waitlist purpose |
+| Email delivery logs | For as long as reasonably necessary to operate and protect our email service and comply with legal obligations |
 | Email suppression list | Retained indefinitely, because we need it to honour your unsubscribe |
-| Server and security logs | As retained by our infrastructure providers, typically [PERIOD] |
-| Support correspondence | [PERIOD] from the date the enquiry is closed |
+| Server and security logs | For as long as reasonably necessary for security, abuse prevention, fault diagnosis, and legal compliance |
+| Support correspondence | For as long as reasonably necessary to resolve the enquiry, maintain support history, and comply with legal obligations |
 
-When you delete your account, we delete your account information and study content within
-**[NUMBER] days**, except where we are required to retain something to comply with a legal
-obligation, resolve a dispute, or enforce our agreements. Backups are purged on a rolling
-[PERIOD] cycle. Your email address remains on our suppression list so that we continue to honour
-your unsubscribe.
+When you delete your account, we delete or de-identify your account information and study content as
+soon as reasonably practicable, except where we are required to retain something to comply with a
+legal obligation, resolve a dispute, or enforce our agreements. Residual copies may remain in backups
+until those backups are overwritten in the ordinary course. Your email address remains on our
+suppression list so that we continue to honour your unsubscribe.
 
 ## 10. Security
 
@@ -379,6 +379,4 @@ the revised policy.
 For any question, request, or complaint about this policy or your personal information:
 
 **Email:** support@phormula.co
-**Postal address:** [LEGAL ENTITY NAME], [REGISTERED ADDRESS]
-
-[IF APPLICABLE: EU/UK representative appointed under GDPR Article 27 — name and contact details.]
+**Postal address:** Aryan Maiti, 1324 Quinpool Ct, Mississauga, Canada

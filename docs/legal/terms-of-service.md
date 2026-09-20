@@ -1,11 +1,11 @@
 # Phormula Terms of Service
 
-**Last updated:** [DATE]
-**Effective:** [DATE]
+**Last updated:** September 20, 2026
+**Effective:** September 20, 2026
 
 ## 1. Agreement to These Terms
 
-These Terms of Service ("Terms") form a binding agreement between you and **[LEGAL ENTITY NAME]**
+These Terms of Service ("Terms") form a binding agreement between you and **Aryan Maiti**
 ("Phormula," "we," "us," or "our") governing your use of the Phormula application at
 [phormula.co](https://phormula.co) and any related services, features, and content (together, the
 "Service").
@@ -197,7 +197,7 @@ of any application you authorise.
 ## 9. Our Intellectual Property
 
 The Service — including its software, design, user interface, text, graphics, logos, and the
-"Phormula" name and marks — is owned by [LEGAL ENTITY NAME] and protected by intellectual property
+"Phormula" name and marks — is owned by Aryan Maiti and protected by intellectual property
 laws. Except for the limited licence below, these Terms grant you no rights in our intellectual
 property.
 
@@ -230,9 +230,6 @@ infringement. If you believe content on Phormula infringes your copyright, send 
 We will remove or disable access to infringing material and will terminate the accounts of repeat
 infringers in appropriate circumstances. If you believe your content was removed in error, you may
 send us a counter-notice at the same address.
-
-[IF INCORPORATED IN THE US: designate a DMCA agent and register with the US Copyright Office to
-preserve safe-harbour protection under 17 U.S.C. § 512.]
 
 ## 12. Suspension and Termination
 
@@ -279,8 +276,7 @@ To the fullest extent permitted by law:
   tort, negligence, strict liability, or any other theory, and whether or not we were advised of the
   possibility of such damages.
 - Our total aggregate liability arising out of or relating to these Terms or the Service will not
-  exceed the greater of **(a)** the amount you paid us in the twelve months preceding the event
-  giving rise to the claim, or **(b)** **[AMOUNT, e.g. USD 100]**.
+  exceed the amount you paid us in the twelve months preceding the event giving rise to the claim.
 
 These limitations apply even if a limited remedy fails of its essential purpose.
 
@@ -301,7 +297,7 @@ This section does not apply to consumers to the extent prohibited by applicable 
 
 ## 16. Governing Law and Disputes
 
-These Terms are governed by the laws of **[JURISDICTION]**, without regard to its conflict-of-laws
+These Terms are governed by the laws of **Ontario, Canada**, without regard to its conflict-of-laws
 rules.
 
 **Informal resolution first.** If you have a dispute with us, please contact **support@phormula.co**
@@ -309,12 +305,8 @@ first. Most concerns can be resolved quickly and informally, and we ask that you
 try before starting formal proceedings.
 
 **Forum.** Subject to the consumer provisions below, you and Phormula agree that any dispute not
-resolved informally will be brought exclusively in the courts of **[VENUE]**, and you consent to
-personal jurisdiction there.
-
-[OPTIONAL, US ONLY — arbitration clause with class-action waiver and 30-day opt-out. Decide with
-counsel whether to include one; it is standard in US consumer SaaS but unenforceable against
-consumers in the EEA and the UK, and it constrains your own options as much as your users'.]
+resolved informally will be brought exclusively in the courts located in **Ontario, Canada**, and you
+consent to personal jurisdiction there.
 
 **Consumers in the EEA and the UK.** Nothing in this section deprives you of the protection of the
 mandatory laws of your country of residence, or of your right to bring proceedings in the courts of
@@ -356,4 +348,4 @@ the Service. Send notices to us at support@phormula.co.
 ## 19. Contact
 
 **Email:** support@phormula.co
-**Postal address:** [LEGAL ENTITY NAME], [REGISTERED ADDRESS]
+**Postal address:** Aryan Maiti, 1324 Quinpool Ct, Mississauga, Canada
