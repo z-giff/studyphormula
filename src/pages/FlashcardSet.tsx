@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link, useSearchParams, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useStudyPosition } from "@/hooks/useStudyPosition";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Plus, ArrowLeft, Edit, Pencil } from "lucide-react";
@@ -46,6 +47,7 @@ interface FlashcardSet {
   title: string;
   description: string | null;
   color: string;
+  last_card_index: number | null;
 }
 
 const FlashcardSetPage = () => {
@@ -63,6 +65,8 @@ const FlashcardSetPage = () => {
   const [editingFlashcard, setEditingFlashcard] = useState<Flashcard | null>(null);
   const [copyingFlashcard, setCopyingFlashcard] = useState<{ id: string; setId: string } | null>(null);
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+  // Where this set was left off, so reopening it resumes on the same card
+  const saveStudyPosition = useStudyPosition(id);
 
   // Open bulk editor immediately if requested via router state or query param.
   // Done early (not gated on data fetch) so the user lands directly in the
@@ -363,6 +367,8 @@ const FlashcardSetPage = () => {
           <StackedFlashcardDeck
             flashcards={flashcards}
             setColor={set.color}
+            initialIndex={set.last_card_index ?? 0}
+            onIndexChange={saveStudyPosition}
             onEdit={(card) => {
               console.log("Edit clicked, card:", card);
               setEditingFlashcard(card);

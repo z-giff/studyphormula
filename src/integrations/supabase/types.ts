@@ -133,6 +133,7 @@ export type Database = {
           file_id: string | null
           id: string
           last_accessed_at: string | null
+          last_card_index: number
           title: string
           updated_at: string | null
           user_id: string
@@ -144,6 +145,7 @@ export type Database = {
           file_id?: string | null
           id?: string
           last_accessed_at?: string | null
+          last_card_index?: number
           title: string
           updated_at?: string | null
           user_id: string
@@ -155,6 +157,7 @@ export type Database = {
           file_id?: string | null
           id?: string
           last_accessed_at?: string | null
+          last_card_index?: number
           title?: string
           updated_at?: string | null
           user_id?: string

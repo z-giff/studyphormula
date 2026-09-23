@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Pencil, Trash2, Bookmark, Copy, Maximize2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, Trash2, Bookmark, Copy, Maximize2, RotateCcw } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { DrawingCanvasDisplay } from "@/components/DrawingCanvasDisplay";
 import { FlowchartCanvasDisplay } from "@/components/FlowchartCanvasDisplay";
@@ -29,7 +29,19 @@ interface StackedFlashcardDeckProps {
   onToggleBookmark: (flashcardId: string, currentStatus: boolean) => void;
   onCopy: (flashcardId: string) => void;
   isBookmarkSet?: boolean;
+  /** Card to open on, as an index into `flashcards`. Clamped to the deck. */
+  initialIndex?: number;
+  /** The index now showing, whenever the deck moves off the card it was on. */
+  onIndexChange?: (index: number) => void;
 }
+
+// Keep a card index inside the deck: a remembered position can outlive the
+// cards it pointed at, and a set that shrank should open on its last card
+// rather than on nothing at all.
+const clampCardIndex = (index: number, total: number): number => {
+  if (total < 1 || !Number.isFinite(index)) return 0;
+  return Math.min(Math.max(Math.trunc(index), 0), total - 1);
+};
 
 // Helper function to determine contrasting text color
 const getContrastColor = (hexColor: string): string => {
@@ -53,12 +65,29 @@ export const StackedFlashcardDeck = ({
   onToggleBookmark,
   onCopy,
   isBookmarkSet = false,
+  initialIndex = 0,
+  onIndexChange,
 }: StackedFlashcardDeckProps) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(() =>
+    clampCardIndex(initialIndex, flashcards.length)
+  );
   const [flippedCards, setFlippedCards] = useState<Set<number>>(new Set());
   const [expandedFlowchartData, setExpandedFlowchartData] = useState<{ nodes: any[]; edges: any[] } | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [animationDirection, setAnimationDirection] = useState<"next" | "prev" | null>(null);
+  const reportedIndex = useRef(initialIndex);
+
+  // Single place the deck reports where it is: Previous, Next and Restart all
+  // land here, as does a position that no longer exists because the set was
+  // trimmed — while the deck is open or before it was reopened.
+  useEffect(() => {
+    const inRange = clampCardIndex(currentIndex, flashcards.length);
+    if (inRange !== currentIndex) setCurrentIndex(inRange);
+    if (inRange !== reportedIndex.current) {
+      reportedIndex.current = inRange;
+      onIndexChange?.(inRange);
+    }
+  }, [currentIndex, flashcards.length, onIndexChange]);
 
   const handleFlip = (index: number) => {
     if (isAnimating) return;
@@ -105,6 +134,12 @@ export const StackedFlashcardDeck = ({
       setAnimationDirection(null);
       setIsAnimating(false);
     }, 400);
+  };
+
+  const handleRestart = () => {
+    if (isAnimating) return;
+    setFlippedCards(new Set());
+    setCurrentIndex(0);
   };
 
   const getStackedCards = () => {
@@ -284,18 +319,35 @@ export const StackedFlashcardDeck = ({
       </div>
 
       {/* Navigation controls */}
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="lg" onClick={handlePrevious}>
-          <ChevronLeft className="h-5 w-5 mr-1" />
-          Previous
-        </Button>
-        <span className="text-muted-foreground font-medium min-w-[80px] text-center">
-          {currentIndex + 1} / {flashcards.length}
-        </span>
-        <Button variant="outline" size="lg" onClick={handleNext}>
-          Next
-          <ChevronRight className="h-5 w-5 ml-1" />
-        </Button>
+      <div className="flex flex-col items-center gap-3">
+        <div className="flex items-center gap-4">
+          <Button variant="outline" size="lg" onClick={handlePrevious}>
+            <ChevronLeft className="h-5 w-5 mr-1" />
+            Previous
+          </Button>
+          <span className="text-muted-foreground font-medium min-w-[80px] text-center">
+            {currentIndex + 1} / {flashcards.length}
+          </span>
+          <Button variant="outline" size="lg" onClick={handleNext}>
+            Next
+            <ChevronRight className="h-5 w-5 ml-1" />
+          </Button>
+        </div>
+
+        {/* Back to the first card. Ghost weight keeps it under Previous/Next
+            rather than beside them, and there is nothing to restart from the
+            first card, so it only shows once the user has moved on. */}
+        {currentIndex > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground hover:text-foreground"
+            onClick={handleRestart}
+          >
+            <RotateCcw className="h-4 w-4 mr-1" />
+            Restart
+          </Button>
+        )}
       </div>
 
       {/* Action buttons for current card */}
