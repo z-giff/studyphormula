@@ -24,11 +24,13 @@ interface Flashcard {
 interface StackedFlashcardDeckProps {
   flashcards: Flashcard[];
   setColor: string;
-  onEdit: (flashcard: Flashcard) => void;
-  onDelete: (flashcardId: string) => void;
-  onToggleBookmark: (flashcardId: string, currentStatus: boolean) => void;
-  onCopy: (flashcardId: string) => void;
+  onEdit?: (flashcard: Flashcard) => void;
+  onDelete?: (flashcardId: string) => void;
+  onToggleBookmark?: (flashcardId: string, currentStatus: boolean) => void;
+  onCopy?: (flashcardId: string) => void;
   isBookmarkSet?: boolean;
+  /** Flip through only: no bookmark, edit, copy or delete (a set shared with you). */
+  readOnly?: boolean;
   /** Card to open on, as an index into `flashcards`. Clamped to the deck. */
   initialIndex?: number;
   /** The index now showing, whenever the deck moves off the card it was on. */
@@ -65,6 +67,7 @@ export const StackedFlashcardDeck = ({
   onToggleBookmark,
   onCopy,
   isBookmarkSet = false,
+  readOnly = false,
   initialIndex = 0,
   onIndexChange,
 }: StackedFlashcardDeckProps) => {
@@ -351,12 +354,12 @@ export const StackedFlashcardDeck = ({
       </div>
 
       {/* Action buttons for current card */}
-      {currentCard && (
+      {currentCard && !readOnly && (
         <div className="flex flex-wrap justify-center gap-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onToggleBookmark(currentCard.id, currentCard.is_bookmarked || false)}
+            onClick={() => onToggleBookmark?.(currentCard.id, currentCard.is_bookmarked || false)}
           >
             <Bookmark
               className={`h-4 w-4 mr-1 ${
@@ -367,15 +370,15 @@ export const StackedFlashcardDeck = ({
           </Button>
           {!isBookmarkSet && (
             <>
-              <Button variant="outline" size="sm" onClick={() => onEdit(currentCard)}>
+              <Button variant="outline" size="sm" onClick={() => onEdit?.(currentCard)}>
                 <Pencil className="h-4 w-4 mr-1" />
                 Edit
               </Button>
-              <Button variant="outline" size="sm" onClick={() => onCopy(currentCard.id)}>
+              <Button variant="outline" size="sm" onClick={() => onCopy?.(currentCard.id)}>
                 <Copy className="h-4 w-4 mr-1" />
                 Copy
               </Button>
-              <Button variant="outline" size="sm" onClick={() => onDelete(currentCard.id)}>
+              <Button variant="outline" size="sm" onClick={() => onDelete?.(currentCard.id)}>
                 <Trash2 className="h-4 w-4 mr-1" />
                 Delete
               </Button>

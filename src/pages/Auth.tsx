@@ -40,6 +40,8 @@ const Auth = () => {
   const { signIn, signUp, signInWithGoogle } = useAuth();
   const [searchParams] = useSearchParams();
   const nextParam = searchParams.get("next") ?? undefined;
+  // Invite emails for shared flashcards link here with the invited address
+  const emailParam = searchParams.get("email") ?? "";
   // The layout the visitor sees is the one they chose: “Sign in” links carry
   // ?mode=signin, “Start studying” links carry ?mode=signup.
   const modeParam = searchParams.get("mode") === "signup" ? "signup" : "login";
@@ -74,13 +76,13 @@ const Auth = () => {
 
 
   const [loginData, setLoginData] = useState({
-    email: "",
+    email: emailParam,
     password: "",
   });
 
   const [signupData, setSignupData] = useState({
     fullName: "",
-    email: "",
+    email: emailParam,
     password: "",
     confirmPassword: "",
   });
