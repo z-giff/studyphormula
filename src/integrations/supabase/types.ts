@@ -172,6 +172,63 @@ export type Database = {
           },
         ]
       }
+      flashcard_shares: {
+        Row: {
+          added_at: string | null
+          added_item_id: string | null
+          created_at: string
+          dismissed_at: string | null
+          file_id: string | null
+          id: string
+          recipient_email: string
+          recipient_id: string | null
+          seen_at: string | null
+          sender_id: string
+          set_id: string | null
+        }
+        Insert: {
+          added_at?: string | null
+          added_item_id?: string | null
+          created_at?: string
+          dismissed_at?: string | null
+          file_id?: string | null
+          id?: string
+          recipient_email: string
+          recipient_id?: string | null
+          seen_at?: string | null
+          sender_id: string
+          set_id?: string | null
+        }
+        Update: {
+          added_at?: string | null
+          added_item_id?: string | null
+          created_at?: string
+          dismissed_at?: string | null
+          file_id?: string | null
+          id?: string
+          recipient_email?: string
+          recipient_id?: string | null
+          seen_at?: string | null
+          sender_id?: string
+          set_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "flashcard_shares_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "flashcard_files"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "flashcard_shares_set_id_fkey"
+            columns: ["set_id"]
+            isOneToOne: false
+            referencedRelation: "flashcard_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       flashcards: {
         Row: {
           color: string | null
@@ -338,15 +395,51 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_shared_flashcards: { Args: { p_share_id: string }; Returns: Json }
+      count_unseen_shared_flashcards: { Args: never; Returns: number }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
+      }
+      dismiss_shared_flashcards: {
+        Args: { p_share_id: string }
+        Returns: undefined
       }
       email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_shared_flashcard_cards: {
+        Args: { p_set_id: string; p_share_id: string }
+        Returns: {
+          color: string
+          definition: string
+          flashcard_type: string
+          id: string
+          image_url: string
+          interactive_data: Json
+          position: number
+          section_id: string
+          term: string
+        }[]
+      }
+      get_shared_flashcards: { Args: { p_share_id: string }; Returns: Json }
+      list_shared_flashcards: {
+        Args: never
+        Returns: {
+          added_item_id: string
+          card_count: number
+          created_at: string
+          id: string
+          item_type: string
+          seen_at: string
+          sender_name: string
+          set_count: number
+          title: string
+        }[]
+      }
+      mark_shared_flashcards_seen: { Args: never; Returns: undefined }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -362,6 +455,13 @@ export type Database = {
           message: Json
           msg_id: number
           read_ct: number
+        }[]
+      }
+      share_flashcards: {
+        Args: { p_emails: string[]; p_item_id: string; p_item_type: string }
+        Returns: {
+          email: string
+          status: string
         }[]
       }
       waitlist_count: { Args: never; Returns: number }

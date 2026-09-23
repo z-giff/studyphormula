@@ -23,6 +23,21 @@ function redactEmail(email: string | null | undefined): string {
   return `${localPart[0]}***@${domain}`
 }
 
+// The role claim of the caller's JWT. The gateway has already verified the
+// signature (verify_jwt = true), so the claim can be trusted.
+function callerRole(req: Request): string | null {
+  const token = req.headers.get('Authorization')?.replace(/^Bearer\s+/i, '')
+  const payload = token?.split('.')[1]
+  if (!payload) return null
+  try {
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=')
+    return JSON.parse(atob(padded)).role ?? null
+  } catch {
+    return null
+  }
+}
+
 // Generate a cryptographically random 32-byte hex token
 function generateToken(): string {
   const bytes = new Uint8Array(32)
@@ -102,6 +117,16 @@ Deno.serve(async (req) => {
       }),
       {
         status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    )
+  }
+
+  if (template.serviceRoleOnly && callerRole(req) !== 'service_role') {
+    return new Response(
+      JSON.stringify({ error: `Template '${templateName}' can only be sent by the server` }),
+      {
+        status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )

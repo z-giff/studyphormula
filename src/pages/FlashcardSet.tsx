@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useStudyPosition } from "@/hooks/useStudyPosition";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft, Edit, Pencil } from "lucide-react";
+import { Plus, ArrowLeft, Edit, Pencil, Share2 } from "lucide-react";
 import { MemorizeIcon, SwipeIcon, QuizIcon } from "@/components/StudyModeIcons";
 import { toast } from "sonner";
 import { CreateFlashcardDialog } from "@/components/CreateFlashcardDialog";
@@ -17,6 +17,7 @@ import { StackedFlashcardDeck } from "@/components/StackedFlashcardDeck";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import LogoOrb from "@/components/LogoOrb";
 import { RenameSetDialog } from "@/components/RenameSetDialog";
+import { ShareDialog } from "@/components/ShareDialog";
 
 const PRESET_COLORS = [
   "#000000", // Black
@@ -65,6 +66,7 @@ const FlashcardSetPage = () => {
   const [editingFlashcard, setEditingFlashcard] = useState<Flashcard | null>(null);
   const [copyingFlashcard, setCopyingFlashcard] = useState<{ id: string; setId: string } | null>(null);
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   // Where this set was left off, so reopening it resumes on the same card
   const saveStudyPosition = useStudyPosition(id);
 
@@ -349,6 +351,12 @@ const FlashcardSetPage = () => {
           <Button variant="outline" onClick={() => setIsImportDialogOpen(true)}>
             Import Flashcards
           </Button>
+          {flashcards.length > 0 && (
+            <Button variant="outline" onClick={() => setIsShareDialogOpen(true)}>
+              <Share2 className="h-4 w-4 mr-2" />
+              Share
+            </Button>
+          )}
         </div>
 
         {flashcards.length === 0 ? (
@@ -409,6 +417,14 @@ const FlashcardSetPage = () => {
         setId={id!}
         currentTitle={set.title}
         onSuccess={fetchSetData}
+      />
+
+      <ShareDialog
+        open={isShareDialogOpen}
+        onOpenChange={setIsShareDialogOpen}
+        itemType="set"
+        itemId={id!}
+        itemTitle={set.title}
       />
 
       {copyingFlashcard && (

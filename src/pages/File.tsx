@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import LogoOrb from "@/components/LogoOrb";
-import { ArrowLeft, BookOpen, Folder } from "lucide-react";
+import { ArrowLeft, BookOpen, Folder, Share2 } from "lucide-react";
+import { ShareDialog } from "@/components/ShareDialog";
 
 interface FlashcardSet {
   id: string;
@@ -31,6 +32,7 @@ export default function FilePage() {
   const [fileName, setFileName] = useState<string>("");
   const [sets, setSets] = useState<FlashcardSet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
@@ -129,9 +131,17 @@ export default function FilePage() {
             </Button>
           </Link>
 
-          <div className="flex items-center gap-3">
-            <Folder className="h-6 w-6 text-muted-foreground" />
-            <h1 className="font-display text-3xl font-medium tracking-tight text-foreground">{fileName}</h1>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Folder className="h-6 w-6 text-muted-foreground" />
+              <h1 className="font-display text-3xl font-medium tracking-tight text-foreground">{fileName}</h1>
+            </div>
+            {sets.length > 0 && (
+              <Button variant="outline" onClick={() => setIsShareDialogOpen(true)}>
+                <Share2 className="h-4 w-4 mr-2" />
+                Share file
+              </Button>
+            )}
           </div>
           <p className="text-muted-foreground mt-2">All sets in this file</p>
         </div>
@@ -168,6 +178,14 @@ export default function FilePage() {
           </div>
         )}
       </main>
+
+      <ShareDialog
+        open={isShareDialogOpen}
+        onOpenChange={setIsShareDialogOpen}
+        itemType="file"
+        itemId={id!}
+        itemTitle={fileName}
+      />
     </div>
   );
 }

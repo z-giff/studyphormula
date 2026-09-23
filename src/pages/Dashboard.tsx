@@ -4,7 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, BookOpen, User, MoreHorizontal, Trash2, Folder, ArrowRightLeft, Bookmark, Pencil } from "lucide-react";
+import { Plus, BookOpen, User, MoreHorizontal, Trash2, Folder, ArrowRightLeft, Bookmark, Pencil, Inbox } from "lucide-react";
 import { toast } from "sonner";
 import { CreateSetDialog } from "@/components/CreateSetDialog";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -42,6 +42,8 @@ const Dashboard = () => {
   const [sets, setSets] = useState<FlashcardSet[]>([]);
   const [files, setFiles] = useState<FlashcardFile[]>([]);
   const [bookmarkedCount, setBookmarkedCount] = useState<number>(0);
+  // Shares nobody has looked at yet: drives the red dot on Shared flashcards
+  const [unseenSharedCount, setUnseenSharedCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCreateFileDialogOpen, setIsCreateFileDialogOpen] = useState(false);
@@ -61,7 +63,7 @@ const Dashboard = () => {
   }, [user, loading, navigate]);
   useEffect(() => {
     if (user) {
-      void Promise.all([fetchSets(), fetchFiles(), fetchBookmarkedCount()]);
+      void Promise.all([fetchSets(), fetchFiles(), fetchBookmarkedCount(), fetchUnseenSharedCount()]);
     }
   }, [user]);
 
@@ -91,6 +93,15 @@ const Dashboard = () => {
     } catch (error: any) {
       console.error("Failed to fetch bookmarked count:", error);
     }
+  };
+
+  const fetchUnseenSharedCount = async () => {
+    const { data, error } = await supabase.rpc("count_unseen_shared_flashcards");
+    if (error) {
+      console.error("Failed to fetch shared flashcards:", error);
+      return;
+    }
+    setUnseenSharedCount(data ?? 0);
   };
 
   const fetchSets = async () => {
@@ -245,6 +256,22 @@ const Dashboard = () => {
           <LogoOrb size="md" showWordmark={true} linkTo="/" />
           <div className="flex items-center gap-2">
             <ThemeToggle />
+            <Button asChild variant="ghost" size="sm" className="relative text-muted-foreground hover:text-foreground">
+              <Link
+                to="/shared"
+                onClick={() => setUnseenSharedCount(0)}
+                aria-label={unseenSharedCount > 0 ? `Shared flashcards, ${unseenSharedCount} new` : "Shared flashcards"}
+              >
+                <Inbox className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Shared flashcards</span>
+                {unseenSharedCount > 0 && (
+                  <span
+                    aria-hidden
+                    className="absolute right-0.5 top-0.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-background"
+                  />
+                )}
+              </Link>
+            </Button>
             <ProfileSheet>
               <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
                 <User className="h-4 w-4 mr-2" />

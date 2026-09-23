@@ -15,6 +15,8 @@ import StudyMode from "./pages/StudyMode";
 import QuizMode from "./pages/QuizMode";
 import FilePage from "./pages/File";
 import BookmarksSet from "./pages/BookmarksSet";
+import SharedFlashcards from "./pages/SharedFlashcards";
+import SharedItemPage from "./pages/SharedItem";
 import NotFound from "./pages/NotFound";
  import SwipeStudy from "./pages/SwipeStudy";
 import OAuthConsent from "./pages/OAuthConsent";
@@ -39,6 +41,8 @@ const App = () => (
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/file/:id" element={<FilePage />} />
                 <Route path="/set/bookmarks" element={<BookmarksSet />} />
+                <Route path="/shared" element={<SharedFlashcards />} />
+                <Route path="/shared/:shareId" element={<SharedItemPage />} />
                 <Route path="/set/:id" element={<FlashcardSetPage />} />
                 <Route path="/study/:id" element={<StudyMode />} />
                 <Route path="/quiz/:id" element={<QuizMode />} />

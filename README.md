@@ -42,6 +42,12 @@ sketch — and the app turns your own notes, slides, and PDFs into study sets fo
 **Organisation** — sets live in files, cards can be copied or moved between sets,
 and bookmarks collect into a set of their own.
 
+**Sharing** — share a set or a whole file with up to 25 people at once by email.
+They find it under **Shared flashcards** on the dashboard (a red dot marks anything
+new), can flip through it read-only, and can add their own copy to their dashboard.
+Someone without an account gets an invite email, and the share waits for them until
+they sign up with that address.
+
 ## Tech stack
 
 - **Vite** + **React 18** + **TypeScript**
