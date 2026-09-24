@@ -6,4 +6,5 @@
 
 ## Open
 - Email-sending update: blocked — welcome + flashcard-share emails are sent from DB triggers via legacy `send-transactional-email`. Waiting on Lovable review or user retry.
-- Wire Stripe checkout/webhook edge functions to write into the new `subscriptions` table (needs user go-ahead).
+
+- Wire Stripe checkout/webhook into `subscriptions` (deployed)
