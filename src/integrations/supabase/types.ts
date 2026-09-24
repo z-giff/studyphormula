@@ -351,6 +351,7 @@ export type Database = {
           cancel_at: string | null
           created_at: string
           current_period_end: string | null
+          has_payment_method: boolean
           price_id: string | null
           status: string | null
           stripe_customer_id: string
@@ -363,6 +364,7 @@ export type Database = {
           cancel_at?: string | null
           created_at?: string
           current_period_end?: string | null
+          has_payment_method?: boolean
           price_id?: string | null
           status?: string | null
           stripe_customer_id: string
@@ -375,6 +377,7 @@ export type Database = {
           cancel_at?: string | null
           created_at?: string
           current_period_end?: string | null
+          has_payment_method?: boolean
           price_id?: string | null
           status?: string | null
           stripe_customer_id?: string
@@ -456,6 +459,7 @@ export type Database = {
           cancel_at: string
           current_period_end: string
           has_billing_account: boolean
+          has_payment_method: boolean
           is_premium: boolean
           status: string
         }[]

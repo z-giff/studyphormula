@@ -55,6 +55,8 @@ interface UpgradeDialogProps {
   returnPath: string;
   isPremium: boolean;
   hasBillingAccount: boolean;
+  /** The user has never subscribed, so a free trial is theirs if one is on offer. */
+  trialAvailable: boolean;
   /** Checkout found a subscription we hadn't heard about yet. */
   onAlreadyPremium: () => void;
 }
@@ -66,9 +68,11 @@ export function UpgradeDialog({
   returnPath,
   isPremium,
   hasBillingAccount,
+  trialAvailable,
   onAlreadyPremium,
 }: UpgradeDialogProps) {
   const [plans, setPlans] = useState<PricingPlan[] | null>(null);
+  const [trialDays, setTrialDays] = useState(0);
   const [pricingError, setPricingError] = useState<BillingError | null>(null);
   const [selected, setSelected] = useState<BillingInterval>("year");
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -76,10 +80,13 @@ export function UpgradeDialog({
   const loadPricing = useCallback(() => {
     setPricingError(null);
     fetchPricing()
-      .then((next) => {
-        setPlans(next);
+      .then((pricing) => {
+        setPlans(pricing.plans);
+        setTrialDays(pricing.trialDays);
         // Start on the yearly plan when there is one
-        if (!next.some((p) => p.interval === "year") && next[0]) setSelected(next[0].interval);
+        if (!pricing.plans.some((p) => p.interval === "year") && pricing.plans[0]) {
+          setSelected(pricing.plans[0].interval);
+        }
       })
       .catch((error) => setPricingError(error instanceof BillingError ? error : new BillingError(String(error))));
   }, []);
@@ -122,6 +129,16 @@ export function UpgradeDialog({
 
   const saving = plans ? yearlySaving(plans) : null;
   const notForSale = pricingError?.code === "not_configured";
+  const offersTrial = !isPremium && trialAvailable && trialDays > 0;
+
+  const lead = feature ? FEATURE_LEADS[feature] : "Study the way you think, with every card type and study mode.";
+  const description = isPremium
+    ? "Everything below is unlocked on your account."
+    : offersTrial
+      ? `${lead} Try it free for ${trialDays} days, no card needed.`
+      : feature
+        ? `${lead} Here's everything it unlocks.`
+        : lead;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -137,11 +154,7 @@ export function UpgradeDialog({
             {isPremium ? "You have Phormula Premium" : "Phormula Premium"}
           </DialogTitle>
           <DialogDescription className="text-center text-sm text-muted-foreground">
-            {isPremium
-              ? "Everything below is unlocked on your account."
-              : feature
-                ? `${FEATURE_LEADS[feature]} Here's everything it unlocks.`
-                : "Study the way you think, with every card type and study mode."}
+            {description}
           </DialogDescription>
         </DialogHeader>
 
@@ -215,7 +228,7 @@ export function UpgradeDialog({
                           {PLAN_NAMES[plan.interval]}
                         </span>
                         <span className="text-2xl font-semibold">
-                          {plan.amount === null ? "—" : formatPrice(plan.amount, plan.currency)}
+                          {plan.amount === null ? "See checkout" : formatPrice(plan.amount, plan.currency)}
                         </span>
                         <span className="text-xs text-muted-foreground">per {plan.interval}</span>
                         {plan.interval === "year" && saving && (
@@ -239,11 +252,13 @@ export function UpgradeDialog({
                     disabled={!plans || isRedirecting}
                   >
                     {isRedirecting && <Loader2 className="animate-spin" />}
-                    Continue to checkout
+                    {offersTrial ? `Start ${trialDays}-day free trial` : "Continue to checkout"}
                   </Button>
                   <p className="text-center text-xs leading-relaxed text-muted-foreground">
-                    Renews automatically until you cancel. Cancel anytime from your profile. Payment is handled
-                    securely by Stripe. By subscribing you agree to the{" "}
+                    {offersTrial
+                      ? `Free for ${trialDays} days, no card needed. To keep Premium after that, add a card from your profile; it then renews at the price above until you cancel.`
+                      : "Renews automatically until you cancel. Cancel anytime from your profile."}{" "}
+                    Payment is handled securely by Stripe. By continuing you agree to the{" "}
                     <Link to="/terms" className="underline underline-offset-2 hover:text-foreground" target="_blank">
                       Terms of Service
                     </Link>

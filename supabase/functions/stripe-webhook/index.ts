@@ -36,6 +36,9 @@ const SYNC_EVENTS = new Set([
   'invoice.paid',
   'invoice.payment_failed',
   'invoice.payment_action_required',
+  // A card added during a free trial, which decides whether the trial converts
+  'customer.updated',
+  'payment_method.attached',
 ])
 
 function json(body: Record<string, unknown>, status = 200): Response {
@@ -45,9 +48,15 @@ function json(body: Record<string, unknown>, status = 200): Response {
   })
 }
 
-// Checkout sessions, subscriptions and invoices all name their customer
+// Checkout sessions, subscriptions, invoices and payment methods all name
+// their customer; a customer event is about the customer itself
 function customerOf(event: Stripe.Event): string | null {
-  const object = event.data.object as { customer?: string | { id: string } | null }
+  const object = event.data.object as {
+    object?: string
+    id?: string
+    customer?: string | { id: string } | null
+  }
+  if (object.object === 'customer') return object.id ?? null
   const customer = object.customer
   return typeof customer === 'string' ? customer : customer?.id ?? null
 }

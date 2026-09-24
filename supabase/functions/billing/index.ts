@@ -2,7 +2,7 @@
 //
 //   pricing   the Premium prices, read live from Stripe for the upgrade dialog
 //   checkout  a Stripe Checkout page to subscribe on (monthly or yearly)
-//   portal    the Stripe Customer Portal: cancel, change card, invoices
+//   portal    the Stripe Customer Portal: cancel, add or change a card, invoices
 //   sync      re-read the caller's subscription from Stripe right now, for the
 //             moment they land back from Checkout before the webhook arrives
 //
@@ -11,6 +11,7 @@
 //   STRIPE_PRICE_MONTHLY   price_... for the monthly plan
 //   STRIPE_PRICE_YEARLY    price_... for the yearly plan (optional)
 //   SITE_URL               where Stripe sends people back to (default https://phormula.co)
+//   STRIPE_TRIAL_DAYS      free trial for first-time subscribers, no card needed (default 7, 0 = none)
 //   STRIPE_AUTOMATIC_TAX   "true" to have Stripe Tax add sales tax / VAT (optional)
 
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors'
@@ -45,6 +46,12 @@ function priceIds(): Partial<Record<Interval, string>> {
   const year = Deno.env.get('STRIPE_PRICE_YEARLY')
   if (!month && !year) throw new ConfigError('STRIPE_PRICE_MONTHLY is not set')
   return { ...(month && { month }), ...(year && { year }) }
+}
+
+// Stripe allows trials of up to two years
+function trialDays(): number {
+  const days = Number.parseInt(Deno.env.get('STRIPE_TRIAL_DAYS') ?? '7', 10)
+  return Number.isFinite(days) ? Math.min(Math.max(days, 0), 730) : 7
 }
 
 // ---------------------------------------------------------------------------
@@ -161,7 +168,7 @@ const PRICING_TTL_MS = 5 * 60 * 1000
 
 async function pricing() {
   if (pricingCache && Date.now() - pricingCache.at < PRICING_TTL_MS) {
-    return { plans: pricingCache.plans }
+    return { plans: pricingCache.plans, trialDays: trialDays() }
   }
   const plans = await Promise.all(
     Object.entries(priceIds()).map(async ([interval, id]) => {
@@ -170,7 +177,7 @@ async function pricing() {
     }),
   )
   pricingCache = { at: Date.now(), plans }
-  return { plans }
+  return { plans, trialDays: trialDays() }
 }
 
 async function checkout(admin: Admin, req: Request, caller: Caller, body: Record<string, unknown>) {
@@ -183,11 +190,15 @@ async function checkout(admin: Admin, req: Request, caller: Caller, body: Record
     throw new HttpError(409, 'You already have Phormula Premium', 'already_premium')
   }
   const customer = await getOrCreateCustomer(admin, caller)
-  const current = await syncCustomer(admin, customer, caller.id)
+  const { fields: current, hadSubscription } = await syncCustomer(admin, customer, caller.id)
   if (current.status && LIVE_STATUSES.has(current.status)) {
     throw new HttpError(409, 'You already have Phormula Premium', 'already_premium')
   }
 
+  // One free trial per account, and no card needed for it. A trial that ends
+  // without a card is cancelled rather than charged; upgrading again then
+  // goes straight to a paid subscription.
+  const trial = hadSubscription ? 0 : trialDays()
   const automaticTax = Deno.env.get('STRIPE_AUTOMATIC_TAX') === 'true'
   const session = await stripe().checkout.sessions.create({
     mode: 'subscription',
@@ -195,7 +206,14 @@ async function checkout(admin: Admin, req: Request, caller: Caller, body: Record
     client_reference_id: caller.id,
     line_items: [{ price, quantity: 1 }],
     allow_promotion_codes: true,
-    subscription_data: { metadata: { supabase_user_id: caller.id } },
+    subscription_data: {
+      metadata: { supabase_user_id: caller.id },
+      ...(trial > 0 && {
+        trial_period_days: trial,
+        trial_settings: { end_behavior: { missing_payment_method: 'cancel' } },
+      }),
+    },
+    ...(trial > 0 && { payment_method_collection: 'if_required' }),
     success_url: returnUrl(req, body.returnPath, { checkout: 'success' }),
     cancel_url: returnUrl(req, body.returnPath, { checkout: 'cancelled' }),
     ...(automaticTax && {
@@ -212,7 +230,8 @@ async function portal(admin: Admin, req: Request, caller: Caller, body: Record<s
   if (!customer) throw new HttpError(404, 'There is no billing account to manage yet', 'no_billing_account')
   const session = await stripe().billingPortal.sessions.create({
     customer,
-    return_url: returnUrl(req, body.returnPath),
+    // The app re-reads the subscription when it sees this, as it does after Checkout
+    return_url: returnUrl(req, body.returnPath, { billing: 'portal' }),
   })
   return { url: session.url }
 }

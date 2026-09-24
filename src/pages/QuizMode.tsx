@@ -69,14 +69,19 @@ const QuizMode = () => {
     try {
       const [setResult, flashcardsResult] = await Promise.all([
         supabase.from("flashcard_sets").select("*").eq("id", id).single(),
-        supabase.from("flashcards").select("id, term, definition").eq("set_id", id).order("position", { ascending: true }),
+        supabase.from("flashcards").select("id, term, definition, flashcard_type").eq("set_id", id).order("position", { ascending: true }),
       ]);
 
       if (setResult.error) throw setResult.error;
       if (flashcardsResult.error) throw flashcardsResult.error;
 
       setSet(setResult.data);
-      setFlashcards(flashcardsResult.data || []);
+      // Questions come from standard cards only. Interactive, flowchart and
+      // drawing cards keep their content on the board, so their definition is a
+      // placeholder ("Flowchart diagram") that would turn up as an answer choice.
+      setFlashcards(
+        (flashcardsResult.data || []).filter((card) => (card.flashcard_type ?? "standard") === "standard"),
+      );
     } catch (error: any) {
       toast.error(error.message || "Failed to load quiz data");
       navigate("/dashboard");
@@ -175,7 +180,7 @@ const QuizMode = () => {
         <main className="container mx-auto px-4 py-12 text-center">
           <h1 className="text-2xl font-bold mb-4">Not Enough Flashcards</h1>
           <p className="text-muted-foreground mb-6">
-            You need at least 4 flashcards to generate a multiple choice quiz.
+            The MC Quiz is made from standard term-and-definition cards, and it needs at least 4 of them.
           </p>
           <Link to={`/set/${id}`}>
             <Button>

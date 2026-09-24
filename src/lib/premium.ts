@@ -44,6 +44,8 @@ export interface PremiumStatus {
   cancel_at: string | null;
   /** There is a Stripe customer to manage (not so for Premium granted by hand). */
   has_billing_account: boolean;
+  /** Stripe has a card to charge. Free trials start without one. */
+  has_payment_method: boolean;
 }
 
 export interface PricingPlan {
@@ -52,6 +54,15 @@ export interface PricingPlan {
   amount: number | null;
   currency: string;
 }
+
+export interface Pricing {
+  plans: PricingPlan[];
+  /** Length of the free trial for someone who has never subscribed. 0 when there is none. */
+  trialDays: number;
+}
+
+/** Someone who has never subscribed still has their free trial. */
+export const hasTrialAvailable = (status: PremiumStatus | null): boolean => !status?.status;
 
 /** A save the database refused because the card type needs Premium. */
 export const isPremiumRequiredError = (error: unknown): boolean =>
@@ -85,8 +96,10 @@ async function invokeBilling<T>(body: Record<string, unknown>): Promise<T> {
   throw new BillingError("Something went wrong. Please try again.");
 }
 
-export const fetchPricing = async (): Promise<PricingPlan[]> =>
-  (await invokeBilling<{ plans: PricingPlan[] }>({ action: "pricing" })).plans;
+export const fetchPricing = async (): Promise<Pricing> => {
+  const { plans, trialDays } = await invokeBilling<Partial<Pricing>>({ action: "pricing" });
+  return { plans: plans ?? [], trialDays: trialDays ?? 0 };
+};
 
 /** Go to Stripe Checkout. It comes back to `returnPath` with ?checkout=success or ?checkout=cancelled. */
 export async function startCheckout(interval: BillingInterval, returnPath: string): Promise<void> {
@@ -116,7 +129,7 @@ export function formatPrice(amount: number, currency: string): string {
   }).format(value);
 }
 
-const formatDate = (iso: string) =>
+export const formatPremiumDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
 /** One line about where the user's Premium stands, for the profile. */
@@ -131,14 +144,18 @@ export function describePremiumStatus(status: PremiumStatus): string {
     return "Your last payment didn't go through. Update your card to keep Premium.";
   }
   if (status.cancel_at) {
-    return `Premium until ${formatDate(status.cancel_at)}. It won't renew.`;
+    return `Premium until ${formatPremiumDate(status.cancel_at)}. It won't renew.`;
   }
   if (!status.current_period_end) {
     return "Premium with no end date.";
   }
-  if (status.status === "trialing") {
-    return `Free trial until ${formatDate(status.current_period_end)}.`;
-  }
   const billed = status.billing_interval === "year" ? "yearly" : "monthly";
-  return `Renews ${formatDate(status.current_period_end)}, billed ${billed}.`;
+  if (status.status === "trialing") {
+    const trialEnd = formatPremiumDate(status.current_period_end);
+    // A trial with no card is cancelled when it ends, not charged
+    return status.has_payment_method
+      ? `Free trial until ${trialEnd}, then billed ${billed}.`
+      : `Free trial until ${trialEnd}. Add a card to keep Premium after that.`;
+  }
+  return `Renews ${formatPremiumDate(status.current_period_end)}, billed ${billed}.`;
 }

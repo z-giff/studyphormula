@@ -1,6 +1,7 @@
 # Phormula Premium — Payments Setup & Operations
 
-Premium is a Stripe subscription (monthly and/or yearly). Payment happens on
+Premium is a Stripe subscription (monthly and/or yearly). First-time
+subscribers get a **7-day free trial with no card needed**. Payment happens on
 Stripe's own pages: **Stripe Checkout** takes the money and the **Stripe
 Customer Portal** handles cancelling, card changes and invoices. Phormula
 never sees card details.
@@ -13,13 +14,32 @@ never sees card details.
 | **Interactive cards** (make, edit, study, text detection on the image) | — | ✓ | UI, database trigger, `detect-text` |
 | **Flowchart cards** (make, edit, study) | — | ✓ | UI, database trigger |
 | **Drawing cards** (make, edit, study) | — | ✓ | UI, database trigger |
-| **MC Quiz** | — | ✓ | UI |
+| **MC Quiz** (built from standard cards; needs at least 4) | — | ✓ | UI |
 
 Someone without Premium who already has premium cards (made while subscribed,
 or in a set shared with them) keeps them. The card's term stays readable,
 but the card itself shows **Unlock with Premium**. They can still bookmark,
 reorder, move or delete those cards. Memorize and Swipe Study leave them out of
 the session with a note saying how many were skipped.
+
+## The free trial
+
+- **Who gets it:** anyone who has never had a subscription on their account.
+  Checkout checks this against Stripe, so an account gets one trial, ever.
+- **No card at checkout:** Stripe skips the card form. Premium unlocks straight
+  away, and the profile reads *"Free trial until Oct 1. Add a card to keep
+  Premium after that"*, with an **Add a card** button (the Customer Portal).
+- **When it ends:** with a card on file, Stripe charges it and Premium carries
+  on. With no card, Stripe **cancels** the subscription and Premium stops. If
+  they upgrade again, they pay straight away; there's no second trial.
+- **Length:** `STRIPE_TRIAL_DAYS` (default `7`; `0` turns trials off).
+- **Worth knowing:** because no card is needed, someone can make a new account
+  (new email) for another trial. Requiring a card is the usual way to stop
+  that; it's a one-line change if you'd rather.
+
+Turn on Stripe's trial reminder email so people are nudged to add a card before
+the trial ends. It's under **Settings → Billing** (look for the free-trial
+reminder / trial messaging settings).
 
 ## How the pieces fit
 
@@ -46,8 +66,8 @@ Stripe ──► stripe-webhook ──► public.subscriptions ◄── billing
 The webhook never trusts the event's own copy of the subscription. It takes
 the customer ID and asks Stripe for the current state, so late, duplicate or
 out-of-order events all end in the same, correct answer. The app also syncs
-straight from Stripe when someone lands back from Checkout, so they never wait
-on the webhook.
+straight from Stripe when someone lands back from Checkout or the Customer
+Portal, so they never wait on the webhook.
 
 ## Setup (do all of this in Stripe **test mode** first)
 
@@ -66,7 +86,8 @@ on the webhook.
 
 - **Cancel subscriptions**, set to *At end of billing period*. The Terms of
   Service promise access until the period ends.
-- **Update payment methods**
+- **Update payment methods**. Trial users add their card here, so this one is
+  essential.
 - **View invoice history**
 - *Optional:* **Switch plans**, with both Premium prices added, so people can
   move between monthly and yearly
@@ -112,6 +133,10 @@ Webhooks → Create an event destination*).
   - `invoice.paid`
   - `invoice.payment_failed`
   - `invoice.payment_action_required`
+  - `customer.updated`
+  - `payment_method.attached`
+
+The last two tell the app when a trial user adds a card.
 
 After saving, reveal the endpoint's **Signing secret** (`whsec_…`).
 
@@ -128,6 +153,7 @@ everything there ships to the browser.
 | `STRIPE_PRICE_YEARLY` | The yearly price ID (`price_…`) | No |
 | `STRIPE_WEBHOOK_SECRET` | The endpoint's signing secret (`whsec_…`) | Yes |
 | `SITE_URL` | Where Stripe sends people back to. Defaults to `https://phormula.co` | No |
+| `STRIPE_TRIAL_DAYS` | Free trial length for first-time subscribers. Defaults to `7`; `0` turns trials off | No |
 | `STRIPE_AUTOMATIC_TAX` | `true` to have Stripe Tax add sales tax/VAT. Only after Stripe Tax is set up, or Checkout fails | No |
 
 *Tighter option:* instead of the full secret key, create a **restricted key**
@@ -155,12 +181,19 @@ supabase functions deploy detect-text
 Sign in to the app (use `?dev=<key>` while the waitlist gate is up), open a
 set, and press **MC Quiz**.
 
-1. The upgrade dialog shows your prices. **Continue to checkout.**
-2. Pay with `4242 4242 4242 4242`, any future expiry date, and any CVC.
-3. You land back on the quiz with *"Welcome to Phormula Premium"*, unlocked.
+1. The upgrade dialog shows your prices and offers the trial. **Start 7-day
+   free trial.**
+2. Stripe asks for no card. Confirm.
+3. You land back on the quiz with *"Your free trial has started"*, unlocked.
 4. Stripe → Webhooks → your endpoint: the deliveries show `200`.
-5. Profile → **Manage billing** → cancel. Profile now reads *"Premium until …
+5. Profile → **Add a card** → add `4242 4242 4242 4242`, any future expiry and
+   any CVC. Back in the app, the profile now reads *"Free trial until …, then
+   billed monthly."*
+6. Profile → **Manage billing** → cancel. The profile reads *"Premium until …
    It won't renew."*
+
+To test paying straight away, use an account that has subscribed before (it
+gets no second trial), or set `STRIPE_TRIAL_DAYS` to `0` for a moment.
 
 `4000 0025 0000 3155` tests a card that asks for 3-D Secure authentication.
 `4000 0000 0000 0002` tests a declined card: Checkout shows the error and
@@ -227,6 +260,6 @@ where stripe_customer_id like 'manual:%'
   Existing subscribers stay on their old price unless you move them in Stripe.
   The Terms promise 30 days' notice before a price change reaches them.
 - **Missed webhooks:** Stripe retries failed deliveries for three days. The app
-  also re-syncs from Stripe when someone returns from Checkout, and whenever
-  a stored subscription looks renewed-but-stale. Three days after a paid period
+  also re-syncs from Stripe when someone returns from Checkout or the Customer
+  Portal, and whenever a stored subscription looks renewed-but-stale. Three days after a paid period
   ends with no word from Stripe, access stops until the next sync.

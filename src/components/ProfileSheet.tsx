@@ -270,7 +270,11 @@ export const ProfileSheet = ({ children }: ProfileSheetProps) => {
               disabled={isOpeningBilling}
             >
               {isOpeningBilling && <Loader2 className="h-4 w-4 animate-spin" />}
-              {isPremium ? "Manage billing" : "Billing history"}
+              {!isPremium
+                ? "Billing history"
+                : premiumStatus.status === "trialing" && !premiumStatus.has_payment_method
+                  ? "Add a card"
+                  : "Manage billing"}
             </Button>
           )}
         </div>

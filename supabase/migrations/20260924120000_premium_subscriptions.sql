@@ -25,6 +25,9 @@ CREATE TABLE public.subscriptions (
   current_period_end timestamptz,
   -- When a subscription the customer cancelled stops. Null while it renews.
   cancel_at timestamptz,
+  -- Whether Stripe has a card to charge. Free trials start without one, and a
+  -- trial that ends without one is cancelled instead of charged.
+  has_payment_method boolean NOT NULL DEFAULT false,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
@@ -81,7 +84,8 @@ $$;
 -- What the app shows about the signed-in user's plan. Always one row; a user
 -- who never opened Checkout gets is_premium false and nulls.
 -- has_billing_account is whether there is a Stripe customer to manage, which
--- a row granted by hand does not have.
+-- a row granted by hand does not have. A status that isn't null means the user
+-- has subscribed before, so their free trial is used up.
 CREATE FUNCTION public.get_premium_status()
 RETURNS TABLE (
   is_premium boolean,
@@ -89,7 +93,8 @@ RETURNS TABLE (
   billing_interval text,
   current_period_end timestamptz,
   cancel_at timestamptz,
-  has_billing_account boolean
+  has_billing_account boolean,
+  has_payment_method boolean
 )
 LANGUAGE sql
 STABLE
@@ -102,7 +107,8 @@ AS $$
     s.billing_interval,
     s.current_period_end,
     s.cancel_at,
-    coalesce(starts_with(s.stripe_customer_id, 'cus_'), false)
+    coalesce(starts_with(s.stripe_customer_id, 'cus_'), false),
+    coalesce(s.has_payment_method, false)
   FROM (SELECT auth.uid() AS id) me
   LEFT JOIN public.subscriptions s ON s.user_id = me.id
 $$;

@@ -5,7 +5,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { PremiumContext, type PremiumContextType } from "@/hooks/usePremium";
 import { supabase } from "@/integrations/supabase/client";
 import { UpgradeDialog } from "@/components/UpgradeDialog";
-import { isStaleSubscription, syncPremium, type PremiumFeature, type PremiumStatus } from "@/lib/premium";
+import {
+  formatPremiumDate,
+  hasTrialAvailable,
+  isStaleSubscription,
+  syncPremium,
+  type PremiumFeature,
+  type PremiumStatus,
+} from "@/lib/premium";
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -66,14 +73,17 @@ export const PremiumProvider = ({ children }: { children: React.ReactNode }) => 
   // Back from Checkout. The webhook usually lands first, but syncing here means
   // the user never sits on a locked screen they just paid to open.
   const confirmCheckout = useCallback(async () => {
-    const toastId = toast.loading("Confirming your payment…");
+    const toastId = toast.loading("Unlocking Premium…");
     for (let attempt = 0; attempt < 5; attempt++) {
       await syncPremium().catch(() => undefined);
       const next = await refresh();
       if (next?.is_premium) {
-        toast.success("Welcome to Phormula Premium", {
+        const trialEnd = next.status === "trialing" ? next.current_period_end : null;
+        toast.success(trialEnd ? "Your free trial has started" : "Welcome to Phormula Premium", {
           id: toastId,
-          description: "Interactive, flowchart and drawing cards and the MC Quiz are unlocked.",
+          description: trialEnd
+            ? `Interactive, flowchart and drawing cards and the MC Quiz are unlocked until ${formatPremiumDate(trialEnd)}.`
+            : "Interactive, flowchart and drawing cards and the MC Quiz are unlocked.",
         });
         return;
       }
@@ -89,10 +99,12 @@ export const PremiumProvider = ({ children }: { children: React.ReactNode }) => 
     if (!userId) return;
     const params = new URLSearchParams(location.search);
     const outcome = params.get("checkout");
-    if (!outcome) return;
+    const fromPortal = params.get("billing") === "portal";
+    if (!outcome && !fromPortal) return;
 
-    // Drop the flag so a refresh or the back button doesn't repeat this
+    // Drop the flags so a refresh or the back button doesn't repeat this
     params.delete("checkout");
+    params.delete("billing");
     const search = params.toString();
     navigate(
       { pathname: location.pathname, search: search ? `?${search}` : "", hash: location.hash },
@@ -101,7 +113,15 @@ export const PremiumProvider = ({ children }: { children: React.ReactNode }) => 
 
     if (outcome === "success") void confirmCheckout();
     else if (outcome === "cancelled") toast("Checkout cancelled", { description: "You haven't been charged." });
-  }, [userId, location, navigate, confirmCheckout]);
+
+    // Back from the Customer Portal: a card added, a plan switched or a
+    // cancellation shows straight away rather than when the webhook lands
+    if (fromPortal) {
+      void syncPremium()
+        .then(() => refresh())
+        .catch((error) => console.error("Failed to re-check Premium with Stripe:", error));
+    }
+  }, [userId, location, navigate, confirmCheckout, refresh]);
 
   const isPremium = status?.is_premium === true;
   const loading = authLoading || statusLoading;
@@ -138,6 +158,7 @@ export const PremiumProvider = ({ children }: { children: React.ReactNode }) => 
         returnPath={upgrade.returnPath ?? "/dashboard"}
         isPremium={isPremium}
         hasBillingAccount={status?.has_billing_account ?? false}
+        trialAvailable={hasTrialAvailable(status)}
         onAlreadyPremium={refresh}
       />
     </PremiumContext.Provider>
