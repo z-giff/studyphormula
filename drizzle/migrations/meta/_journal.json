@@ -1,0 +1,34 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1790282185985,
+      "tag": "0000_premium_subscriptions",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790282227538,
+      "tag": "0001_flashcard_set_resume_position",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790282287306,
+      "tag": "0002_premium_semester_plans",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790282361987,
+      "tag": "0003_flashcard_sharing",
+      "breakpoints": true
+    }
+  ]
+}
