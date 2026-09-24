@@ -1,6 +1,6 @@
 import { useRef, useEffect, useCallback } from "react";
 
-interface DrawingData {
+export interface DrawingData {
   strokes: Array<{
     points: Array<{ x: number; y: number }>;
     color: string;
@@ -9,6 +9,12 @@ interface DrawingData {
   width: number;
   height: number;
 }
+
+// Drawings are shown on a plain white board. The editor's board is light grey
+// and its eraser paints strokes in that same grey, so those strokes are drawn
+// white here; otherwise every erased line would show up as a grey smudge.
+const BOARD_COLOR = "#ffffff";
+const EDITOR_ERASER_COLOR = "#f5f5f5";
 
 interface DrawingCanvasDisplayProps {
   drawingData: DrawingData;
@@ -33,7 +39,7 @@ export const DrawingCanvasDisplay = ({ drawingData, className = "" }: DrawingCan
     const drawPlaceholder = () => {
       canvas.width = maxW;
       canvas.height = maxH;
-      ctx.fillStyle = "#f5f5f5";
+      ctx.fillStyle = BOARD_COLOR;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = "#9ca3af";
       ctx.font = "16px sans-serif";
@@ -97,7 +103,7 @@ export const DrawingCanvasDisplay = ({ drawingData, className = "" }: DrawingCan
     const effectiveScale = scale > 0 ? scale : 1;
 
     // Background
-    ctx.fillStyle = "#f5f5f5";
+    ctx.fillStyle = BOARD_COLOR;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Center bounding box within canvas
@@ -109,7 +115,7 @@ export const DrawingCanvasDisplay = ({ drawingData, className = "" }: DrawingCan
       if (stroke.points.length < 2) return;
 
       ctx.beginPath();
-      ctx.strokeStyle = stroke.color;
+      ctx.strokeStyle = stroke.color === EDITOR_ERASER_COLOR ? BOARD_COLOR : stroke.color;
       ctx.lineWidth = Math.max(stroke.width * effectiveScale, 0.5);
       ctx.lineCap = "round";
       ctx.lineJoin = "round";

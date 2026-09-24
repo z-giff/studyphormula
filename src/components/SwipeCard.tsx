@@ -2,8 +2,8 @@
  import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
  import { Card } from "@/components/ui/card";
  import { getContrastColor } from "@/lib/utils";
- import { FlowchartCanvasDisplay } from "@/components/FlowchartCanvasDisplay";
- import { DrawingCanvasDisplay } from "@/components/DrawingCanvasDisplay";
+ import { FlashcardBoardBack } from "@/components/FlashcardBoardBack";
+ import { BOARD_BACK_COLOR, hasBoardBack } from "@/lib/flashcardBoard";
  import { FlashcardText } from "@/components/FlashcardText";
  
  interface SwipeCardProps {
@@ -29,6 +29,9 @@
  
    const cardColor = card.color || setColor;
    const textColor = getContrastColor(cardColor);
+   // A flowchart or drawing has to be flipped back to its front before it can
+   // be swiped away.
+   const isShowingBoard = isFlipped && hasBoardBack(card);
  
    const handleDragEnd = (_: any, info: PanInfo) => {
      const threshold = 100;
@@ -49,48 +52,15 @@
    const exitX = exitDirection === "left" ? -500 : exitDirection === "right" ? 500 : 0;
  
    const renderContent = () => {
-     if (card.flashcard_type === "flowchart" && card.interactive_data) {
+     if (hasBoardBack(card)) {
+       if (isFlipped) return <FlashcardBoardBack card={card} />;
        return (
          <div className="w-full h-full flex flex-col p-6">
-           {!isFlipped ? (
-             <div className="flex-1 flex flex-col items-center justify-center text-center">
-               <p className="text-sm uppercase tracking-wide opacity-80 mb-4">Term</p>
-               <FlashcardText text={card.term} className="text-2xl font-bold" />
-               <p className="text-sm opacity-70 mt-8">Tap to reveal flowchart</p>
-             </div>
-           ) : (
-             <div className="flex-1 flex flex-col">
-               <p className="text-sm uppercase tracking-wide opacity-80 mb-2 text-center">Flowchart</p>
-               <div className="flex-1 bg-white rounded-lg overflow-hidden">
-                 <FlowchartCanvasDisplay
-                   flowchartData={card.interactive_data}
-                   showControls={false}
-                   className="h-full"
-                 />
-               </div>
-             </div>
-           )}
-         </div>
-       );
-     }
- 
-     if (card.flashcard_type === "drawing" && card.interactive_data) {
-       return (
-         <div className="w-full h-full flex flex-col p-6">
-           {!isFlipped ? (
-             <div className="flex-1 flex flex-col items-center justify-center text-center">
-               <p className="text-sm uppercase tracking-wide opacity-80 mb-4">Term</p>
-               <FlashcardText text={card.term} className="text-2xl font-bold" />
-               <p className="text-sm opacity-70 mt-8">Tap to reveal drawing</p>
-             </div>
-           ) : (
-             <div className="flex-1 flex flex-col">
-               <p className="text-sm uppercase tracking-wide opacity-80 mb-2 text-center">Drawing</p>
-               <div className="flex-1 bg-white rounded-lg overflow-hidden">
-                 <DrawingCanvasDisplay drawingData={card.interactive_data} />
-               </div>
-             </div>
-           )}
+           <div className="flex-1 flex flex-col items-center justify-center text-center">
+             <p className="text-sm uppercase tracking-wide opacity-80 mb-4">Term</p>
+             <FlashcardText text={card.term} className="text-2xl font-bold" />
+             <p className="text-sm opacity-70 mt-8">Tap to reveal {card.flashcard_type}</p>
+           </div>
          </div>
        );
      }
@@ -124,9 +94,11 @@
  
    return (
      <motion.div
-       className="absolute w-full max-w-xl cursor-grab active:cursor-grabbing"
+       className={`absolute w-full max-w-xl ${
+         isShowingBoard ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
+       }`}
        style={{ x, rotate, opacity }}
-       drag="x"
+       drag={isShowingBoard ? false : "x"}
        dragConstraints={{ left: 0, right: 0 }}
        dragElastic={0.7}
        onDragEnd={handleDragEnd}
@@ -139,11 +111,14 @@
        onClick={handleFlip}
      >
        <Card
-         className="relative h-[320px] border-0 shadow-xl overflow-hidden select-none"
-         style={{
-           backgroundColor: cardColor,
-           color: textColor,
-         }}
+         className={`relative h-[320px] overflow-hidden select-none ${
+           isShowingBoard ? "border-2 shadow-lg" : "border-0 shadow-xl"
+         }`}
+         style={
+           isShowingBoard
+             ? { backgroundColor: BOARD_BACK_COLOR, borderColor: cardColor }
+             : { backgroundColor: cardColor, color: textColor }
+         }
        >
          {/* Swipe indicators */}
          <motion.div
