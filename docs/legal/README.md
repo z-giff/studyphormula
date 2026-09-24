@@ -46,13 +46,10 @@ The ones that need a decision rather than a lookup:
 Both documents were written against the actual codebase, with three exceptions that need code
 changes before the claims are true:
 
-1. **Account deletion.** Privacy Policy §11 and ToS §12 say you can delete your account from
-   Privacy & Security. `src/components/settings/PrivacySecuritySettings.tsx:95` currently shows a
-   dialog that ends by telling the user to email `support@phormula.co` — no deletion happens. Either
-   implement real deletion or reword both documents to describe the email process honestly.
-   Privacy Policy §9 also promises that deleting an account cancels an active Premium subscription
-   first. Stripe keeps charging a deleted account until someone does, so any deletion, by hand or in
-   code, must cancel the subscription in Stripe before removing the user.
+1. **Account deletion.** Done: Privacy & Security deletes the account through the
+   `delete-account` edge function, which cancels any Premium subscription in Stripe first, as
+   Privacy Policy §9 and §11 and ToS §12 say. If you ever delete a user by hand (for example in
+   the Supabase dashboard), cancel their subscription in Stripe first, or Stripe keeps charging.
 
 2. **Revoking third-party app authorisations.** Privacy Policy §11 and ToS §8 say you can revoke an
    authorised application's access from account settings. There is no such screen yet; the MCP OAuth

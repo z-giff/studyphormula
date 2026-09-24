@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { usePremium } from "@/hooks/usePremium";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -21,6 +23,7 @@ import {
   Eye,
   EyeOff,
   LogOut,
+  Loader2,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -43,7 +46,9 @@ export const PrivacySecuritySettings = ({
   open,
   onOpenChange,
 }: PrivacySecuritySettingsProps) => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
+  const { isPremium } = usePremium();
+  const navigate = useNavigate();
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -53,6 +58,7 @@ export const PrivacySecuritySettings = ({
   const [isLoading, setIsLoading] = useState(false);
   const [deleteStage, setDeleteStage] = useState<0 | 1 | 2>(0);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
@@ -92,15 +98,27 @@ export const PrivacySecuritySettings = ({
     }
   };
 
+  // The delete-account edge function cancels any Premium subscription in
+  // Stripe, then deletes the account and everything in it
   const handleDeleteAccount = async () => {
-    // Note: Full account deletion would typically require a backend function
-    // For now, we'll sign out and show a message
-    toast.info(
-      "To delete your account, please contact support at support@phormula.co"
-    );
-    setDeleteStage(0);
-    setDeleteConfirmText("");
+    setIsDeleting(true);
+    const { error } = await supabase.functions.invoke("delete-account", {
+      body: { confirm: "DELETE" },
+    });
+
+    if (error) {
+      const response = (error as { context?: unknown }).context;
+      const payload = response instanceof Response ? await response.json().catch(() => null) : null;
+      toast.error(typeof payload?.error === "string" ? payload.error : "We couldn't delete your account. Please try again.");
+      setIsDeleting(false);
+      return;
+    }
+
+    // The account no longer exists, so there's no server session to end
+    await supabase.auth.signOut({ scope: "local" });
     onOpenChange(false);
+    navigate("/");
+    toast.success("Your account has been deleted");
   };
 
   const resetDeleteFlow = () => {
@@ -302,8 +320,16 @@ export const PrivacySecuritySettings = ({
                   Are you sure you want to delete your account?
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  This will permanently delete all your flashcard sets, progress, and account data.
+                  This permanently deletes your account, your flashcard sets and files, your study
+                  progress, and anything you've shared. It can't be undone, so export your data first
+                  if you want a copy.
                 </p>
+                {isPremium && (
+                  <p className="text-xs text-muted-foreground">
+                    Your Premium subscription is cancelled straight away, so you won't be charged again.
+                    The rest of the current billing period isn't refunded.
+                  </p>
+                )}
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
@@ -342,6 +368,7 @@ export const PrivacySecuritySettings = ({
                     variant="outline"
                     size="sm"
                     onClick={resetDeleteFlow}
+                    disabled={isDeleting}
                   >
                     Cancel
                   </Button>
@@ -349,10 +376,14 @@ export const PrivacySecuritySettings = ({
                     variant="destructive"
                     size="sm"
                     onClick={handleDeleteAccount}
-                    disabled={deleteConfirmText !== "DELETE"}
+                    disabled={deleteConfirmText !== "DELETE" || isDeleting}
                   >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Permanently Delete
+                    {isDeleting ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4 mr-2" />
+                    )}
+                    {isDeleting ? "Deleting…" : "Permanently Delete"}
                   </Button>
                 </div>
               </div>

@@ -262,9 +262,9 @@ legal obligation, resolve a dispute, or enforce our agreements. Residual copies 
 until those backups are overwritten in the ordinary course. Your email address remains on our
 suppression list so that we continue to honour your unsubscribe.
 
-If you have a Premium subscription, cancel it from Manage billing before you delete your account. If
-you ask us to delete your account while a subscription is active, we cancel the subscription first
-so that you are not charged again.
+Deleting your account also cancels any Premium subscription straight away, so you are not charged
+again. The unused part of a paid billing period is not refunded, except where the law requires it.
+Payment and invoice records stay with Stripe for as long as tax and accounting laws require.
 
 ## 10. Security
 
@@ -291,8 +291,10 @@ Privacy & Security in your account settings.
 
 **Correct your data.** You can update your name and email address in your account settings.
 
-**Delete your account.** You can request deletion from Privacy & Security in your account settings.
-Deletion is permanent and removes your flashcard sets, study progress, and account data.
+**Delete your account.** You can delete your account yourself, at any time, from Privacy & Security
+in your account settings. Deletion happens immediately and is permanent: it removes your account,
+your flashcard sets and files, your study progress, and anything you have shared, and it cancels any
+Premium subscription.
 
 **Manage your subscription.** You can cancel Premium, switch between monthly and yearly billing, add
 or update your card, and download invoices at any time from Manage billing in your profile.

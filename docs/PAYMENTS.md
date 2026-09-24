@@ -264,6 +264,10 @@ where stripe_customer_id like 'manual:%'
 
 - **Who is paying:** Stripe → Billing → Subscriptions. What the app believes
   is in the `subscriptions` table.
+- **Account deletion:** deleting an account from Privacy & Security cancels any
+  subscription in Stripe immediately (no refund for the rest of the period),
+  then deletes the account (`supabase/functions/delete-account`). If you ever
+  delete a user by hand in Supabase, cancel their subscription in Stripe first.
 - **Refunds:** issue them in Stripe. A refund doesn't cancel the subscription.
   To end access too, cancel it immediately in Stripe; the webhook updates the
   app.

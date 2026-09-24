@@ -4,7 +4,7 @@ import LegalMarkdown from "@/components/legal/LegalMarkdown";
 import source from "../../docs/legal/terms-of-service.md?raw";
 
 const Terms = () => (
-  <LegalPage title="Terms of Service" lastUpdated="September 20, 2026">
+  <LegalPage title="Terms of Service" lastUpdated="September 24, 2026">
     <LegalMarkdown source={source} />
   </LegalPage>
 );

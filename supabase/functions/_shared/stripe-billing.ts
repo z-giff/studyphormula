@@ -135,6 +135,11 @@ export async function syncCustomer(
   const { error: upsertError } = await admin
     .from('subscriptions')
     .upsert({ user_id: userId, stripe_customer_id: customerId, ...fields }, { onConflict: 'user_id' })
+  // 23503: the user has since deleted their account, so there's no one to update
+  if (upsertError?.code === '23503') {
+    console.warn(`Stripe customer ${customerId} belongs to a deleted account; nothing stored`)
+    return result
+  }
   if (upsertError) throw upsertError
   return result
 }
