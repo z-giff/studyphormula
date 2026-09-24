@@ -33,13 +33,43 @@ export const PREMIUM_CARD_NAMES: Record<PremiumCardType, string> = {
 /** Stripe statuses that still unlock Premium. Mirrors public.user_has_premium(). */
 const LIVE_STATUSES = new Set(["active", "trialing", "past_due"]);
 
-export type BillingInterval = "month" | "year";
+/** The plans Premium can be bought on, shortest first. A semester is four months. */
+export const PLAN_IDS = ["monthly", "semester", "two_semesters", "yearly"] as const;
+export type PlanId = (typeof PLAN_IDS)[number];
+
+export const PLAN_NAMES: Record<PlanId, string> = {
+  monthly: "Monthly",
+  semester: "1 semester",
+  two_semesters: "2 semesters",
+  yearly: "Yearly",
+};
+
+/**
+ * How often a price bills, from Stripe's interval and count: "per month",
+ * "every 4 months", "per year". Mirrors describeBillingPeriod() in the edge
+ * functions.
+ */
+export function billingPeriod(interval: string | null | undefined, count: number | null | undefined): string {
+  const n = count ?? 1;
+  if (!interval) return "";
+  return n === 1 ? `per ${interval}` : `every ${n} ${interval}s`;
+}
+
+/** Months one payment covers, for comparing plans (null for weekly or daily prices). */
+export function monthsPerPayment(interval: string | null | undefined, count: number | null | undefined): number | null {
+  const n = count ?? 1;
+  if (interval === "month") return n;
+  if (interval === "year") return 12 * n;
+  return null;
+}
 
 /** The signed-in user's plan, as get_premium_status() reports it. */
 export interface PremiumStatus {
   is_premium: boolean;
   status: string | null;
   billing_interval: string | null;
+  /** 4 for a plan billed every 4 months. */
+  billing_interval_count: number | null;
   current_period_end: string | null;
   cancel_at: string | null;
   /** There is a Stripe customer to manage (not so for Premium granted by hand). */
@@ -49,7 +79,10 @@ export interface PremiumStatus {
 }
 
 export interface PricingPlan {
-  interval: BillingInterval;
+  plan: PlanId;
+  /** How often Stripe bills it: every `intervalCount` `interval`s. */
+  interval: string;
+  intervalCount: number;
   /** In the currency's smallest unit, as Stripe gives it (cents for USD). */
   amount: number | null;
   currency: string;
@@ -98,12 +131,20 @@ async function invokeBilling<T>(body: Record<string, unknown>): Promise<T> {
 
 export const fetchPricing = async (): Promise<Pricing> => {
   const { plans, trialDays } = await invokeBilling<Partial<Pricing>>({ action: "pricing" });
-  return { plans: plans ?? [], trialDays: trialDays ?? 0 };
+  return {
+    // A billing function deployed before semester plans only sends the interval
+    plans: (plans ?? []).map((p) => ({
+      ...p,
+      plan: p.plan ?? (p.interval === "year" ? "yearly" : "monthly"),
+      intervalCount: p.intervalCount ?? 1,
+    })),
+    trialDays: trialDays ?? 0,
+  };
 };
 
 /** Go to Stripe Checkout. It comes back to `returnPath` with ?checkout=success or ?checkout=cancelled. */
-export async function startCheckout(interval: BillingInterval, returnPath: string): Promise<void> {
-  const { url } = await invokeBilling<{ url: string }>({ action: "checkout", interval, returnPath });
+export async function startCheckout(plan: PlanId, returnPath: string): Promise<void> {
+  const { url } = await invokeBilling<{ url: string }>({ action: "checkout", plan, returnPath });
   window.location.assign(url);
 }
 
@@ -149,7 +190,9 @@ export function describePremiumStatus(status: PremiumStatus): string {
   if (!status.current_period_end) {
     return "Premium with no end date.";
   }
-  const billed = status.billing_interval === "year" ? "yearly" : "monthly";
+  // "billed monthly", "billed every 4 months", "billed yearly"
+  const period = billingPeriod(status.billing_interval, status.billing_interval_count);
+  const billed = ({ "per month": "monthly", "per year": "yearly", "per week": "weekly", "per day": "daily" } as Record<string, string>)[period] ?? period;
   if (status.status === "trialing") {
     const trialEnd = formatPremiumDate(status.current_period_end);
     // A trial with no card is cancelled when it ends, not charged

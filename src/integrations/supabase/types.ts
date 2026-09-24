@@ -348,6 +348,7 @@ export type Database = {
       subscriptions: {
         Row: {
           billing_interval: string | null
+          billing_interval_count: number | null
           cancel_at: string | null
           created_at: string
           current_period_end: string | null
@@ -361,6 +362,7 @@ export type Database = {
         }
         Insert: {
           billing_interval?: string | null
+          billing_interval_count?: number | null
           cancel_at?: string | null
           created_at?: string
           current_period_end?: string | null
@@ -374,6 +376,7 @@ export type Database = {
         }
         Update: {
           billing_interval?: string | null
+          billing_interval_count?: number | null
           cancel_at?: string | null
           created_at?: string
           current_period_end?: string | null
@@ -456,6 +459,7 @@ export type Database = {
         Args: never
         Returns: {
           billing_interval: string
+          billing_interval_count: number
           cancel_at: string
           current_period_end: string
           has_billing_account: boolean

@@ -38,6 +38,36 @@ export function adminClient() {
 
 export type Admin = ReturnType<typeof adminClient>
 
+/**
+ * The plans Premium can be bought on, shortest first, and the secret holding
+ * each one's Stripe price. A semester is four months.
+ */
+export const PLANS = [
+  { id: 'monthly', env: 'STRIPE_PRICE_MONTHLY', interval: 'month', intervalCount: 1 },
+  { id: 'semester', env: 'STRIPE_PRICE_SEMESTER', interval: 'month', intervalCount: 4 },
+  { id: 'two_semesters', env: 'STRIPE_PRICE_TWO_SEMESTERS', interval: 'month', intervalCount: 8 },
+  { id: 'yearly', env: 'STRIPE_PRICE_YEARLY', interval: 'year', intervalCount: 1 },
+] as const
+
+export type PlanId = (typeof PLANS)[number]['id']
+
+/**
+ * A billing period in words: "Monthly" / "a month", "1 semester" / "every 4
+ * months", "Yearly" / "a year". Mirrors billingPeriod() in src/lib/premium.ts.
+ */
+export function describeBillingPeriod(
+  interval: string | null | undefined,
+  count: number | null | undefined,
+): { planName?: string; every?: string } {
+  const n = count ?? 1
+  if (interval === 'month' && n === 1) return { planName: 'Monthly', every: 'a month' }
+  if (interval === 'month' && n === 4) return { planName: '1 semester', every: 'every 4 months' }
+  if (interval === 'month' && n === 8) return { planName: '2 semesters', every: 'every 8 months' }
+  if (interval === 'year' && n === 1) return { planName: 'Yearly', every: 'a year' }
+  if (!interval) return {}
+  return { planName: `Every ${n} ${interval}s`, every: n === 1 ? `a ${interval}` : `every ${n} ${interval}s` }
+}
+
 /** Statuses that still unlock Premium. Mirrors public.user_has_premium(). */
 export const LIVE_STATUSES = new Set(['active', 'trialing', 'past_due'])
 
@@ -69,6 +99,8 @@ export function subscriptionFields(subscription: Stripe.Subscription | null) {
     status: subscription?.status ?? null,
     price_id: item?.price.id ?? null,
     billing_interval: item?.price.recurring?.interval ?? null,
+    // 4 for a semester plan: Stripe bills it every 4 months
+    billing_interval_count: item?.price.recurring?.interval_count ?? null,
     current_period_end: toIso(periodEnd),
     // Cancelling in the Customer Portal stops the subscription at the end of the
     // paid period; either way this is the day access ends.

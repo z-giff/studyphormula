@@ -1,15 +1,18 @@
 // Phormula Premium, from the app's side. One function, four actions:
 //
 //   pricing   the Premium prices, read live from Stripe for the upgrade dialog
-//   checkout  a Stripe Checkout page to subscribe on (monthly or yearly)
+//   checkout  a Stripe Checkout page to subscribe on (monthly, 1 or 2 semesters, or yearly)
 //   portal    the Stripe Customer Portal: cancel, add or change a card, invoices
 //   sync      re-read the caller's subscription from Stripe right now, for the
 //             moment they land back from Checkout before the webhook arrives
 //
 // Secrets (Supabase -> Edge Functions -> Secrets):
 //   STRIPE_SECRET_KEY      sk_test_... while testing, sk_live_... at launch
-//   STRIPE_PRICE_MONTHLY   price_... for the monthly plan
-//   STRIPE_PRICE_YEARLY    price_... for the yearly plan (optional)
+//   STRIPE_PRICE_MONTHLY        price_... billed every month
+//   STRIPE_PRICE_SEMESTER       price_... billed every 4 months (optional)
+//   STRIPE_PRICE_TWO_SEMESTERS  price_... billed every 8 months (optional)
+//   STRIPE_PRICE_YEARLY         price_... billed every year (optional)
+//   At least one plan must be set; the upgrade dialog offers whichever are.
 //   SITE_URL               where Stripe sends people back to (default https://phormula.co)
 //   STRIPE_TRIAL_DAYS      free trial for first-time subscribers, no card needed (default 7, 0 = none)
 //   STRIPE_AUTOMATIC_TAX   "true" to have Stripe Tax add sales tax / VAT (optional)
@@ -19,14 +22,14 @@ import {
   type Admin,
   ConfigError,
   LIVE_STATUSES,
+  PLANS,
+  type PlanId,
   adminClient,
   requireEnv,
   stripe,
   subscriptionFields,
   syncCustomer,
 } from '../_shared/stripe-billing.ts'
-
-type Interval = 'month' | 'year'
 
 class HttpError extends Error {
   constructor(public status: number, message: string, public code?: string) {
@@ -41,11 +44,21 @@ function json(body: Record<string, unknown>, status = 200): Response {
   })
 }
 
-function priceIds(): Partial<Record<Interval, string>> {
-  const month = Deno.env.get('STRIPE_PRICE_MONTHLY')
-  const year = Deno.env.get('STRIPE_PRICE_YEARLY')
-  if (!month && !year) throw new ConfigError('STRIPE_PRICE_MONTHLY is not set')
-  return { ...(month && { month }), ...(year && { year }) }
+// The plans on offer: those whose price secret is set, shortest first
+function offeredPlans() {
+  const offered = PLANS.flatMap((plan) => {
+    const priceId = Deno.env.get(plan.env)
+    return priceId ? [{ ...plan, priceId }] : []
+  })
+  if (offered.length === 0) throw new ConfigError('No STRIPE_PRICE_* secret is set')
+  return offered
+}
+
+// The plan the app asked for, or null for one we don't sell. Pages loaded
+// before semester plans existed send { interval: 'month' | 'year' } instead.
+function requestedPlan(body: Record<string, unknown>): PlanId | null {
+  if (body.plan !== undefined) return PLANS.find((p) => p.id === body.plan)?.id ?? null
+  return body.interval === 'year' ? 'yearly' : 'monthly'
 }
 
 // Stripe allows trials of up to two years
@@ -171,9 +184,19 @@ async function pricing() {
     return { plans: pricingCache.plans, trialDays: trialDays() }
   }
   const plans = await Promise.all(
-    Object.entries(priceIds()).map(async ([interval, id]) => {
-      const price = await stripe().prices.retrieve(id)
-      return { interval, amount: price.unit_amount, currency: price.currency }
+    offeredPlans().map(async (plan) => {
+      const price = await stripe().prices.retrieve(plan.priceId)
+      // The dialog shows the period Stripe will actually bill; say so if the
+      // price in the secret doesn't match the plan it's meant for
+      const interval = price.recurring?.interval ?? plan.interval
+      const intervalCount = price.recurring?.interval_count ?? plan.intervalCount
+      if (interval !== plan.interval || intervalCount !== plan.intervalCount) {
+        console.warn(
+          `${plan.env} (${plan.priceId}) bills every ${intervalCount} ${interval}(s), ` +
+            `but the ${plan.id} plan expects every ${plan.intervalCount} ${plan.interval}(s)`,
+        )
+      }
+      return { plan: plan.id, interval, intervalCount, amount: price.unit_amount, currency: price.currency }
     }),
   )
   pricingCache = { at: Date.now(), plans }
@@ -181,9 +204,9 @@ async function pricing() {
 }
 
 async function checkout(admin: Admin, req: Request, caller: Caller, body: Record<string, unknown>) {
-  const interval: Interval = body.interval === 'year' ? 'year' : 'month'
-  const price = priceIds()[interval]
-  if (!price) throw new HttpError(400, `There is no ${interval}ly plan`, 'unknown_plan')
+  const plan = requestedPlan(body)
+  const price = plan && offeredPlans().find((p) => p.id === plan)?.priceId
+  if (!price) throw new HttpError(400, 'That plan is not available', 'unknown_plan')
 
   // One subscription per person: someone who already has Premium manages it in the portal instead
   if (await hasPremium(admin, caller.id)) {

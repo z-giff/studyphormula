@@ -16,6 +16,7 @@ import {
   type Stripe,
   type SyncResult,
   adminClient,
+  describeBillingPeriod,
   requireEnv,
   stripe,
   syncCustomer,
@@ -64,12 +65,11 @@ function customerOf(event: Stripe.Event): string | null {
   return typeof customer === 'string' ? customer : customer?.id ?? null
 }
 
-// "Monthly" and "$5.99 a month", from the subscription's price
+// "1 semester" and "$19.99 every 4 months", from the subscription's price
 function planDetails(subscription: Stripe.Subscription): { planName?: string; priceLabel?: string } {
   const price = subscription.items.data[0]?.price
-  const interval = price?.recurring?.interval
-  const planName = interval === 'year' ? 'Yearly' : interval === 'month' ? 'Monthly' : undefined
-  if (!price?.unit_amount || !price.currency || !interval) return { planName }
+  const { planName, every } = describeBillingPeriod(price?.recurring?.interval, price?.recurring?.interval_count)
+  if (!price?.unit_amount || !price.currency || !every) return { planName }
   const currency = price.currency.toUpperCase()
   // Stripe amounts are in the smallest unit, except for zero-decimal currencies like JPY
   const digits =
@@ -80,7 +80,7 @@ function planDetails(subscription: Stripe.Subscription): { planName?: string; pr
     currency,
     minimumFractionDigits: Number.isInteger(value) ? 0 : digits,
   }).format(value)
-  return { planName, priceLabel: `${amount} a ${interval}` }
+  return { planName, priceLabel: `${amount} ${every}` }
 }
 
 // Phormula's own heads-up, three days before a free trial ends: add a card to
