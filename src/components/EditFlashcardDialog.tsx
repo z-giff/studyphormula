@@ -7,12 +7,14 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Pipette } from "lucide-react";
+import { Crown, Pipette } from "lucide-react";
 import { InteractiveFlashcardEditor } from "@/components/InteractiveFlashcardEditor";
 import { FlowchartCanvasEditor } from "@/components/FlowchartCanvasEditor";
 import { DrawingCanvasEditor } from "@/components/DrawingCanvasEditor";
 import { ImageUploader } from "@/components/ImageUploader";
 import { FlashcardTextarea } from "./FlashcardTextarea";
+import { usePremium } from "@/hooks/usePremium";
+import { isPremiumCardType, isPremiumRequiredError } from "@/lib/premium";
 
 const FLASHCARD_COLORS = [
   "#000000",
@@ -43,11 +45,16 @@ interface EditFlashcardDialogProps {
   onSuccess: () => void;
 }
 
+type FlashcardType = "standard" | "interactive" | "flowchart" | "drawing";
+
 export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }: EditFlashcardDialogProps) => {
   const { id: setIdFromParams } = useParams<{ id: string }>();
   const [isLoading, setIsLoading] = useState(false);
+  const { isPremium, loading: premiumLoading, openUpgrade, requirePremium } = usePremium();
+  const showPremiumMarks = !premiumLoading && !isPremium;
+
   const [selectedSetColor, setSelectedSetColor] = useState("#38b6ff");
-  const [flashcardType, setFlashcardType] = useState<"standard" | "interactive" | "flowchart" | "drawing">(
+  const [flashcardType, setFlashcardType] = useState<FlashcardType>(
     flashcard.flashcard_type === "interactive" ? "interactive" : 
     flashcard.flashcard_type === "flowchart" ? "flowchart" : 
     flashcard.flashcard_type === "drawing" ? "drawing" :
@@ -73,6 +80,13 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
       ? flashcard.interactive_data
       : { strokes: [], width: 0, height: 0 }
   );
+
+  // Turning a card into an interactive, flowchart or drawing card needs Premium
+  const handleTypeChange = (value: string) => {
+    const type = value as FlashcardType;
+    if (isPremiumCardType(type) && !requirePremium(type)) return;
+    setFlashcardType(type);
+  };
 
   // Fetch the current set color when dialog opens
   useEffect(() => {
@@ -156,6 +170,8 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (isPremiumCardType(flashcardType) && !requirePremium(flashcardType)) return;
+
     if (flashcardType === "standard") {
       if (!formData.term.trim() || !formData.definition.trim()) {
         toast.error("Please fill in both term and definition");
@@ -238,7 +254,11 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
       onOpenChange(false);
       onSuccess();
     } catch (error: any) {
-      toast.error(error.message || "Failed to update flashcard");
+      if (isPremiumRequiredError(error) && isPremiumCardType(flashcardType)) {
+        openUpgrade(flashcardType);
+      } else {
+        toast.error(error.message || "Failed to update flashcard");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -254,12 +274,25 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <Tabs value={flashcardType} onValueChange={(v) => setFlashcardType(v as "standard" | "interactive" | "flowchart" | "drawing")}>
+          <Tabs
+            value={flashcardType}
+            onValueChange={handleTypeChange}
+            activationMode={showPremiumMarks ? "manual" : "automatic"}
+          >
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="standard">Standard</TabsTrigger>
-              <TabsTrigger value="interactive">Interactive</TabsTrigger>
-              <TabsTrigger value="flowchart">Flowchart</TabsTrigger>
-              <TabsTrigger value="drawing">Drawing</TabsTrigger>
+              {(
+                [
+                  ["interactive", "Interactive"],
+                  ["flowchart", "Flowchart"],
+                  ["drawing", "Drawing"],
+                ] as const
+              ).map(([value, label]) => (
+                <TabsTrigger key={value} value={value} className="gap-1.5">
+                  {label}
+                  {showPremiumMarks && <Crown className="h-3 w-3 text-primary" aria-label="Premium" />}
+                </TabsTrigger>
+              ))}
             </TabsList>
 
             <TabsContent value="standard" className="space-y-4 mt-4">

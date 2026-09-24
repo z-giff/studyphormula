@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { ArrowLeft, Plus, Trash2, GripVertical, Image, Layers, GitBranch, FileText, X, Signature, Bookmark, Check, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, GripVertical, Image, Layers, GitBranch, FileText, X, Signature, Bookmark, Check, Loader2, Crown, Lock } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import LogoOrb from "@/components/LogoOrb";
 import { InteractiveFlashcardEditor } from "@/components/InteractiveFlashcardEditor";
@@ -16,6 +16,8 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
  import { AutoFlashcardDialog } from "@/components/AutoFlashcardDialog";
  import { Sparkles } from "lucide-react";
+import { usePremium } from "@/hooks/usePremium";
+import { isPremiumCardType, isPremiumRequiredError, PREMIUM_CARD_NAMES } from "@/lib/premium";
 
 type FlashcardType = "standard" | "interactive" | "flowchart" | "drawing";
 
@@ -94,6 +96,14 @@ export const BulkFlashcardEditor = ({
   const inputRefs = useRef<Map<string, HTMLInputElement | HTMLTextAreaElement>>(new Map());
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedRowsRef = useRef<string>("");
+  const { isPremium, loading: premiumLoading, openUpgrade, requirePremium } = usePremium();
+  const premiumLocked = !premiumLoading && !isPremium;
+  // A saved interactive, flowchart or drawing card, open without Premium: it can
+  // be moved, bookmarked or deleted, but its content stays as it is
+  const isLockedRow = useCallback(
+    (row: BulkCardRow) => premiumLocked && !!row.dbId && isPremiumCardType(row.type),
+    [premiumLocked],
+  );
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, rowId: string) => {
@@ -224,6 +234,7 @@ export const BulkFlashcardEditor = ({
       const visibleRowsForPosition = rowsToSave.filter((r) => !r.isDeleted);
 
       const buildUpdateData = (row: BulkCardRow, newPosition: number) => {
+        if (isLockedRow(row)) return { position: newPosition, is_bookmarked: row.isBookmarked };
         const updateData: any = {
           term: row.term.trim(),
           flashcard_type: row.type,
@@ -326,7 +337,7 @@ export const BulkFlashcardEditor = ({
     } finally {
       setIsAutoSaving(false);
     }
-  }, [setId]);
+  }, [setId, isLockedRow]);
 
   // Debounced auto-save effect
   useEffect(() => {
@@ -382,6 +393,12 @@ export const BulkFlashcardEditor = ({
   };
 
   const handleTypeChange = (rowId: string, type: FlashcardType) => {
+    const current = rows.find((r) => r.id === rowId);
+    if (current && isLockedRow(current) && isPremiumCardType(current.type)) {
+      openUpgrade(current.type);
+      return;
+    }
+    if (isPremiumCardType(type) && !requirePremium(type)) return;
     setRows((prev) =>
       prev.map((row) => {
         if (row.id !== rowId) return row;
@@ -451,7 +468,7 @@ export const BulkFlashcardEditor = ({
   };
 
   const validateRows = (): boolean => {
-    const activeRows = rows.filter((r) => !r.isDeleted && (r.term.trim() || r.definition.trim() || r.imageUrl || r.drawingData.strokes.length > 0));
+    const activeRows = rows.filter((r) => !r.isDeleted && !isLockedRow(r) && (r.term.trim() || r.definition.trim() || r.imageUrl || r.drawingData.strokes.length > 0));
     
     for (const row of activeRows) {
       if (row.type === "standard") {
@@ -513,6 +530,15 @@ export const BulkFlashcardEditor = ({
       await Promise.all(
         existingRows.map((row) => {
           const newPosition = visibleRowsForPosition.findIndex((r) => r.id === row.id);
+          if (isLockedRow(row)) {
+            return supabase
+              .from("flashcards")
+              .update({ position: newPosition, is_bookmarked: row.isBookmarked })
+              .eq("id", row.dbId!)
+              .then(({ error }) => {
+                if (error) throw error;
+              });
+          }
           const updateData: any = {
             term: row.term.trim(),
             flashcard_type: row.type,
@@ -585,6 +611,10 @@ export const BulkFlashcardEditor = ({
       onSuccess();
       onClose();
     } catch (error: any) {
+      if (isPremiumRequiredError(error)) {
+        openUpgrade();
+        return;
+      }
       toast.error(error.message || "Failed to save flashcards");
     } finally {
       setIsSaving(false);
@@ -692,16 +722,21 @@ export const BulkFlashcardEditor = ({
                             type="button"
                             onClick={() => handleTypeChange(row.id, "interactive")}
                             className={cn(
-                              "p-1.5 transition-colors",
+                              "relative p-1.5 transition-colors",
                               row.type === "interactive"
                                 ? "text-foreground"
                                 : "text-muted-foreground hover:text-foreground"
                             )}
                           >
                             <Layers className="h-4 w-4" />
+                            {premiumLocked && (
+                              <Crown className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 text-primary" aria-hidden />
+                            )}
                           </button>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom" className="text-xs">Interactive Mode</TooltipContent>
+                        <TooltipContent side="bottom" className="text-xs">
+                          {premiumLocked ? "Interactive Mode · Premium" : "Interactive Mode"}
+                        </TooltipContent>
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -709,16 +744,21 @@ export const BulkFlashcardEditor = ({
                             type="button"
                             onClick={() => handleTypeChange(row.id, "flowchart")}
                             className={cn(
-                              "p-1.5 transition-colors",
+                              "relative p-1.5 transition-colors",
                               row.type === "flowchart"
                                 ? "text-foreground"
                                 : "text-muted-foreground hover:text-foreground"
                             )}
                           >
                             <GitBranch className="h-4 w-4" />
+                            {premiumLocked && (
+                              <Crown className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 text-primary" aria-hidden />
+                            )}
                           </button>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom" className="text-xs">Flowchart Mode</TooltipContent>
+                        <TooltipContent side="bottom" className="text-xs">
+                          {premiumLocked ? "Flowchart Mode · Premium" : "Flowchart Mode"}
+                        </TooltipContent>
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -726,16 +766,21 @@ export const BulkFlashcardEditor = ({
                             type="button"
                             onClick={() => handleTypeChange(row.id, "drawing")}
                             className={cn(
-                              "p-1.5 transition-colors",
+                              "relative p-1.5 transition-colors",
                               row.type === "drawing"
                                 ? "text-foreground"
                                 : "text-muted-foreground hover:text-foreground"
                             )}
                           >
                             <Signature className="h-4 w-4" />
+                            {premiumLocked && (
+                              <Crown className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 text-primary" aria-hidden />
+                            )}
                           </button>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom" className="text-xs">Drawing Mode</TooltipContent>
+                        <TooltipContent side="bottom" className="text-xs">
+                          {premiumLocked ? "Drawing Mode · Premium" : "Drawing Mode"}
+                        </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   </div>
@@ -777,6 +822,26 @@ export const BulkFlashcardEditor = ({
 
                 {/* Card Content */}
                 <div className="p-4">
+                  {isLockedRow(row) && isPremiumCardType(row.type) && (
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="min-w-0 space-y-1">
+                        <p className="truncate font-medium">{row.term || "Untitled"}</p>
+                        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Lock className="h-3 w-3" />
+                          {PREMIUM_CARD_NAMES[row.type]} · Upgrade to Premium to edit it
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="brand"
+                        className="shrink-0 rounded-lg font-bold"
+                        onClick={() => isPremiumCardType(row.type) && openUpgrade(row.type)}
+                      >
+                        Unlock
+                      </Button>
+                    </div>
+                  )}
+
                   {/* Standard Card Layout */}
                   {row.type === "standard" && (
                     <div className="flex gap-4">
@@ -853,7 +918,7 @@ export const BulkFlashcardEditor = ({
                   )}
 
                   {/* Interactive Card Layout */}
-                  {row.type === "interactive" && (
+                  {row.type === "interactive" && !isLockedRow(row) && (
                     <div className="space-y-4">
                       <div className="space-y-1">
                         <Input
@@ -911,7 +976,7 @@ export const BulkFlashcardEditor = ({
                   )}
 
                   {/* Flowchart Card Layout */}
-                  {row.type === "flowchart" && (
+                  {row.type === "flowchart" && !isLockedRow(row) && (
                     <div className="space-y-4">
                       <div className="space-y-1">
                         <Input
@@ -959,7 +1024,7 @@ export const BulkFlashcardEditor = ({
                   )}
 
                   {/* Drawing Card Layout */}
-                  {row.type === "drawing" && (
+                  {row.type === "drawing" && !isLockedRow(row) && (
                     <div className="space-y-4">
                       <div className="space-y-1">
                         <Input

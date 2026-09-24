@@ -42,6 +42,10 @@ sketch — and the app turns your own notes, slides, and PDFs into study sets fo
 **Organisation** — sets live in files, cards can be copied or moved between sets,
 and bookmarks collect into a set of their own.
 
+**Premium** — interactive, flowchart and drawing cards and the MC Quiz are part
+of Phormula Premium, a monthly or yearly Stripe subscription. Everything else is
+free. See [`docs/PAYMENTS.md`](./docs/PAYMENTS.md) for setup and operations.
+
 **Sharing** — share a set or a whole file with up to 25 people at once by email.
 They find it under **Shared flashcards** on the dashboard (a red dot marks anything
 new), can flip through it read-only, and can add their own copy to their dashboard.
@@ -53,7 +57,8 @@ they sign up with that address.
 - **Vite** + **React 18** + **TypeScript**
 - **Tailwind CSS** and **shadcn/ui** (Radix primitives), **Framer Motion** for motion
 - **Supabase** — Postgres with row-level security, auth, storage, and Deno edge
-  functions (AI generation, text detection, waitlist, transactional email)
+  functions (AI generation, text detection, waitlist, transactional email, billing)
+- **Stripe** — Checkout and the Customer Portal for Premium subscriptions
 - **React Router**, **TanStack Query**, **React Flow** (flowcharts), **pdf.js**,
   **SheetJS**, **Cloudflare Turnstile**
 
@@ -82,8 +87,8 @@ VITE_DEV_ACCESS_KEY=          # visit /?dev=<key> to bypass the waitlist gate
 ```
 
 Every `VITE_*` value ships inside the JS bundle, so none of them are secrets.
-Server-side keys (service role, AI provider, Turnstile secret) belong in Supabase
-edge function secrets, never here.
+Server-side keys (service role, AI provider, Turnstile secret, Stripe keys) belong
+in Supabase edge function secrets, never here.
 
 ### Scripts
 
@@ -108,6 +113,7 @@ supabase/
   migrations/    Schema history
 docs/
   WAITLIST.md    Pre-launch gate and operations
+  PAYMENTS.md    Premium subscriptions with Stripe
   design/        Rebrand and motion direction
   legal/         Privacy policy and terms drafts
 ```

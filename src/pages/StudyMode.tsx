@@ -14,6 +14,9 @@ import { InteractiveFlashcardStudy } from "@/components/InteractiveFlashcardStud
 import { FlashcardText } from "@/components/FlashcardText";
 import { FlashcardBoardBack } from "@/components/FlashcardBoardBack";
 import { BOARD_BACK_COLOR, hasBoardBack } from "@/lib/flashcardBoard";
+import { PremiumLockedPanel, SkippedPremiumCardsNotice } from "@/components/PremiumLock";
+import { usePremium } from "@/hooks/usePremium";
+import { isPremiumCardType } from "@/lib/premium";
 
 interface Flashcard {
   id: string;
@@ -40,6 +43,9 @@ const StudyMode = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const { isPremium, loading: premiumLoading, openUpgrade } = usePremium();
+  // Premium cards left out of this session because the user doesn't have Premium
+  const [lockedCount, setLockedCount] = useState(0);
   
   const isBookmarkMode = id === "bookmarks";
 
@@ -49,8 +55,9 @@ const StudyMode = () => {
     }
   }, [user, loading, navigate]);
 
+  // Waits for the user's plan, which decides which cards the session holds
   useEffect(() => {
-    if (user && id) {
+    if (user && id && !premiumLoading) {
       if (isBookmarkMode) {
         fetchBookmarkedData();
       } else {
@@ -58,7 +65,15 @@ const StudyMode = () => {
         void markSetAccessed();
       }
     }
-  }, [user, id, isBookmarkMode]);
+  }, [user, id, isBookmarkMode, premiumLoading, isPremium]);
+
+  // Without Premium, interactive, flowchart and drawing cards sit the session out
+  const showCards = (cards: Flashcard[]) => {
+    const studyable = isPremium ? cards : cards.filter((card) => !isPremiumCardType(card.flashcard_type));
+    setLockedCount(cards.length - studyable.length);
+    setFlashcards(studyable);
+    setCurrentIndex((index) => Math.min(index, Math.max(studyable.length - 1, 0)));
+  };
 
   const markSetAccessed = async () => {
     if (isBookmarkMode) return;
@@ -89,7 +104,7 @@ const StudyMode = () => {
         title: "Bookmarks",
         color: "#eab308",
       });
-      setFlashcards((data || []).map(card => ({
+      showCards((data || []).map(card => ({
         ...card,
         interactive_data: card.interactive_data as any,
       })));
@@ -112,7 +127,7 @@ const StudyMode = () => {
       if (cardsResult.error) throw cardsResult.error;
 
       setSet(setResult.data);
-      setFlashcards((cardsResult.data || []).map(card => ({
+      showCards((cardsResult.data || []).map(card => ({
         ...card,
         interactive_data: card.interactive_data as any,
       })));
@@ -162,13 +177,32 @@ const StudyMode = () => {
 
   const backToSetLink = isBookmarkMode ? "/set/bookmarks" : `/set/${id}`;
 
-  if (loading || isLoading) {
+  if (loading || premiumLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
           <p className="text-muted-foreground">Loading...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (set && flashcards.length === 0 && lockedCount > 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        <nav className="border-b">
+          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+            <LogoOrb size="md" showWordmark={true} linkTo="/" />
+            <ThemeToggle />
+          </div>
+        </nav>
+        <PremiumLockedPanel
+          title="These are all Premium cards"
+          description="Interactive, flowchart and drawing cards are part of Phormula Premium. Upgrade to study them here."
+          onUpgrade={() => openUpgrade()}
+          backTo={backToSetLink}
+        />
       </div>
     );
   }
@@ -249,6 +283,12 @@ const StudyMode = () => {
               </div>
             </div>
           </div>
+
+          {lockedCount > 0 && (
+            <div className="mb-8">
+              <SkippedPremiumCardsNotice count={lockedCount} onUpgrade={() => openUpgrade()} />
+            </div>
+          )}
 
           <div className="mb-8">
             {currentCard.flashcard_type === "interactive" && currentCard.interactive_data?.textBoxes ? (

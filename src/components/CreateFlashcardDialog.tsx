@@ -13,6 +13,9 @@ import { FlowchartCanvasEditor } from "./FlowchartCanvasEditor";
 import { DrawingCanvasEditor } from "./DrawingCanvasEditor";
 import { ImageUploader } from "./ImageUploader";
 import { FlashcardTextarea } from "./FlashcardTextarea";
+import { PremiumCornerMark } from "./PremiumLock";
+import { usePremium } from "@/hooks/usePremium";
+import { isPremiumCardType, isPremiumRequiredError } from "@/lib/premium";
 
 
 interface CreateFlashcardDialogProps {
@@ -22,9 +25,21 @@ interface CreateFlashcardDialogProps {
   onSuccess: () => void;
 }
 
+type FlashcardType = "standard" | "interactive" | "flowchart" | "drawing";
+
 export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: CreateFlashcardDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [flashcardType, setFlashcardType] = useState<"standard" | "interactive" | "flowchart" | "drawing">("standard");
+  const [flashcardType, setFlashcardType] = useState<FlashcardType>("standard");
+  const { isPremium, loading: premiumLoading, openUpgrade, requirePremium } = usePremium();
+  const showPremiumMarks = !premiumLoading && !isPremium;
+
+  // Interactive, flowchart and drawing cards are Premium: without it, their
+  // buttons open the upgrade dialog instead of the editor
+  const handleTypeChange = (value: string) => {
+    const type = value as FlashcardType;
+    if (isPremiumCardType(type) && !requirePremium(type)) return;
+    setFlashcardType(type);
+  };
   const [formData, setFormData] = useState({
     term: "",
     definition: "",
@@ -150,7 +165,11 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
       onOpenChange(false);
       onSuccess();
     } catch (error: any) {
-      toast.error(error.message || "Failed to create flashcard");
+      if (isPremiumRequiredError(error) && isPremiumCardType(flashcardType)) {
+        openUpgrade(flashcardType);
+      } else {
+        toast.error(error.message || "Failed to create flashcard");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -168,7 +187,12 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
 
         <form onSubmit={handleSubmit} className="flex flex-col">
           <div className="px-8 pb-6 space-y-7">
-            <Tabs value={flashcardType} onValueChange={(v) => setFlashcardType(v as "standard" | "interactive" | "flowchart" | "drawing")}>
+            <Tabs
+              value={flashcardType}
+              onValueChange={handleTypeChange}
+              // Arrowing past a locked type shouldn't pop the upgrade dialog
+              activationMode={showPremiumMarks ? "manual" : "automatic"}
+            >
               {/* Flashcard types — circular, icon-only controls */}
               <TabsList className="flex h-auto w-full justify-center gap-5 bg-transparent p-0">
                 {(
@@ -184,12 +208,15 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
                       <TabsTrigger
                         value={value}
                         aria-label={`${label} flashcard`}
-                        className="h-14 w-14 rounded-full border border-line-strong bg-secondary p-0 text-muted-foreground shadow-none transition-all hover:border-primary/50 hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-accent data-[state=active]:text-primary data-[state=active]:shadow-[var(--glow-ember)]"
+                        className="relative h-14 w-14 rounded-full border border-line-strong bg-secondary p-0 text-muted-foreground shadow-none transition-all hover:border-primary/50 hover:text-foreground data-[state=active]:border-primary data-[state=active]:bg-accent data-[state=active]:text-primary data-[state=active]:shadow-[var(--glow-ember)]"
                       >
                         <Icon className="h-5 w-5" strokeWidth={1.7} />
+                        {showPremiumMarks && isPremiumCardType(value) && <PremiumCornerMark />}
                       </TabsTrigger>
                     </TooltipTrigger>
-                    <TooltipContent side="bottom" className="text-xs">{label}</TooltipContent>
+                    <TooltipContent side="bottom" className="text-xs">
+                      {showPremiumMarks && isPremiumCardType(value) ? `${label} · Premium` : label}
+                    </TooltipContent>
                   </Tooltip>
                 ))}
               </TabsList>
