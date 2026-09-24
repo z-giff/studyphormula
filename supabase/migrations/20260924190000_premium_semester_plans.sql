@@ -2,8 +2,11 @@
 -- 8 months (two semesters), as well as monthly or yearly. Stripe describes those
 -- periods as an interval and a count ('month', 4), so the count is stored next
 -- to the interval the table already keeps.
+--
+-- Safe to run more than once, so it can be pasted into the SQL editor by hand
+-- even if the deploy applies it too.
 
-ALTER TABLE public.subscriptions ADD COLUMN billing_interval_count integer;
+ALTER TABLE public.subscriptions ADD COLUMN IF NOT EXISTS billing_interval_count integer;
 
 -- Every subscription until now was monthly or yearly
 UPDATE public.subscriptions
@@ -12,7 +15,7 @@ WHERE billing_interval IS NOT NULL AND billing_interval_count IS NULL;
 
 -- get_premium_status() returns the count too, so the profile can say "billed
 -- every 4 months". A function's result columns can't be changed in place.
-DROP FUNCTION public.get_premium_status();
+DROP FUNCTION IF EXISTS public.get_premium_status();
 
 CREATE FUNCTION public.get_premium_status()
 RETURNS TABLE (
