@@ -11,8 +11,10 @@
 // send a Supabase JWT, and the signature check below stands in for it.
 
 import {
+  type Admin,
   ConfigError,
   type Stripe,
+  type SyncResult,
   adminClient,
   requireEnv,
   stripe,
@@ -21,6 +23,7 @@ import {
 
 // Every event that can change what a customer's subscription gives them.
 // Add the same list to the endpoint in the Stripe dashboard.
+// customer.subscription.trial_will_end also sends the trial-ending email.
 const SYNC_EVENTS = new Set([
   'checkout.session.completed',
   'checkout.session.async_payment_succeeded',
@@ -61,6 +64,60 @@ function customerOf(event: Stripe.Event): string | null {
   return typeof customer === 'string' ? customer : customer?.id ?? null
 }
 
+// "Monthly" and "$5.99 a month", from the subscription's price
+function planDetails(subscription: Stripe.Subscription): { planName?: string; priceLabel?: string } {
+  const price = subscription.items.data[0]?.price
+  const interval = price?.recurring?.interval
+  const planName = interval === 'year' ? 'Yearly' : interval === 'month' ? 'Monthly' : undefined
+  if (!price?.unit_amount || !price.currency || !interval) return { planName }
+  const currency = price.currency.toUpperCase()
+  // Stripe amounts are in the smallest unit, except for zero-decimal currencies like JPY
+  const digits =
+    new Intl.NumberFormat('en-US', { style: 'currency', currency }).resolvedOptions().maximumFractionDigits ?? 2
+  const value = price.unit_amount / 10 ** digits
+  const amount = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: Number.isInteger(value) ? 0 : digits,
+  }).format(value)
+  return { planName, priceLabel: `${amount} a ${interval}` }
+}
+
+// Phormula's own heads-up, three days before a free trial ends: add a card to
+// keep Premium, or (with one on file) when it will be charged
+async function sendTrialEndingEmail(admin: Admin, customerId: string, { fields, subscription }: SyncResult) {
+  // Someone who has already cancelled the trial doesn't need reminding
+  if (!subscription?.trial_end || fields.status !== 'trialing' || fields.cancel_at) return
+
+  const { data: row, error } = await admin
+    .from('subscriptions')
+    .select('user_id')
+    .eq('stripe_customer_id', customerId)
+    .maybeSingle()
+  if (error) throw error
+  if (!row) return
+
+  const { data: account, error: userError } = await admin.auth.admin.getUserById(row.user_id)
+  if (userError) throw userError
+  const email = account.user?.email
+  if (!email) return
+
+  const { error: sendError } = await admin.functions.invoke('send-transactional-email', {
+    body: {
+      templateName: 'premium-trial-ending',
+      recipientEmail: email,
+      // Stripe can deliver an event twice; one email per trial
+      idempotencyKey: `premium-trial-ending-${subscription.id}-${subscription.trial_end}`,
+      templateData: {
+        trialEndsAt: new Date(subscription.trial_end * 1000).toISOString(),
+        hasPaymentMethod: fields.has_payment_method,
+        ...planDetails(subscription),
+      },
+    },
+  })
+  if (sendError) throw sendError
+}
+
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
     return json({ error: 'Method not allowed' }, 405)
@@ -99,12 +156,24 @@ Deno.serve(async (req) => {
       ? (event.data.object as Stripe.Checkout.Session).client_reference_id
       : null
 
+  const admin = adminClient()
+  let synced: SyncResult
   try {
-    await syncCustomer(adminClient(), customerId, userIdHint)
+    synced = await syncCustomer(admin, customerId, userIdHint)
   } catch (error) {
     // A non-2xx makes Stripe retry the event with backoff, for up to three days
     console.error(`Could not sync ${customerId} after ${event.type} (${event.id}):`, error)
     return json({ error: 'Sync failed' }, 500)
+  }
+
+  if (event.type === 'customer.subscription.trial_will_end') {
+    try {
+      await sendTrialEndingEmail(admin, customerId, synced)
+    } catch (error) {
+      // An email problem never fails the webhook: Stripe would keep retrying,
+      // and could switch the endpoint off, stopping every subscription update
+      console.error(`Could not send the trial-ending email for ${customerId} (${event.id}):`, error)
+    }
   }
 
   return json({ received: true })

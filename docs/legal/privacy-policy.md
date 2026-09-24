@@ -1,7 +1,7 @@
 # Phormula Privacy Policy
 
-**Last updated:** September 20, 2026
-**Effective:** September 20, 2026
+**Last updated:** September 24, 2026
+**Effective:** September 24, 2026
 
 ## 1. Introduction
 
@@ -39,6 +39,15 @@ upload for flashcard generation. See Section 5 for how this content is processed
 
 **Waitlist information.** If you join our waitlist before launch, we collect your email address and
 the date you signed up.
+
+**Payment and subscription information.** If you start a free trial of Phormula Premium or subscribe
+to it, payment is handled by our payment processor, Stripe, on Stripe's own pages. Stripe collects
+your payment card details and, where tax rules require it, your billing address. We never see or
+store your full card number or security code. From Stripe we receive and store your Stripe customer
+identifier, your plan (monthly or yearly), your subscription status, the dates of your current
+billing period and free trial, when a cancelled subscription ends, and whether a payment method is
+on file. In Stripe's dashboard we can also see limited payment details, such as your card's brand,
+last four digits and expiry date, and your payment and invoice history.
 
 **Support correspondence.** If you email us, we keep your message, your email address, and our reply
 so we can respond and maintain a support history.
@@ -83,8 +92,10 @@ We use personal information to:
 - create and maintain your account and authenticate you;
 - store, sync, and display the study content you create;
 - generate flashcards and detect text in images when you ask us to;
-- send you transactional emails, such as account confirmations, password resets, and important
-  service notices;
+- process payments, run free trials, and manage your Premium subscription, including cancellations,
+  refunds, and invoices;
+- send you transactional emails, such as account confirmations, password resets, billing notices
+  (for example, a reminder before your free trial ends), and important service notices;
 - send waitlist and product-update emails, which you can unsubscribe from at any time;
 - provide customer support and respond to your enquiries;
 - monitor for, investigate, and prevent fraud, abuse, and security incidents;
@@ -101,7 +112,9 @@ of the GDPR:
 | Creating your account; storing and syncing your study content; providing core features | **Performance of a contract** (Art. 6(1)(b)) |
 | Generating flashcards and detecting text when you request it | **Performance of a contract** (Art. 6(1)(b)) |
 | Sending transactional and service-critical emails | **Performance of a contract** (Art. 6(1)(b)) |
-| Processing payments and managing subscriptions | **Performance of a contract** (Art. 6(1)(b)) |
+| Processing payments, running free trials, managing subscriptions, and sending billing notices | **Performance of a contract** (Art. 6(1)(b)) |
+| Keeping payment, invoice, and tax records | **Legal obligation** (Art. 6(1)(c)) |
+| Preventing payment fraud | **Legitimate interests** (Art. 6(1)(f)) — our and Stripe's interest in stopping fraudulent payments |
 | Security monitoring, abuse prevention, and service reliability | **Legitimate interests** (Art. 6(1)(f)) — our interest in operating a secure and functional service |
 | Sending product-update and marketing emails | **Consent** (Art. 6(1)(a)), withdrawable at any time |
 | Bot protection on public forms | **Legitimate interests** (Art. 6(1)(f)) — preventing automated abuse |
@@ -152,7 +165,11 @@ on our instructions and under a written agreement.
 | **OpenAI** | Flashcard generation model | Text you submit for flashcard generation |
 | **Google** | Text-detection model; Google Sign-In; web fonts | Images submitted for text detection; authentication data if you use Google Sign-In |
 | **Cloudflare** | Bot protection (Turnstile) on public forms | Browser signals and IP address |
-| **Payment processor** | Payment and subscription processing, if paid plans become available | Billing details, which would be collected and stored by the processor, not by us |
+| **Stripe** | Payments, free trials, subscriptions, invoices, and the billing page where you manage your plan | Your email address, payment card details, billing address where required for tax, device and IP information used for fraud prevention, and your subscription and payment history. Card details are collected and stored by Stripe, not by us |
+
+Stripe also processes some of this information as an independent controller, for its own purposes
+such as preventing fraud and meeting its legal obligations as a payment provider. That processing is
+described in Stripe's privacy policy at [stripe.com/privacy](https://stripe.com/privacy).
 
 We will update this table when our providers change. Google Fonts are loaded from Google's servers
 when you visit Phormula, which means Google receives your IP address as part of that request.
@@ -203,6 +220,9 @@ Phormula uses only what it needs to function. We do not use advertising or analy
   `studyPrefs` and `notificationPrefs`, so your settings persist on that device.
 - **A short-lived redirect marker** is stored in session storage during sign-in so we can return you
   to the page you originally requested. It is deleted immediately after use.
+- **Stripe's pages.** Checkout and billing management happen on Stripe's own pages
+  (checkout.stripe.com and billing.stripe.com), which set their own cookies for security and fraud
+  prevention under Stripe's cookie policy. Phormula's own pages do not load any Stripe scripts.
 
 Because these are strictly necessary or purely functional, we do not display a consent banner for
 them. You can clear this data through your browser settings, though doing so will sign you out and
@@ -228,6 +248,8 @@ We keep personal information only as long as we need it:
 | --- | --- |
 | Account information | For as long as your account is active |
 | Study content (sets, cards, sections, folders) | For as long as your account is active, or until you delete it |
+| Subscription status (plan, status, billing and trial dates, Stripe customer identifier) | For as long as your account is active |
+| Payment, invoice, and tax records, held in Stripe | For as long as tax, accounting, and anti-fraud laws require |
 | Waitlist email addresses | Until you unsubscribe or the information is no longer needed for the waitlist purpose |
 | Email delivery logs | For as long as reasonably necessary to operate and protect our email service and comply with legal obligations |
 | Email suppression list | Retained indefinitely, because we need it to honour your unsubscribe |
@@ -240,6 +262,10 @@ legal obligation, resolve a dispute, or enforce our agreements. Residual copies 
 until those backups are overwritten in the ordinary course. Your email address remains on our
 suppression list so that we continue to honour your unsubscribe.
 
+If you have a Premium subscription, cancel it from Manage billing before you delete your account. If
+you ask us to delete your account while a subscription is active, we cancel the subscription first
+so that you are not charged again.
+
 ## 10. Security
 
 We take reasonable technical and organisational measures to protect your information, including:
@@ -248,6 +274,8 @@ We take reasonable technical and organisational measures to protect your informa
 - encryption at rest for our database;
 - row-level security policies in our database, so that each account can access only its own records;
 - passwords stored only as salted hashes, never in plain text;
+- payment card details handled only by Stripe, a PCI DSS Level 1 certified payment provider, so they
+  never reach our servers;
 - restricted administrative access to production systems;
 - bot protection on public forms.
 
@@ -265,6 +293,10 @@ Privacy & Security in your account settings.
 
 **Delete your account.** You can request deletion from Privacy & Security in your account settings.
 Deletion is permanent and removes your flashcard sets, study progress, and account data.
+
+**Manage your subscription.** You can cancel Premium, switch between monthly and yearly billing, add
+or update your card, and download invoices at any time from Manage billing in your profile.
+Cancelling takes effect at the end of your current billing period or free trial.
 
 **Email preferences.** Every marketing and product-update email contains an unsubscribe link. You can
 unsubscribe at any time, and we will honour it immediately. We will still send you transactional
@@ -319,11 +351,12 @@ you the following rights:
   right.
 
 **Categories of personal information we collect**, using the CCPA's categories: identifiers (name,
-email address, account identifier, IP address); commercial information (subscription and transaction
-records, once paid plans are available); internet or other electronic network activity information
-(server logs); and other information you voluntarily provide (your study content and support
-correspondence). We collect these from you directly, from Google if you use Google Sign-In, and
-automatically through our infrastructure providers.
+email address, account identifier, IP address); commercial information (your Premium plan,
+subscription status, and payment and transaction records); internet or other electronic network
+activity information (server logs); and other information you voluntarily provide (your study
+content and support correspondence). We collect these from you directly, from Google if you use
+Google Sign-In, from Stripe when you start a free trial or subscribe, and automatically through our
+infrastructure providers.
 
 **We do not sell or share your personal information** as those terms are defined by the CCPA, and we
 have not done so in the preceding twelve months. We do not collect or process sensitive personal
