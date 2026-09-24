@@ -15,6 +15,13 @@
       "when": 1790282227538,
       "tag": "0001_flashcard_set_resume_position",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790282287306,
+      "tag": "0002_premium_semester_plans",
+      "breakpoints": true
     }
   ]
 }
