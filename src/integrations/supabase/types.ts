@@ -285,6 +285,48 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          billing_interval: string | null
+          cancel_at: string | null
+          created_at: string
+          current_period_end: string | null
+          has_payment_method: boolean
+          price_id: string | null
+          status: string | null
+          stripe_customer_id: string
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          billing_interval?: string | null
+          cancel_at?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          has_payment_method?: boolean
+          price_id?: string | null
+          status?: string | null
+          stripe_customer_id: string
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          billing_interval?: string | null
+          cancel_at?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          has_payment_method?: boolean
+          price_id?: string | null
+          status?: string | null
+          stripe_customer_id?: string
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -344,6 +386,19 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_premium_status: {
+        Args: never
+        Returns: {
+          billing_interval: string
+          cancel_at: string
+          current_period_end: string
+          has_billing_account: boolean
+          has_payment_method: boolean
+          is_premium: boolean
+          status: string
+        }[]
+      }
+      has_premium: { Args: never; Returns: boolean }
       move_to_dlq: {
         Args: {
           dlq_name: string
@@ -361,6 +416,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      user_has_premium: { Args: { p_user_id: string }; Returns: boolean }
       waitlist_count: { Args: never; Returns: number }
     }
     Enums: {
