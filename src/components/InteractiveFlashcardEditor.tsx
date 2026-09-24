@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { usePremium } from "@/hooks/usePremium";
 import { buildLabelMasks } from "@/lib/labelMask";
 import { TextBoxFormatToolbar } from "@/components/TextBoxFormatToolbar";
 import {
@@ -40,6 +41,7 @@ interface InteractiveFlashcardEditorProps {
 
 export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onImageChange }: InteractiveFlashcardEditorProps) => {
   const { toast } = useToast();
+  const { openUpgrade } = usePremium();
   const [selectedBox, setSelectedBox] = useState<string | null>(null);
   const [editingBox, setEditingBox] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -272,6 +274,11 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
         });
       }
     } catch (error) {
+      // detect-text answers 403 to anyone without Premium
+      if ((error as { context?: Response })?.context?.status === 403) {
+        openUpgrade("interactive");
+        return;
+      }
       console.error('Error detecting text:', error);
       toast({
         title: "Detection failed",

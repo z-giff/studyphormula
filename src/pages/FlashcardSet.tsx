@@ -18,6 +18,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import LogoOrb from "@/components/LogoOrb";
 import { RenameSetDialog } from "@/components/RenameSetDialog";
 import { ShareDialog } from "@/components/ShareDialog";
+import { PremiumPill } from "@/components/PremiumLock";
+import { usePremium } from "@/hooks/usePremium";
 
 const PRESET_COLORS = [
   "#000000", // Black
@@ -69,6 +71,7 @@ const FlashcardSetPage = () => {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   // Where this set was left off, so reopening it resumes on the same card
   const saveStudyPosition = useStudyPosition(id);
+  const { isPremium, loading: premiumLoading, requirePremium } = usePremium();
 
   // Open bulk editor immediately if requested via router state or query param.
   // Done early (not gated on data fetch) so the user lands directly in the
@@ -328,10 +331,16 @@ const FlashcardSetPage = () => {
                   </Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="rounded-xl border-line-strong">
-                  <Link to={`/quiz/${id}`}>
+                  <Link
+                    to={`/quiz/${id}`}
+                    onClick={(e) => {
+                      // Without Premium, offer it here and come back to the quiz after checkout
+                      if (!requirePremium("quiz", `/quiz/${id}`)) e.preventDefault();
+                    }}
+                  >
                     <QuizIcon className="mr-1.5" />
                     MC Quiz
-                    <span className="ml-1.5 rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">Premium</span>
+                    {!premiumLoading && !isPremium && <PremiumPill className="ml-1.5" />}
                   </Link>
                 </Button>
               </div>

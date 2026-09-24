@@ -10,6 +10,8 @@ import LogoOrb from "@/components/LogoOrb";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { PremiumLockedPanel } from "@/components/PremiumLock";
+import { usePremium } from "@/hooks/usePremium";
 
 interface Flashcard {
   id: string;
@@ -48,6 +50,7 @@ const QuizMode = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const { isPremium, loading: premiumLoading, openUpgrade } = usePremium();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -55,24 +58,30 @@ const QuizMode = () => {
     }
   }, [user, loading, navigate]);
 
+  // The MC Quiz is part of Premium: nothing loads without it
   useEffect(() => {
-    if (user && id) {
+    if (user && id && isPremium) {
       fetchData();
     }
-  }, [user, id]);
+  }, [user, id, isPremium]);
 
   const fetchData = async () => {
     try {
       const [setResult, flashcardsResult] = await Promise.all([
         supabase.from("flashcard_sets").select("*").eq("id", id).single(),
-        supabase.from("flashcards").select("id, term, definition").eq("set_id", id).order("position", { ascending: true }),
+        supabase.from("flashcards").select("id, term, definition, flashcard_type").eq("set_id", id).order("position", { ascending: true }),
       ]);
 
       if (setResult.error) throw setResult.error;
       if (flashcardsResult.error) throw flashcardsResult.error;
 
       setSet(setResult.data);
-      setFlashcards(flashcardsResult.data || []);
+      // Questions come from standard cards only. Interactive, flowchart and
+      // drawing cards keep their content on the board, so their definition is a
+      // placeholder ("Flowchart diagram") that would turn up as an answer choice.
+      setFlashcards(
+        (flashcardsResult.data || []).filter((card) => (card.flashcard_type ?? "standard") === "standard"),
+      );
     } catch (error: any) {
       toast.error(error.message || "Failed to load quiz data");
       navigate("/dashboard");
@@ -127,7 +136,26 @@ const QuizMode = () => {
     return questions.filter((q) => answers[q.id] === q.correctAnswer).length;
   }, [isSubmitted, questions, answers]);
 
-  if (loading || isLoading) {
+  if (!loading && !premiumLoading && !isPremium) {
+    return (
+      <div className="min-h-screen bg-background">
+        <nav className="border-b">
+          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+            <LogoOrb size="md" showWordmark={true} linkTo="/" />
+            <ThemeToggle />
+          </div>
+        </nav>
+        <PremiumLockedPanel
+          title="The MC Quiz is part of Premium"
+          description="Test yourself with multiple choice questions made from your own cards, then see your score."
+          onUpgrade={() => openUpgrade("quiz", `/quiz/${id}`)}
+          backTo={`/set/${id}`}
+        />
+      </div>
+    );
+  }
+
+  if (loading || premiumLoading || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -152,7 +180,7 @@ const QuizMode = () => {
         <main className="container mx-auto px-4 py-12 text-center">
           <h1 className="text-2xl font-bold mb-4">Not Enough Flashcards</h1>
           <p className="text-muted-foreground mb-6">
-            You need at least 4 flashcards to generate a multiple choice quiz.
+            The MC Quiz is made from standard term-and-definition cards, and it needs at least 4 of them.
           </p>
           <Link to={`/set/${id}`}>
             <Button>

@@ -11,6 +11,9 @@
  import { SwipeCompletionDialog } from "@/components/SwipeCompletionDialog";
  import { SaveNotLearnedDialog } from "@/components/SaveNotLearnedDialog";
  import { Progress } from "@/components/ui/progress";
+import { PremiumLockedPanel, SkippedPremiumCardsNotice } from "@/components/PremiumLock";
+import { usePremium } from "@/hooks/usePremium";
+import { isPremiumCardType } from "@/lib/premium";
  
  interface Flashcard {
    id: string;
@@ -42,6 +45,9 @@
    const [showCompletion, setShowCompletion] = useState(false);
    const [showSaveDialog, setShowSaveDialog] = useState(false);
    const [exitDirection, setExitDirection] = useState<"left" | "right" | null>(null);
+  const { isPremium, loading: premiumLoading, openUpgrade } = usePremium();
+  // Premium cards left out of this session because the user doesn't have Premium
+  const [lockedCount, setLockedCount] = useState(0);
  
    useEffect(() => {
      if (!loading && !user) {
@@ -49,11 +55,12 @@
      }
    }, [user, loading, navigate]);
  
+  // Waits for the user's plan, which decides which cards the session holds
    useEffect(() => {
-     if (user && id) {
+     if (user && id && !premiumLoading) {
        fetchData();
      }
-   }, [user, id]);
+   }, [user, id, premiumLoading, isPremium]);
  
    const fetchData = async () => {
      try {
@@ -65,10 +72,13 @@
        if (setResult.error) throw setResult.error;
        if (cardsResult.error) throw cardsResult.error;
  
-       const cards = (cardsResult.data || []).map(card => ({
+       const allCards = (cardsResult.data || []).map(card => ({
          ...card,
          interactive_data: card.interactive_data as any,
        }));
+      // Without Premium, interactive, flowchart and drawing cards sit the session out
+      const cards = isPremium ? allCards : allCards.filter((card) => !isPremiumCardType(card.flashcard_type));
+      setLockedCount(allCards.length - cards.length);
  
        setSet(setResult.data);
        setAllFlashcards(cards);
@@ -137,7 +147,7 @@
      ? ((currentIndex) / sessionCards.length) * 100 
      : 0;
  
-   if (loading || isLoading) {
+   if (loading || premiumLoading || isLoading) {
      return (
        <div className="min-h-screen flex items-center justify-center bg-background">
          <div className="text-center space-y-4">
@@ -148,6 +158,25 @@
      );
    }
  
+  if (set && allFlashcards.length === 0 && lockedCount > 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        <nav className="border-b">
+          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+            <LogoOrb size="md" showWordmark={true} linkTo="/" />
+            <ThemeToggle />
+          </div>
+        </nav>
+        <PremiumLockedPanel
+          title="These are all Premium cards"
+          description="Interactive, flowchart and drawing cards are part of Phormula Premium. Upgrade to swipe through them here."
+          onUpgrade={() => openUpgrade()}
+          backTo={`/set/${id}`}
+        />
+      </div>
+    );
+  }
+
    if (!set || sessionCards.length === 0) {
      return (
        <div className="min-h-screen flex items-center justify-center bg-background">
@@ -218,6 +247,12 @@
                  className="h-2"
                />
              </div>
+
+            {lockedCount > 0 && (
+              <div className="mt-4">
+                <SkippedPremiumCardsNotice count={lockedCount} onUpgrade={() => openUpgrade()} />
+              </div>
+            )}
            </div>
  
            {/* Swipe Card Area */}

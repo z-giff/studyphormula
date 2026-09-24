@@ -6,6 +6,9 @@ import { FlashcardBoardBack } from "@/components/FlashcardBoardBack";
 import { BOARD_BACK_COLOR, hasBoardBack } from "@/lib/flashcardBoard";
 import { InteractiveFlashcardStudy } from "@/components/InteractiveFlashcardStudy";
 import { FlashcardText } from "@/components/FlashcardText";
+import { LockedFlashcard } from "@/components/PremiumLock";
+import { usePremium } from "@/hooks/usePremium";
+import { isPremiumCardType } from "@/lib/premium";
 
 interface Flashcard {
   id: string;
@@ -77,6 +80,10 @@ export const StackedFlashcardDeck = ({
   const [isAnimating, setIsAnimating] = useState(false);
   const [animationDirection, setAnimationDirection] = useState<"next" | "prev" | null>(null);
   const reportedIndex = useRef(initialIndex);
+  const { isPremium, loading: premiumLoading, openUpgrade } = usePremium();
+  // Premium cards stay in the deck for everyone, shut until the user upgrades
+  const isLocked = (card?: Flashcard) =>
+    !premiumLoading && !isPremium && isPremiumCardType(card?.flashcard_type);
 
   // Single place the deck reports where it is: Previous, Next and Restart all
   // land here, as does a position that no longer exists because the set was
@@ -163,7 +170,7 @@ export const StackedFlashcardDeck = ({
       {/* Stacked deck container */}
       <div
         className={`relative w-full max-w-xl perspective-1000 ${
-          currentCard?.flashcard_type === "interactive" ? "h-[640px]" : "h-[320px]"
+          currentCard?.flashcard_type === "interactive" && !isLocked(currentCard) ? "h-[640px]" : "h-[320px]"
         }`}
       >
         {stackedCards.map((card) => {
@@ -175,7 +182,8 @@ export const StackedFlashcardDeck = ({
           // Animation styles for the top card
           const isAnimatingOut = isTop && animationDirection === "next";
           const isAnimatingIn = isTop && animationDirection === "prev";
-          const isInteractive = card.flashcard_type === "interactive";
+          const isCardLocked = isLocked(card);
+          const isInteractive = card.flashcard_type === "interactive" && !isCardLocked;
 
           return (
             <div
@@ -193,17 +201,34 @@ export const StackedFlashcardDeck = ({
             >
               <div
                 className={`relative w-full h-full preserve-3d ${
-                  isInteractive
+                  isInteractive || isCardLocked
                     ? ""
                     : `transition-transform duration-500 cursor-pointer ${isFlipped ? "rotate-y-180" : ""}`
                 }`}
-                onClick={() => isTop && !isInteractive && handleFlip(card.originalIndex)}
+                onClick={() => isTop && !isInteractive && !isCardLocked && handleFlip(card.originalIndex)}
               >
                 {(() => {
                   // Use first card's color for all cards
                   const firstCardColor = flashcards[0]?.color || setColor;
                   const cardColor = firstCardColor;
                   const textColor = getContrastColor(cardColor);
+
+                  if (isCardLocked && isPremiumCardType(card.flashcard_type)) {
+                    const type = card.flashcard_type;
+                    return (
+                      <Card
+                        className="absolute inset-0 shadow-lg border-2 overflow-hidden"
+                        style={{ borderColor: cardColor, backgroundColor: cardColor }}
+                      >
+                        <LockedFlashcard
+                          term={card.term}
+                          type={type}
+                          textColor={textColor}
+                          onUpgrade={() => openUpgrade(type)}
+                        />
+                      </Card>
+                    );
+                  }
 
                   if (isInteractive) {
                     return (
@@ -349,11 +374,27 @@ export const StackedFlashcardDeck = ({
           </Button>
           {!isBookmarkSet && (
             <>
-              <Button variant="outline" size="sm" onClick={() => onEdit?.(currentCard)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  isLocked(currentCard) && isPremiumCardType(currentCard.flashcard_type)
+                    ? openUpgrade(currentCard.flashcard_type)
+                    : onEdit?.(currentCard)
+                }
+              >
                 <Pencil className="h-4 w-4 mr-1" />
                 Edit
               </Button>
-              <Button variant="outline" size="sm" onClick={() => onCopy?.(currentCard.id)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  isLocked(currentCard) && isPremiumCardType(currentCard.flashcard_type)
+                    ? openUpgrade(currentCard.flashcard_type)
+                    : onCopy?.(currentCard.id)
+                }
+              >
                 <Copy className="h-4 w-4 mr-1" />
                 Copy
               </Button>

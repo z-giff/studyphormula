@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { PremiumProvider } from "@/components/PremiumProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { isAppUnlocked } from "@/lib/launchGate";
 import Waitlist from "./pages/Waitlist";
@@ -34,6 +35,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <PremiumProvider>
             {isAppUnlocked() ? (
               <Routes>
                 <Route path="/" element={<Index />} />
@@ -67,6 +69,7 @@ const App = () => (
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             )}
+            </PremiumProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

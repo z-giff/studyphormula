@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { usePremium } from "@/hooks/usePremium";
 import { supabase } from "@/integrations/supabase/client";
+import { describePremiumStatus, openBillingPortal } from "@/lib/premium";
 import {
   Sheet,
   SheetContent,
@@ -25,6 +27,8 @@ import {
   Bell,
   HelpCircle,
   ChevronRight,
+  Crown,
+  Loader2,
 } from "lucide-react";
 import { NotificationsSettings } from "@/components/settings/NotificationsSettings";
 import { PrivacySecuritySettings } from "@/components/settings/PrivacySecuritySettings";
@@ -37,6 +41,8 @@ interface ProfileSheetProps {
 
 export const ProfileSheet = ({ children }: ProfileSheetProps) => {
   const { user, signOut } = useAuth();
+  const { isPremium, loading: premiumLoading, status: premiumStatus, openUpgrade } = usePremium();
+  const [isOpeningBilling, setIsOpeningBilling] = useState(false);
   const [fullName, setFullName] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -104,6 +110,18 @@ export const ProfileSheet = ({ children }: ProfileSheetProps) => {
       day: "numeric",
     });
   };
+
+  const handleManageBilling = async () => {
+    setIsOpeningBilling(true);
+    try {
+      await openBillingPortal(`${window.location.pathname}${window.location.search}`);
+    } catch (error) {
+      setIsOpeningBilling(false);
+      toast.error(error instanceof Error ? error.message : "Couldn't open billing");
+    }
+  };
+
+  const planLine = premiumStatus ? describePremiumStatus(premiumStatus) : "";
 
   const menuItems = [
     { icon: Bell, label: "Notifications", onClick: () => setNotificationsOpen(true) },
@@ -201,6 +219,64 @@ export const ProfileSheet = ({ children }: ProfileSheetProps) => {
               <p className="text-sm">{formatDate(user?.created_at)}</p>
             </div>
           </div>
+        </div>
+
+        <Separator />
+
+        {/* Plan */}
+        <div className="py-6 space-y-3">
+          <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+            Plan
+          </h4>
+
+          {premiumLoading ? (
+            <div className="h-5 w-24 rounded bg-muted animate-pulse" />
+          ) : isPremium ? (
+            <>
+              <p className="flex items-center gap-2 text-sm font-medium">
+                <Crown className="h-4 w-4 text-primary" />
+                Phormula Premium
+              </p>
+              {planLine && (
+                <p
+                  className={`text-sm ${
+                    premiumStatus?.status === "past_due" ? "text-destructive" : "text-muted-foreground"
+                  }`}
+                >
+                  {planLine}
+                </p>
+              )}
+            </>
+          ) : (
+            <>
+              <p className="text-sm font-medium">Free</p>
+              <p className="text-sm text-muted-foreground">
+                {planLine ? `${planLine} ` : ""}Upgrade for interactive, flowchart and drawing cards and the MC Quiz.
+              </p>
+              <Button variant="brand" size="sm" className="rounded-lg font-bold" onClick={() => openUpgrade()}>
+                <Crown className="h-4 w-4" />
+                Upgrade to Premium
+              </Button>
+            </>
+          )}
+
+          {/* Anyone who has ever had a subscription can reach their invoices */}
+          {!premiumLoading && premiumStatus?.has_billing_account && (isPremium || premiumStatus.status) && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex"
+              onClick={handleManageBilling}
+              disabled={isOpeningBilling}
+            >
+              {isOpeningBilling && <Loader2 className="h-4 w-4 animate-spin" />}
+              {!isPremium
+                ? "Billing history"
+                : premiumStatus.status === "trialing" && !premiumStatus.has_payment_method
+                  ? "Add a card"
+                  : "Manage billing"}
+            </Button>
+          )}
         </div>
 
         <Separator />

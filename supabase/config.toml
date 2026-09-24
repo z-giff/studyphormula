@@ -26,3 +26,9 @@ verify_jwt = false
 
 [functions.handle-email-suppression]
 verify_jwt = false
+
+[functions.billing]
+verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false

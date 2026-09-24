@@ -206,6 +206,25 @@ serve(async (req) => {
       });
     }
 
+    // Text detection builds interactive cards, which are part of Phormula Premium
+    const { data: hasPremium, error: premiumError } = await supabase.rpc('has_premium');
+    if (premiumError) {
+      console.error('Premium check failed:', premiumError.message);
+      return new Response(JSON.stringify({ error: 'Service configuration error' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (hasPremium !== true) {
+      return new Response(JSON.stringify({
+        error: 'Text detection is part of Phormula Premium',
+        code: 'premium_required',
+      }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Parse and validate request body
     const body = await req.json();
     const { imageUrl } = body;
