@@ -44,7 +44,7 @@ the date you signed up.
 to it, payment is handled by our payment processor, Stripe, on Stripe's own pages. Stripe collects
 your payment card details and, where tax rules require it, your billing address. We never see or
 store your full card number or security code. From Stripe we receive and store your Stripe customer
-identifier, your plan (monthly or yearly), your subscription status, the dates of your current
+identifier, your plan (such as monthly, per semester, or yearly), your subscription status, the dates of your current
 billing period and free trial, when a cancelled subscription ends, and whether a payment method is
 on file. In Stripe's dashboard we can also see limited payment details, such as your card's brand,
 last four digits and expiry date, and your payment and invoice history.
@@ -296,7 +296,7 @@ in your account settings. Deletion happens immediately and is permanent: it remo
 your flashcard sets and files, your study progress, and anything you have shared, and it cancels any
 Premium subscription.
 
-**Manage your subscription.** You can cancel Premium, switch between monthly and yearly billing, add
+**Manage your subscription.** You can cancel Premium, switch to a different billing plan, add
 or update your card, and download invoices at any time from Manage billing in your profile.
 Cancelling takes effect at the end of your current billing period or free trial.
 

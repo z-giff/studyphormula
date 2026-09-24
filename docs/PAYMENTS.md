@@ -1,6 +1,7 @@
 # Phormula Premium — Payments Setup & Operations
 
-Premium is a Stripe subscription (monthly and/or yearly). First-time
+Premium is a Stripe subscription, billed monthly, every semester (4 months),
+every two semesters (8 months) or yearly: whichever of those you set up. First-time
 subscribers get a **7-day free trial with no card needed**. Payment happens on
 Stripe's own pages: **Stripe Checkout** takes the money and the **Stripe
 Customer Portal** handles cancelling, card changes and invoices. Phormula
@@ -62,12 +63,12 @@ Stripe ──► stripe-webhook ──► public.subscriptions ◄── billing
 
 | Piece | File | Purpose |
 |---|---|---|
-| Database | `supabase/migrations/20260924120000_premium_subscriptions.sql` | `subscriptions` table (no client access), `get_premium_status()`, and the trigger that refuses premium cards from anyone without Premium |
+| Database | `supabase/migrations/20260924120000_premium_subscriptions.sql`, `…190000_premium_semester_plans.sql` | `subscriptions` table (no client access), `get_premium_status()`, and the trigger that refuses premium cards from anyone without Premium; the second adds each plan's billing interval count |
 | Billing function | `supabase/functions/billing/index.ts` | `pricing`, `checkout`, `portal`, `sync` |
 | Webhook | `supabase/functions/stripe-webhook/index.ts` | Verifies Stripe's signature, then re-reads the subscription from Stripe |
 | Shared | `supabase/functions/_shared/stripe-billing.ts` | Stripe client and the one sync routine both functions use |
 | App state | `src/components/PremiumProvider.tsx`, `src/hooks/usePremium.ts` | Who has Premium; finishes the return from Checkout |
-| Upgrade dialog | `src/components/UpgradeDialog.tsx` | Live prices from Stripe, monthly/yearly, checkout |
+| Upgrade dialog | `src/components/UpgradeDialog.tsx` | Live prices from Stripe for every plan on offer, checkout |
 | Plan & billing | `src/components/ProfileSheet.tsx` | Plan section: upgrade, renewal date, **Manage billing** |
 | Gates | `src/lib/premium.ts`, `src/components/PremiumLock.tsx` | What's premium, locked cards, locked pages |
 | Trial email | `supabase/functions/_shared/transactional-email-templates/premium-trial-ending.tsx` | The "your free trial ends in 3 days" email |
@@ -84,10 +85,20 @@ Portal, so they never wait on the webhook.
 
 1. Sign in at https://dashboard.stripe.com and make sure **Test mode** is on.
 2. **Product catalog → Add product.** Name it `Phormula Premium`.
-3. Add a **recurring** price, billed **monthly**.
-4. Add a second recurring price on the same product, billed **yearly** (optional:
-   leave it out and the upgrade dialog only offers monthly).
-5. Copy each price's ID (`price_…`) from the product page.
+3. Add a **recurring** price for each plan you want to offer, all on this one
+   product:
+
+   | Plan | Billing period in Stripe | Secret for its price ID |
+   |---|---|---|
+   | Monthly | **Monthly** | `STRIPE_PRICE_MONTHLY` |
+   | 1 semester | **Custom → every 4 months** | `STRIPE_PRICE_SEMESTER` |
+   | 2 semesters | **Custom → every 8 months** | `STRIPE_PRICE_TWO_SEMESTERS` |
+   | Yearly | **Yearly** | `STRIPE_PRICE_YEARLY` |
+
+   Offer any combination. The upgrade dialog shows only the plans whose secret
+   is set, in that order, with each longer plan's monthly equivalent and how
+   much it saves over paying monthly.
+4. Copy each price's ID (`price_…`) from the product page.
 
 ### 2. Turn on the Customer Portal
 
@@ -98,8 +109,8 @@ Portal, so they never wait on the webhook.
 - **Update payment methods**. Trial users add their card here, so this one is
   essential.
 - **View invoice history**
-- *Optional:* **Switch plans**, with both Premium prices added, so people can
-  move between monthly and yearly
+- *Optional:* **Switch plans**, with every Premium price added, so people can
+  move between plans
 
 Then press **Save**. Stripe refuses to open the portal in test mode until these
 settings have been saved once, so the Manage billing button won't work until
@@ -114,12 +125,20 @@ payment fail* to **Cancel the subscription**. While Stripe retries, the
 subscriber keeps Premium (status `past_due`); when it gives up, access stops.
 Turn on the emails there that ask customers to update their card.
 
-### 4. Run the database migration
+### 4. Run the database migrations
 
-The `subscriptions` table must exist (Cloud → Database → Tables in Lovable, or
-the Supabase Table Editor). If it doesn't, paste the contents of
-`supabase/migrations/20260924120000_premium_subscriptions.sql` into the SQL
-editor and run it.
+The `subscriptions` table must exist, with a `billing_interval_count` column
+(Cloud → Database → Tables in Lovable, or the Supabase Table Editor). If it
+doesn't, paste the contents of each of these into the SQL editor and run them,
+in this order:
+
+1. `supabase/migrations/20260924120000_premium_subscriptions.sql` (skip if the
+   table already exists)
+2. `supabase/migrations/20260924190000_premium_semester_plans.sql` (skip if the
+   column already exists)
+
+Until the second one has run, saving a subscription fails, so the app never
+hears about new subscribers.
 
 ### 5. Add the webhook endpoint
 
@@ -160,8 +179,10 @@ everything there ships to the browser.
 | Secret | Value | Required |
 |---|---|---|
 | `STRIPE_SECRET_KEY` | **Developers → API keys → Secret key** (`sk_test_…`) | Yes |
-| `STRIPE_PRICE_MONTHLY` | The monthly price ID (`price_…`) | Yes |
-| `STRIPE_PRICE_YEARLY` | The yearly price ID (`price_…`) | No |
+| `STRIPE_PRICE_MONTHLY` | The monthly price ID (`price_…`) | At least one plan |
+| `STRIPE_PRICE_SEMESTER` | The every-4-months price ID (`price_…`) | At least one plan |
+| `STRIPE_PRICE_TWO_SEMESTERS` | The every-8-months price ID (`price_…`) | At least one plan |
+| `STRIPE_PRICE_YEARLY` | The yearly price ID (`price_…`) | At least one plan |
 | `STRIPE_WEBHOOK_SECRET` | The endpoint's signing secret (`whsec_…`) | Yes |
 | `SITE_URL` | Where Stripe sends people back to. Defaults to `https://phormula.co` | No |
 | `STRIPE_TRIAL_DAYS` | Free trial length for first-time subscribers. Defaults to `7`; `0` turns trials off | No |
@@ -271,8 +292,8 @@ where stripe_customer_id like 'manual:%'
 - **Refunds:** issue them in Stripe. A refund doesn't cancel the subscription.
   To end access too, cancel it immediately in Stripe; the webhook updates the
   app.
-- **Changing the price:** add a new price in Stripe and point
-  `STRIPE_PRICE_MONTHLY`/`STRIPE_PRICE_YEARLY` at it. New subscribers get it.
+- **Changing the price:** add a new price in Stripe and point that plan's
+  `STRIPE_PRICE_…` secret at it. New subscribers get it.
   Existing subscribers stay on their old price unless you move them in Stripe.
   The Terms promise 30 days' notice before a price change reaches them.
 - **Missed webhooks:** Stripe retries failed deliveries for three days. The app

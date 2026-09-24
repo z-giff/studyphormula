@@ -14,7 +14,10 @@ import {
   openBillingPortal,
   PREMIUM_FEATURE_NAMES,
   startCheckout,
-  type BillingInterval,
+  billingPeriod,
+  monthsPerPayment,
+  PLAN_NAMES,
+  type PlanId,
   type PremiumFeature,
   type PricingPlan,
 } from "@/lib/premium";
@@ -27,7 +30,8 @@ const UNLOCKS = [
   { feature: "quiz", Icon: QuizIcon, line: "Test what you remember." },
 ] as const;
 
-const PLAN_NAMES: Record<BillingInterval, string> = { month: "Monthly", year: "Yearly" };
+// The dialog starts on the longest plan on offer
+const PLAN_PREFERENCE: PlanId[] = ["yearly", "two_semesters", "semester", "monthly"];
 
 // The heading's first line when the dialog opened on a particular feature
 const FEATURE_LEADS: Record<PremiumFeature, string> = {
@@ -37,13 +41,20 @@ const FEATURE_LEADS: Record<PremiumFeature, string> = {
   quiz: "The MC Quiz is part of Premium.",
 };
 
-// How much cheaper a year is than twelve months, when both are on offer
-function yearlySaving(plans: PricingPlan[]): number | null {
-  const month = plans.find((p) => p.interval === "month");
-  const year = plans.find((p) => p.interval === "year");
-  if (!month?.amount || !year?.amount || month.currency !== year.currency) return null;
-  const saving = Math.round((1 - year.amount / (month.amount * 12)) * 100);
+// How much cheaper a longer plan is than paying monthly for the same months
+function savingOverMonthly(plan: PricingPlan, plans: PricingPlan[]): number | null {
+  const monthly = plans.find((p) => p.plan === "monthly");
+  const months = monthsPerPayment(plan.interval, plan.intervalCount);
+  if (!monthly?.amount || !plan.amount || !months || months <= 1 || monthly.currency !== plan.currency) return null;
+  const saving = Math.round((1 - plan.amount / (monthly.amount * months)) * 100);
   return saving > 0 ? saving : null;
+}
+
+// "$4.50 a month" for a plan that covers several months
+function perMonth(plan: PricingPlan): string | null {
+  const months = monthsPerPayment(plan.interval, plan.intervalCount);
+  if (!plan.amount || !months || months <= 1) return null;
+  return `${formatPrice(Math.round(plan.amount / months), plan.currency)} a month`;
 }
 
 interface UpgradeDialogProps {
@@ -74,7 +85,7 @@ export function UpgradeDialog({
   const [plans, setPlans] = useState<PricingPlan[] | null>(null);
   const [trialDays, setTrialDays] = useState(0);
   const [pricingError, setPricingError] = useState<BillingError | null>(null);
-  const [selected, setSelected] = useState<BillingInterval>("year");
+  const [selected, setSelected] = useState<PlanId>("yearly");
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   const loadPricing = useCallback(() => {
@@ -83,10 +94,8 @@ export function UpgradeDialog({
       .then((pricing) => {
         setPlans(pricing.plans);
         setTrialDays(pricing.trialDays);
-        // Start on the yearly plan when there is one
-        if (!pricing.plans.some((p) => p.interval === "year") && pricing.plans[0]) {
-          setSelected(pricing.plans[0].interval);
-        }
+        const start = PLAN_PREFERENCE.find((id) => pricing.plans.some((p) => p.plan === id));
+        if (start) setSelected(start);
       })
       .catch((error) => setPricingError(error instanceof BillingError ? error : new BillingError(String(error))));
   }, []);
@@ -127,7 +136,6 @@ export function UpgradeDialog({
     }
   };
 
-  const saving = plans ? yearlySaving(plans) : null;
   const notForSale = pricingError?.code === "not_configured";
   const offersTrial = !isPremium && trialAvailable && trialDays > 0;
 
@@ -209,33 +217,41 @@ export function UpgradeDialog({
                   className={cn("grid gap-3", plans.length > 1 ? "grid-cols-2" : "grid-cols-1")}
                 >
                   {plans.map((plan) => {
-                    const isSelected = plan.interval === selected;
+                    const isSelected = plan.plan === selected;
+                    const saving = savingOverMonthly(plan, plans);
+                    const monthly = perMonth(plan);
                     return (
                       <button
-                        key={plan.interval}
+                        key={plan.plan}
                         type="button"
                         role="radio"
                         aria-checked={isSelected}
-                        onClick={() => setSelected(plan.interval)}
+                        onClick={() => setSelected(plan.plan)}
                         className={cn(
-                          "relative flex flex-col items-start gap-0.5 rounded-xl border px-4 py-3 text-left transition-colors",
+                          "flex flex-col items-start gap-0.5 rounded-xl border px-4 py-3 text-left transition-colors",
                           isSelected
                             ? "border-primary bg-accent shadow-[var(--glow-ember)]"
                             : "border-line-strong hover:border-primary/50",
                         )}
                       >
-                        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          {PLAN_NAMES[plan.interval]}
+                        {/* The pill drops under the name when the card is too narrow for both */}
+                        <span className="flex w-full flex-wrap items-center justify-between gap-x-2 gap-y-1">
+                          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            {PLAN_NAMES[plan.plan]}
+                          </span>
+                          {saving && (
+                            <span className="rounded-full px-2 py-0.5 text-[10px] font-bold text-primary-foreground [background-image:var(--gradient-primary)]">
+                              Save {saving}%
+                            </span>
+                          )}
                         </span>
                         <span className="text-2xl font-semibold">
                           {plan.amount === null ? "See checkout" : formatPrice(plan.amount, plan.currency)}
                         </span>
-                        <span className="text-xs text-muted-foreground">per {plan.interval}</span>
-                        {plan.interval === "year" && saving && (
-                          <span className="absolute right-3 top-3 rounded-full px-2 py-0.5 text-[10px] font-bold text-primary-foreground [background-image:var(--gradient-primary)]">
-                            Save {saving}%
-                          </span>
-                        )}
+                        <span className="text-xs text-muted-foreground">
+                          {billingPeriod(plan.interval, plan.intervalCount)}
+                        </span>
+                        {monthly && <span className="text-xs text-muted-foreground/80">{monthly}</span>}
                       </button>
                     );
                   })}
