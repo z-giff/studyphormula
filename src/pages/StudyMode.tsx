@@ -12,8 +12,8 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { getContrastColor } from "@/lib/utils";
 import { InteractiveFlashcardStudy } from "@/components/InteractiveFlashcardStudy";
 import { FlashcardText } from "@/components/FlashcardText";
-import { FlowchartCanvasDisplay } from "@/components/FlowchartCanvasDisplay";
-import { DrawingCanvasDisplay } from "@/components/DrawingCanvasDisplay";
+import { FlashcardBoardBack } from "@/components/FlashcardBoardBack";
+import { BOARD_BACK_COLOR, hasBoardBack } from "@/lib/flashcardBoard";
 
 interface Flashcard {
   id: string;
@@ -258,12 +258,15 @@ const StudyMode = () => {
                   textBoxes={currentCard.interactive_data.textBoxes}
                 />
               </Card>
-            ) : currentCard.flashcard_type === "flowchart" && currentCard.interactive_data ? (
+            ) : hasBoardBack(currentCard) ? (
               <Card
-                className="relative h-[500px] cursor-pointer border-0 overflow-hidden flex flex-col"
+                className={`relative h-[500px] cursor-pointer overflow-hidden flex flex-col ${
+                  isFlipped ? "border-2 shadow-lg" : "border-0"
+                }`}
                 style={{
-                  backgroundColor: cardColor,
-                  color: textColor,
+                  ...(isFlipped
+                    ? { backgroundColor: BOARD_BACK_COLOR, borderColor: cardColor }
+                    : { backgroundColor: cardColor, color: textColor }),
                   transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
                   transition: "transform 0.6s ease",
                   transformStyle: "preserve-3d",
@@ -271,7 +274,7 @@ const StudyMode = () => {
                 onClick={handleFlip}
               >
                 <div
-                  className="p-12 w-full flex-1 flex flex-col min-h-0"
+                  className={`w-full flex-1 flex flex-col min-h-0 ${isFlipped ? "" : "p-12"}`}
                   style={{
                     transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
                     transformStyle: "preserve-3d",
@@ -280,54 +283,10 @@ const StudyMode = () => {
                   {!isFlipped ? (
                     <div className="text-center space-y-6 flex-1 flex flex-col items-center justify-center">
                       <FlashcardText text={currentCard.term} className="text-4xl font-bold" />
-                      <p className="text-sm opacity-70 mt-8">Click to reveal flowchart</p>
+                      <p className="text-sm opacity-70 mt-8">Click to reveal {currentCard.flashcard_type}</p>
                     </div>
                   ) : (
-                    <div className="flex-1 flex flex-col min-h-0">
-                      <p className="text-sm uppercase tracking-wide opacity-80 mb-4 text-center">Flowchart</p>
-                      <div className="flex-1 min-h-0">
-                        <FlowchartCanvasDisplay
-                          flowchartData={currentCard.interactive_data}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </Card>
-            ) : currentCard.flashcard_type === "drawing" && currentCard.interactive_data ? (
-              <Card
-                className="relative h-[500px] cursor-pointer border-0 overflow-hidden flex flex-col"
-                style={{
-                  backgroundColor: cardColor,
-                  color: textColor,
-                  transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
-                  transition: "transform 0.6s ease",
-                  transformStyle: "preserve-3d",
-                }}
-                onClick={handleFlip}
-              >
-                <div
-                  className="p-12 w-full flex-1 flex flex-col min-h-0"
-                  style={{
-                    transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
-                    transformStyle: "preserve-3d",
-                  }}
-                >
-                  {!isFlipped ? (
-                    <div className="text-center space-y-6 flex-1 flex flex-col items-center justify-center">
-                      <FlashcardText text={currentCard.term} className="text-4xl font-bold" />
-                      <p className="text-sm opacity-70 mt-8">Click to reveal drawing</p>
-                    </div>
-                  ) : (
-                    <div className="flex-1 flex flex-col min-h-0">
-                      <p className="text-sm uppercase tracking-wide opacity-80 mb-4 text-center">Drawing</p>
-                      <div className="w-full flex-1 flex items-center justify-center min-h-0">
-                        <DrawingCanvasDisplay
-                          drawingData={currentCard.interactive_data}
-                          className="rounded-lg shadow-sm max-w-full max-h-full mx-auto"
-                        />
-                      </div>
-                    </div>
+                    <FlashcardBoardBack card={currentCard} />
                   )}
                 </div>
               </Card>

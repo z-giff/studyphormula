@@ -1,11 +1,19 @@
 import { useMemo } from "react";
 import { ReactFlow, Node, Edge, Background, Controls, Handle, Position } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { cn } from "@/lib/utils";
+
+export type FlowchartData = { nodes: Node[]; edges: Edge[] };
 
 interface FlowchartCanvasDisplayProps {
-  flowchartData: { nodes: Node[]; edges: Edge[] };
+  flowchartData: FlowchartData;
   className?: string;
   showControls?: boolean;
+  /** The editor's dotted grid behind the chart. */
+  showGrid?: boolean;
+  /** Pan and zoom with the pointer. Off, the chart is a still picture and taps
+      pass straight through to whatever holds it, such as a card to flip. */
+  interactive?: boolean;
 }
 
 const nodeTypes = {
@@ -124,7 +132,13 @@ const nodeTypes = {
   ),
 };
 
-export const FlowchartCanvasDisplay = ({ flowchartData, className, showControls = true }: FlowchartCanvasDisplayProps) => {
+export const FlowchartCanvasDisplay = ({
+  flowchartData,
+  className,
+  showControls = true,
+  showGrid = true,
+  interactive = true,
+}: FlowchartCanvasDisplayProps) => {
   // Convert edges to solid static lines and normalize legacy handle ids (null can prevent rendering)
   const solidEdges = useMemo(
     () =>
@@ -136,9 +150,11 @@ export const FlowchartCanvasDisplay = ({ flowchartData, className, showControls 
             edge.sourceHandle == null || edge.sourceHandle === "null" ? undefined : edge.sourceHandle,
           targetHandle:
             edge.targetHandle == null || edge.targetHandle === "null" ? undefined : edge.targetHandle,
+          // The chart always sits on white, so the lines keep one dark ink
+          // rather than the theme's text colour, which is pale in dark mode.
           style: {
             ...(edge.style || {}),
-            stroke: "hsl(var(--foreground) / 0.65)",
+            stroke: "hsl(222 24% 12% / 0.65)",
             strokeWidth: 2,
           },
         };
@@ -148,7 +164,13 @@ export const FlowchartCanvasDisplay = ({ flowchartData, className, showControls 
   );
 
   return (
-    <div className={`border rounded-lg bg-white flowchart-display h-full ${className || ""}`}>
+    <div
+      className={cn(
+        "border rounded-lg bg-white flowchart-display h-full",
+        !interactive && "flowchart-static",
+        className
+      )}
+    >
       <style>{`
         .flowchart-display .react-flow__node {
           padding: 0 !important;
@@ -158,6 +180,12 @@ export const FlowchartCanvasDisplay = ({ flowchartData, className, showControls 
           outline: none !important;
           box-shadow: none !important;
         }
+        /* React Flow turns pointer events back on for nodes and panels, so a
+           still chart has to switch them off all the way down. */
+        .flowchart-display.flowchart-static,
+        .flowchart-display.flowchart-static * {
+          pointer-events: none !important;
+        }
       `}</style>
       <ReactFlow
         nodes={flowchartData.nodes}
@@ -166,11 +194,11 @@ export const FlowchartCanvasDisplay = ({ flowchartData, className, showControls 
         nodesDraggable={false}
         nodesConnectable={false}
         elementsSelectable={false}
-        panOnDrag={true}
-        zoomOnScroll={true}
+        panOnDrag={interactive}
+        zoomOnScroll={interactive}
         fitView
       >
-        <Background />
+        {showGrid && <Background />}
         {showControls && <Controls showInteractive={false} />}
       </ReactFlow>
     </div>

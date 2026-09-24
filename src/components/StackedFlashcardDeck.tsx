@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Pencil, Trash2, Bookmark, Copy, Maximize2, RotateCcw } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { DrawingCanvasDisplay } from "@/components/DrawingCanvasDisplay";
-import { FlowchartCanvasDisplay } from "@/components/FlowchartCanvasDisplay";
+import { ChevronLeft, ChevronRight, Pencil, Trash2, Bookmark, Copy, RotateCcw } from "lucide-react";
+import { FlashcardBoardBack } from "@/components/FlashcardBoardBack";
+import { BOARD_BACK_COLOR, hasBoardBack } from "@/lib/flashcardBoard";
 import { InteractiveFlashcardStudy } from "@/components/InteractiveFlashcardStudy";
 import { FlashcardText } from "@/components/FlashcardText";
 
@@ -75,7 +74,6 @@ export const StackedFlashcardDeck = ({
     clampCardIndex(initialIndex, flashcards.length)
   );
   const [flippedCards, setFlippedCards] = useState<Set<number>>(new Set());
-  const [expandedFlowchartData, setExpandedFlowchartData] = useState<{ nodes: any[]; edges: any[] } | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [animationDirection, setAnimationDirection] = useState<"next" | "prev" | null>(null);
   const reportedIndex = useRef(initialIndex);
@@ -266,52 +264,33 @@ export const StackedFlashcardDeck = ({
                       </Card>
 
                       {/* Back of card */}
-                      <Card
-                        className="absolute inset-0 backface-hidden rotate-y-180 shadow-lg border-2"
-                        style={{ 
-                          borderColor: cardColor,
-                          backgroundColor: cardColor,
-                        }}
-                      >
-                        <CardContent className="flex flex-col items-center justify-center h-full p-6 text-center">
-                          {card.flashcard_type === "drawing" && card.interactive_data ? (
-                          <div className="w-full flex-1 flex items-center justify-center px-4 min-h-0">
-                            <DrawingCanvasDisplay 
-                              drawingData={card.interactive_data.drawingData || card.interactive_data}
-                              className="rounded-lg shadow-sm max-w-full max-h-full mx-auto"
-                            />
-                          </div>
-                          ) : card.flashcard_type === "flowchart" && card.interactive_data ? (
-                            <div 
-                              className="relative w-full h-48 bg-white rounded-lg border border-border shadow-sm overflow-hidden"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <div className="w-full h-full flowchart-preview">
-                                <FlowchartCanvasDisplay
-                                  flowchartData={card.interactive_data.flowchartData || card.interactive_data}
-                                  showControls={false}
-                                />
-                              </div>
-                              <button
-                                className="absolute bottom-2 right-2 p-1.5 bg-background/90 hover:bg-background border border-border rounded-md shadow-sm transition-colors z-10"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setExpandedFlowchartData(card.interactive_data.flowchartData || card.interactive_data);
-                                }}
-                                title="Expand flowchart"
-                              >
-                                <Maximize2 className="h-4 w-4 text-foreground" />
-                              </button>
-                            </div>
-                          ) : (
+                      {hasBoardBack(card) ? (
+                        <Card
+                          className="absolute inset-0 backface-hidden rotate-y-180 shadow-lg border-2 overflow-hidden"
+                          style={{
+                            borderColor: cardColor,
+                            backgroundColor: BOARD_BACK_COLOR,
+                          }}
+                        >
+                          <FlashcardBoardBack card={card} />
+                        </Card>
+                      ) : (
+                        <Card
+                          className="absolute inset-0 backface-hidden rotate-y-180 shadow-lg border-2"
+                          style={{
+                            borderColor: cardColor,
+                            backgroundColor: cardColor,
+                          }}
+                        >
+                          <CardContent className="flex flex-col items-center justify-center h-full p-6 text-center">
                             <FlashcardText
                               text={card.definition}
                               className="max-h-full overflow-y-auto text-lg"
                               style={{ color: textColor }}
                             />
-                          )}
-                        </CardContent>
-                      </Card>
+                          </CardContent>
+                        </Card>
+                      )}
                     </>
                   );
                 })()}
@@ -440,17 +419,6 @@ export const StackedFlashcardDeck = ({
           animation: whoosh-in 0.4s ease-in-out forwards;
         }
       `}</style>
-
-      {/* Flowchart Expanded Modal */}
-      <Dialog open={!!expandedFlowchartData} onOpenChange={() => setExpandedFlowchartData(null)}>
-        <DialogContent className="max-w-4xl w-[90vw] h-[70vh] p-0 overflow-hidden">
-          <div className="w-full h-full bg-white rounded-lg">
-            {expandedFlowchartData && (
-              <FlowchartCanvasDisplay flowchartData={expandedFlowchartData} />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
