@@ -58,7 +58,9 @@ const Dashboard = () => {
    const [isAutoFlashcardDialogOpen, setIsAutoFlashcardDialogOpen] = useState(false);
   useEffect(() => {
     if (!loading && !user) {
-      navigate("/auth");
+      // Come back to this exact page after signing in: links from emails carry
+      // what to do next, such as ?billing=manage
+      navigate(`/auth?mode=signin&next=${encodeURIComponent(`/dashboard${window.location.search}`)}`);
     }
   }, [user, loading, navigate]);
   useEffect(() => {

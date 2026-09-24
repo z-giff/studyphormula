@@ -9,6 +9,7 @@ import {
   formatPremiumDate,
   hasTrialAvailable,
   isStaleSubscription,
+  openBillingPortal,
   syncPremium,
   type PremiumFeature,
   type PremiumStatus,
@@ -100,7 +101,9 @@ export const PremiumProvider = ({ children }: { children: React.ReactNode }) => 
     const params = new URLSearchParams(location.search);
     const outcome = params.get("checkout");
     const fromPortal = params.get("billing") === "portal";
-    if (!outcome && !fromPortal) return;
+    // The trial-ending email's button: straight on to the Stripe billing page
+    const toPortal = params.get("billing") === "manage";
+    if (!outcome && !fromPortal && !toPortal) return;
 
     // Drop the flags so a refresh or the back button doesn't repeat this
     params.delete("checkout");
@@ -120,6 +123,12 @@ export const PremiumProvider = ({ children }: { children: React.ReactNode }) => 
       void syncPremium()
         .then(() => refresh())
         .catch((error) => console.error("Failed to re-check Premium with Stripe:", error));
+    }
+
+    if (toPortal) {
+      void openBillingPortal(`${location.pathname}${search ? `?${search}` : ""}`).catch((error) =>
+        toast.error(error instanceof Error ? error.message : "Couldn't open billing"),
+      );
     }
   }, [userId, location, navigate, confirmCheckout, refresh]);
 

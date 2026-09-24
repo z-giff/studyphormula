@@ -4,7 +4,7 @@ import LegalMarkdown from "@/components/legal/LegalMarkdown";
 import source from "../../docs/legal/privacy-policy.md?raw";
 
 const Privacy = () => (
-  <LegalPage title="Privacy Policy" lastUpdated="September 20, 2026">
+  <LegalPage title="Privacy Policy" lastUpdated="September 24, 2026">
     <LegalMarkdown source={source} />
   </LegalPage>
 );

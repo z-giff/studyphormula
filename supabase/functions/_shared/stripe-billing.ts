@@ -90,6 +90,8 @@ async function customerUserId(customerId: string): Promise<string | null> {
 
 export interface SyncResult {
   fields: SubscriptionFields
+  /** The subscription the fields came from, with its customer expanded. */
+  subscription: Stripe.Subscription | null
   /** The customer has had a subscription before, in any state: their free trial is used up. */
   hadSubscription: boolean
 }
@@ -111,8 +113,9 @@ export async function syncCustomer(
     limit: 10,
     expand: ['data.customer'],
   })
-  const fields = subscriptionFields(pickSubscription(subscriptions))
-  const result = { fields, hadSubscription: subscriptions.length > 0 }
+  const subscription = pickSubscription(subscriptions)
+  const fields = subscriptionFields(subscription)
+  const result = { fields, subscription, hadSubscription: subscriptions.length > 0 }
 
   const { data: updated, error } = await admin
     .from('subscriptions')
@@ -132,6 +135,11 @@ export async function syncCustomer(
   const { error: upsertError } = await admin
     .from('subscriptions')
     .upsert({ user_id: userId, stripe_customer_id: customerId, ...fields }, { onConflict: 'user_id' })
+  // 23503: the user has since deleted their account, so there's no one to update
+  if (upsertError?.code === '23503') {
+    console.warn(`Stripe customer ${customerId} belongs to a deleted account; nothing stored`)
+    return result
+  }
   if (upsertError) throw upsertError
   return result
 }

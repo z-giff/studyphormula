@@ -2,6 +2,7 @@ import type { ComponentType } from 'npm:react@18.3.1'
 import { template as welcomeTemplate } from './welcome.tsx'
 import { template as flashcardsSharedTemplate } from './flashcards-shared.tsx'
 import { template as flashcardsInviteTemplate } from './flashcards-invite.tsx'
+import { template as premiumTrialEndingTemplate } from './premium-trial-ending.tsx'
 
 export interface TemplateEntry {
   component: ComponentType<Record<string, any>>
@@ -18,4 +19,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   welcome: welcomeTemplate,
   'flashcards-shared': flashcardsSharedTemplate,
   'flashcards-invite': flashcardsInviteTemplate,
+  'premium-trial-ending': premiumTrialEndingTemplate,
 }

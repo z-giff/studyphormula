@@ -37,9 +37,17 @@ the session with a note saying how many were skipped.
   (new email) for another trial. Requiring a card is the usual way to stop
   that; it's a one-line change if you'd rather.
 
-Turn on Stripe's trial reminder email so people are nudged to add a card before
-the trial ends. It's under **Settings → Billing** (look for the free-trial
-reminder / trial messaging settings).
+**The reminder email.** Three days before a trial ends, Stripe tells the
+webhook (`customer.subscription.trial_will_end`), and Phormula sends its own
+branded email, *"Your free trial ends in 3 days"*, through the same email
+system as the welcome and sharing emails. Without a card on file, the email
+asks them to **Add a card**; with one, it says what they'll be charged and
+links to **Manage billing**. Both buttons open `phormula.co/dashboard?billing=manage`,
+which takes them straight to Stripe's billing page (after signing in if
+needed). The template is
+`supabase/functions/_shared/transactional-email-templates/premium-trial-ending.tsx`,
+and it shows up in the email preview with the others. **Leave Stripe's own
+trial reminder email turned off**, so nobody gets two.
 
 ## How the pieces fit
 
@@ -62,6 +70,7 @@ Stripe ──► stripe-webhook ──► public.subscriptions ◄── billing
 | Upgrade dialog | `src/components/UpgradeDialog.tsx` | Live prices from Stripe, monthly/yearly, checkout |
 | Plan & billing | `src/components/ProfileSheet.tsx` | Plan section: upgrade, renewal date, **Manage billing** |
 | Gates | `src/lib/premium.ts`, `src/components/PremiumLock.tsx` | What's premium, locked cards, locked pages |
+| Trial email | `supabase/functions/_shared/transactional-email-templates/premium-trial-ending.tsx` | The "your free trial ends in 3 days" email |
 
 The webhook never trusts the event's own copy of the subscription. It takes
 the customer ID and asks Stripe for the current state, so late, duplicate or
@@ -136,7 +145,9 @@ Webhooks → Create an event destination*).
   - `customer.updated`
   - `payment_method.attached`
 
-The last two tell the app when a trial user adds a card.
+The last two tell the app when a trial user adds a card. *Shortcut:* selecting
+**all events** works too; the function acknowledges and ignores the ones it
+doesn't need.
 
 After saving, reveal the endpoint's **Signing secret** (`whsec_…`).
 
@@ -205,7 +216,8 @@ In the dashboard, start a subscription simulation (**Billing → Subscriptions �
 Test clocks**) for a new customer. Give that customer the metadata key
 `supabase_user_id`, set to your user ID (Authentication → Users). The webhook
 then links the simulated subscription to your account as you move the clock
-forward.
+forward. Moving the clock to three days before the trial ends also sends the
+trial-ending email.
 
 ## Premium for you and testers, free
 
@@ -252,6 +264,10 @@ where stripe_customer_id like 'manual:%'
 
 - **Who is paying:** Stripe → Billing → Subscriptions. What the app believes
   is in the `subscriptions` table.
+- **Account deletion:** deleting an account from Privacy & Security cancels any
+  subscription in Stripe immediately (no refund for the rest of the period),
+  then deletes the account (`supabase/functions/delete-account`). If you ever
+  delete a user by hand in Supabase, cancel their subscription in Stripe first.
 - **Refunds:** issue them in Stripe. A refund doesn't cancel the subscription.
   To end access too, cancel it immediately in Stripe; the webhook updates the
   app.

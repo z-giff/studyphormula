@@ -1,7 +1,7 @@
 # Phormula Terms of Service
 
-**Last updated:** September 20, 2026
-**Effective:** September 20, 2026
+**Last updated:** September 24, 2026
+**Effective:** September 24, 2026
 
 ## 1. Agreement to These Terms
 
@@ -234,7 +234,8 @@ send us a counter-notice at the same address.
 ## 12. Suspension and Termination
 
 **By you.** You may stop using the Service and delete your account at any time from Privacy &
-Security in your account settings.
+Security in your account settings. Deleting your account ends any paid subscription immediately,
+without a refund for the rest of the billing period except where required by law.
 
 **By us.** We may suspend or terminate your access, with or without notice, if you materially breach
 these Terms, if your use creates a legal or security risk for us or other users, or if we are

@@ -18,7 +18,7 @@ refine quickly, rather than something to ship unreviewed.
 | Regulatory coverage | Global: GDPR + UK GDPR, CCPA/CPRA, and other US state laws |
 | AI training on user content | Never — stated as a firm commitment in both documents |
 | Public/shared sets | Planned, so the licence and takedown provisions are already in place |
-| Paid plans | Planned, so billing, auto-renewal, and refund terms are already in place |
+| Paid plans | Live as Phormula Premium: a Stripe subscription with a free trial. The Privacy Policy names Stripe |
 
 ## Placeholders to fill before publishing
 
@@ -34,7 +34,6 @@ The ones that need a decision rather than a lookup:
 - `[JURISDICTION]` and `[VENUE]` — governing law and forum. Follow your entity's home jurisdiction.
 - Retention periods in Privacy Policy §9 — pick concrete numbers you can actually honour.
 - `[AMOUNT]` in ToS §14 — the liability cap floor. USD 100 is the common consumer-SaaS figure.
-- `[PAYMENT PROCESSOR]` in Privacy Policy §6.1 — name it once you choose one.
 - The arbitration clause in ToS §16 — a genuine decision, flagged inline. Standard in US consumer
   SaaS, unenforceable against EEA/UK consumers, and it limits your options as much as your users'.
 - DMCA agent designation in ToS §11 — only relevant if you incorporate in the US, and only worth
@@ -47,10 +46,10 @@ The ones that need a decision rather than a lookup:
 Both documents were written against the actual codebase, with three exceptions that need code
 changes before the claims are true:
 
-1. **Account deletion.** Privacy Policy §11 and ToS §12 say you can delete your account from
-   Privacy & Security. `src/components/settings/PrivacySecuritySettings.tsx:95` currently shows a
-   dialog that ends by telling the user to email `support@phormula.co` — no deletion happens. Either
-   implement real deletion or reword both documents to describe the email process honestly.
+1. **Account deletion.** Done: Privacy & Security deletes the account through the
+   `delete-account` edge function, which cancels any Premium subscription in Stripe first, as
+   Privacy Policy §9 and §11 and ToS §12 say. If you ever delete a user by hand (for example in
+   the Supabase dashboard), cancel their subscription in Stripe first, or Stripe keeps charging.
 
 2. **Revoking third-party app authorisations.** Privacy Policy §11 and ToS §8 say you can revoke an
    authorised application's access from account settings. There is no such screen yet; the MCP OAuth
@@ -70,6 +69,6 @@ The Privacy Policy names specific subprocessors and AI models. Revisit it whenev
   `gemini-2.5-pro` for text detection, both via the Lovable AI gateway);
 - add analytics, error tracking, or any tracking SDK — §2.3 currently promises you have none, which
   is a real commitment worth protecting;
-- add a payment processor;
+- change or add a payment processor (currently Stripe, §6.1);
 - add file uploads to object storage (document parsing is client-side today, and §2.3 says so);
-- ship public sharing or paid plans, which move those sections from forward-looking to live.
+- ship public sharing, which moves that section from forward-looking to live.
