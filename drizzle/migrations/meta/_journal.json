@@ -22,6 +22,13 @@
       "when": 1790282287306,
       "tag": "0002_premium_semester_plans",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790282361987,
+      "tag": "0003_flashcard_sharing",
+      "breakpoints": true
     }
   ]
 }
