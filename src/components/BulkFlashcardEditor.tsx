@@ -391,10 +391,12 @@ export const BulkFlashcardEditor = ({
     }, 50);
   };
 
+  // A function value is an update to the row's latest value, for changes that
+  // land later, like a picture that finishes uploading
   const handleRowChange = (rowId: string, field: keyof BulkCardRow, value: any) => {
     setRows((prev) =>
       prev.map((row) =>
-        row.id === rowId ? { ...row, [field]: value } : row
+        row.id === rowId ? { ...row, [field]: typeof value === "function" ? value(row[field]) : value } : row
       )
     );
   };

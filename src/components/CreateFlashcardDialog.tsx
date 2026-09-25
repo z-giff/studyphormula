@@ -59,6 +59,9 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
   const [flowchartData, setFlowchartData] = useState({ nodes: [], edges: [] });
   const [drawingData, setDrawingData] = useState({ strokes: [], width: 0, height: 0 });
   const [standardLayout, setStandardLayout] = useState<StandardCardLayout>(emptyStandardCardLayout());
+  // Pictures still uploading would be left off a card saved now
+  const [picturesBusy, setPicturesBusy] = useState(false);
+  const waitingForPictures = flashcardType === "standard" && picturesBusy;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +69,10 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
     if (flashcardType === "standard") {
       if (!formData.term.trim() || !formData.definition.trim()) {
         toast.error("Please fill in both term and definition");
+        return;
+      }
+      if (picturesBusy) {
+        toast.info("Wait for the pictures to finish uploading");
         return;
       }
     } else if (flashcardType === "interactive") {
@@ -255,7 +262,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
                   />
                 </div>
 
-                <StandardCardImageEditor term={formData.term} definition={formData.definition} color="#38b6ff" layout={standardLayout} onChange={setStandardLayout} disabled={isLoading} />
+                <StandardCardImageEditor term={formData.term} definition={formData.definition} color="#38b6ff" layout={standardLayout} onChange={setStandardLayout} disabled={isLoading} onBusyChange={setPicturesBusy} />
               </TabsContent>
 
               <TabsContent value="interactive" className="space-y-5 mt-6">
@@ -343,8 +350,8 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading} className="min-w-[120px]">
-              {isLoading ? "Creating…" : "Create"}
+            <Button type="submit" disabled={isLoading || waitingForPictures} className="min-w-[120px]">
+              {isLoading ? "Creating…" : waitingForPictures ? "Uploading pictures…" : "Create"}
             </Button>
           </div>
         </form>

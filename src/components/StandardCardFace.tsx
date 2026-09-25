@@ -18,9 +18,12 @@ export const StandardCardFace = ({ side, term, definition, imageUrl, interactive
   const [sources, setSources] = useState<Record<string, string>>({});
   useEffect(() => {
     let active = true;
-    Promise.all(images.map(async (image) => [image.id, await resolveStandardImageSource(image.src)] as const))
-      .then((entries) => active && setSources(Object.fromEntries(entries)))
-      .catch(() => active && setSources({}));
+    // One picture that can't be opened (deleted, no longer shared) leaves the others showing
+    Promise.allSettled(images.map((image) => resolveStandardImageSource(image.src))).then((results) => {
+      if (!active) return;
+      setSources(Object.fromEntries(results.flatMap((result, index) =>
+        result.status === "fulfilled" ? [[images[index].id, result.value]] : [])));
+    });
     return () => { active = false; };
   }, [images]);
 
