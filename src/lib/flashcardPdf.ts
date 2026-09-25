@@ -3,6 +3,7 @@ import { getStandardCardLayout, resolveStandardImageSource, type StandardCardIma
 
 export type PdfOrientation = "portrait" | "landscape";
 export type PdfSides = "same-page" | "duplex";
+export type PdfFormat = "flashcards" | "table";
 
 export interface PdfFlashcard {
   id: string;
@@ -15,10 +16,12 @@ export interface PdfFlashcard {
 }
 
 export interface FlashcardPdfOptions {
+  format: PdfFormat;
   orientation: PdfOrientation;
   cardsPerPage: 1 | 2 | 4 | 6 | 8;
   sides: PdfSides;
   removeStandardImages: boolean;
+  includeTableImages: boolean;
 }
 
 interface Box { x: number; y: number; w: number; h: number }
@@ -27,6 +30,8 @@ interface LoadedImage { data: string; format: string; width: number; height: num
 const PAGE_MARGIN = 28;
 const PAGE_FOOTER = 16;
 const CARD_RATIO = 1.75;
+const REFERENCE_CARD_WIDTH = 504;
+const REFERENCE_CARD_HEIGHT = 288;
 const imageCache = new Map<string, Promise<LoadedImage | null>>();
 
 const safeColor = (value?: string | null) => /^#[0-9a-f]{6}$/i.test(value || "") ? value as string : "#ffffff";
@@ -120,7 +125,8 @@ const drawStandard = async (doc: jsPDF, card: PdfFlashcard, box: Box, side: "fro
     const image = source ? await loadImage(source) : null;
     if (image) drawPositionedImage(doc, image, item, box);
   }
-  drawText(doc, side === "front" ? card.term : card.definition, textBox, color, side === "front");
+  const scale = Math.min(box.w / (REFERENCE_CARD_WIDTH * .89), box.h / (REFERENCE_CARD_HEIGHT * .89));
+  drawText(doc, side === "front" ? card.term : card.definition, textBox, color, side === "front", scale);
   for (const item of images.filter((image) => image.textFlow === "overlap")) {
     const source = await resolveStandardImageSource(item.src).catch(() => null);
     const image = source ? await loadImage(source) : null;
@@ -134,14 +140,15 @@ const drawText = (
   box: Box,
   color: string,
   bold = false,
+  scale = 1,
 ) => {
   const clean = (text || "").replace(/\r/g, "");
-  let size = bold ? 16 : 13;
+  let size = (bold ? 16 : 13) * scale;
   doc.setFont("helvetica", bold ? "bold" : "normal");
   doc.setTextColor(color);
   let lines = doc.splitTextToSize(clean, box.w) as string[];
-  while (size > 6 && lines.length * size * 1.18 > box.h) {
-    size -= 0.5;
+  while (size > 4 * scale && lines.length * size * 1.18 > box.h) {
+    size -= 0.5 * scale;
     doc.setFontSize(size);
     lines = doc.splitTextToSize(clean, box.w) as string[];
   }
@@ -151,12 +158,12 @@ const drawText = (
   doc.text(lines, box.x + box.w / 2, startY, { align: "center", lineHeightFactor: 1.18, maxWidth: box.w });
 };
 
-const drawDrawing = (doc: jsPDF, card: PdfFlashcard, box: Box) => {
+const drawDrawing = (doc: jsPDF, card: PdfFlashcard, box: Box, cardScale: number) => {
   const data = getBoardData(card);
   const strokes = Array.isArray(data?.strokes) ? data.strokes : [];
   const points = strokes.flatMap((stroke: any) => Array.isArray(stroke.points) ? stroke.points : []);
   if (!points.length) {
-    drawText(doc, "No drawing", box, "#6b7280");
+    drawText(doc, "No drawing", box, "#6b7280", false, cardScale);
     return;
   }
   const minX = Math.min(...points.map((point: any) => Number(point.x) || 0));
@@ -169,7 +176,7 @@ const drawDrawing = (doc: jsPDF, card: PdfFlashcard, box: Box) => {
     if (!Array.isArray(stroke.points) || stroke.points.length < 2) return;
     const color = String(stroke.color || "#000000").toLowerCase();
     doc.setDrawColor(color === "#f5f5f5" ? "#ffffff" : color === "#ffffff" ? "#6b7280" : color);
-    doc.setLineWidth(Math.max((Number(stroke.width) || 1) * scale, 0.35));
+    doc.setLineWidth(Math.max((Number(stroke.width) || 1) * scale, 0.35 * cardScale));
     for (let index = 1; index < stroke.points.length; index += 1) {
       const from = stroke.points[index - 1];
       const to = stroke.points[index];
@@ -183,12 +190,12 @@ const drawDrawing = (doc: jsPDF, card: PdfFlashcard, box: Box) => {
   });
 };
 
-const drawFlowchart = async (doc: jsPDF, card: PdfFlashcard, box: Box) => {
+const drawFlowchart = async (doc: jsPDF, card: PdfFlashcard, box: Box, cardScale: number) => {
   const data = getBoardData(card);
   const nodes = Array.isArray(data?.nodes) ? data.nodes : [];
   const edges = Array.isArray(data?.edges) ? data.edges : [];
   if (!nodes.length) {
-    drawText(doc, "No flowchart", box, "#6b7280");
+    drawText(doc, "No flowchart", box, "#6b7280", false, cardScale);
     return;
   }
   const bounds = nodes.map((node: any) => ({
@@ -213,7 +220,7 @@ const drawFlowchart = async (doc: jsPDF, card: PdfFlashcard, box: Box) => {
     }];
   }));
   doc.setDrawColor("#4b5563");
-  doc.setLineWidth(0.8);
+  doc.setLineWidth(0.8 * cardScale);
   edges.forEach((edge: any) => {
     const source = mapped.get(edge.source) as Box | undefined;
     const target = mapped.get(edge.target) as Box | undefined;
@@ -231,14 +238,14 @@ const drawFlowchart = async (doc: jsPDF, card: PdfFlashcard, box: Box) => {
       ? { x: target.x + 3, y: target.y + target.h * 0.58, w: target.w - 6, h: target.h * 0.36 }
       : { x: target.x + 3, y: target.y + 3, w: target.w - 6, h: target.h - 6 };
     if (image) drawImage(doc, image, { x: target.x + 3, y: target.y + 3, w: target.w - 6, h: target.h * 0.5 });
-    drawText(doc, String(node.data?.label || ""), textBox, contrastColor(color), true);
+    drawText(doc, String(node.data?.label || ""), textBox, contrastColor(color), true, cardScale);
   }
 };
 
-const drawInteractive = async (doc: jsPDF, card: PdfFlashcard, box: Box, side: "front" | "back") => {
+const drawInteractive = async (doc: jsPDF, card: PdfFlashcard, box: Box, side: "front" | "back", cardScale: number) => {
   const image = card.image_url ? await loadImage(card.image_url) : null;
   if (!image) {
-    drawText(doc, side === "front" ? card.term : card.definition || "Diagram unavailable", box, "#111827", true);
+    drawText(doc, side === "front" ? card.term : card.definition || "Diagram unavailable", box, "#111827", true, cardScale);
     return;
   }
   const imageBox = drawImage(doc, image, box);
@@ -247,7 +254,7 @@ const drawInteractive = async (doc: jsPDF, card: PdfFlashcard, box: Box, side: "
     textBoxes.forEach((mask: any) => {
       doc.setFillColor(safeColor(mask.bgColor || "#ffffff"));
       doc.setDrawColor("#111827");
-      doc.setLineWidth(0.6);
+      doc.setLineWidth(0.6 * cardScale);
       doc.rect(
         imageBox.x + imageBox.w * (Number(mask.x) || 0) / 100,
         imageBox.y + imageBox.h * (Number(mask.y) || 0) / 100,
@@ -267,25 +274,26 @@ const drawCard = async (
   options: FlashcardPdfOptions,
   setColor: string,
 ) => {
+  const cardScale = Math.min(box.w / REFERENCE_CARD_WIDTH, box.h / REFERENCE_CARD_HEIGHT);
   const isBoardBack = side === "back" && (card.flashcard_type === "drawing" || card.flashcard_type === "flowchart");
   const cardColor = isBoardBack || card.flashcard_type === "interactive" ? "#ffffff" : safeColor(card.color || setColor);
   doc.setFillColor(cardColor);
   doc.setDrawColor("#cbd5e1");
-  doc.setLineWidth(0.55);
-  doc.roundedRect(box.x, box.y, box.w, box.h, 4, 4, "FD");
-  const inset = Math.max(7, Math.min(box.w, box.h) * 0.055);
+  doc.setLineWidth(0.55 * cardScale);
+  doc.roundedRect(box.x, box.y, box.w, box.h, 4 * cardScale, 4 * cardScale, "FD");
+  const inset = 16 * cardScale;
   const content = { x: box.x + inset, y: box.y + inset, w: box.w - inset * 2, h: box.h - inset * 2 };
 
   if (card.flashcard_type === "interactive") {
     if (side === "front") {
-      const titleH = Math.min(28, content.h * 0.2);
-      drawText(doc, card.term, { ...content, h: titleH }, "#111827", true);
-      await drawInteractive(doc, card, { ...content, y: content.y + titleH + 3, h: content.h - titleH - 3 }, side);
-    } else await drawInteractive(doc, card, content, side);
+      const titleH = 28 * cardScale;
+      drawText(doc, card.term, { ...content, h: titleH }, "#111827", true, cardScale);
+      await drawInteractive(doc, card, { ...content, y: content.y + titleH + 3 * cardScale, h: content.h - titleH - 3 * cardScale }, side, cardScale);
+    } else await drawInteractive(doc, card, content, side, cardScale);
   } else if (side === "back" && card.flashcard_type === "drawing") {
-    drawDrawing(doc, card, content);
+    drawDrawing(doc, card, content, cardScale);
   } else if (side === "back" && card.flashcard_type === "flowchart") {
-    await drawFlowchart(doc, card, content);
+    await drawFlowchart(doc, card, content, cardScale);
   } else await drawStandard(doc, card, content, side, contrastColor(cardColor), options.removeStandardImages);
 };
 
@@ -337,6 +345,149 @@ const addPage = (doc: jsPDF, pageNumber: number) => {
   if (pageNumber > 1) doc.addPage();
 };
 
+interface TableImage {
+  item: StandardCardImage;
+  image: LoadedImage;
+}
+
+const tableCellImages = async (card: PdfFlashcard, side: "front" | "back", includeImages: boolean): Promise<TableImage[]> => {
+  if (!includeImages || (card.flashcard_type && card.flashcard_type !== "standard")) return [];
+  const layout = getStandardCardLayout(card.interactive_data, card.image_url);
+  const loaded = await Promise.all([...layout[side]].sort((a, b) => a.zIndex - b.zIndex).map(async (item) => {
+    const source = await resolveStandardImageSource(item.src).catch(() => null);
+    const image = source ? await loadImage(source) : null;
+    return image ? { item, image } : null;
+  }));
+  return loaded.filter((value): value is TableImage => value !== null);
+};
+
+const tableBackText = (card: PdfFlashcard) => {
+  const type = card.flashcard_type || "standard";
+  return type === "standard" ? card.definition : "";
+};
+
+const fitTableText = (doc: jsPDF, text: string, width: number, maxHeight: number) => {
+  let size = 9;
+  let lines: string[] = [];
+  while (size >= 5.5) {
+    doc.setFontSize(size);
+    lines = doc.splitTextToSize((text || "").replace(/\r/g, ""), width) as string[];
+    if (lines.length * size * 1.25 <= maxHeight) break;
+    size -= 0.5;
+  }
+  const maximumLines = Math.max(1, Math.floor(maxHeight / (size * 1.25)));
+  if (lines.length > maximumLines) {
+    lines = lines.slice(0, maximumLines);
+    const last = lines.length - 1;
+    lines[last] = `${lines[last].replace(/\s+$/, "")}…`;
+  }
+  return { size, lines, height: lines.length * size * 1.25 };
+};
+
+const drawTableImages = (doc: jsPDF, images: TableImage[], box: Box) => {
+  if (!images.length || box.h <= 0) return;
+  const sourceBounds = images.reduce((bounds, { item }) => ({
+    minX: Math.min(bounds.minX, item.x),
+    minY: Math.min(bounds.minY, item.y),
+    maxX: Math.max(bounds.maxX, item.x + item.width),
+    maxY: Math.max(bounds.maxY, item.y + item.height),
+  }), { minX: 100, minY: 100, maxX: 0, maxY: 0 });
+  const sourceW = Math.max(1, sourceBounds.maxX - sourceBounds.minX);
+  const sourceH = Math.max(1, sourceBounds.maxY - sourceBounds.minY);
+  const fitted = fitRect(sourceW, sourceH, box);
+  images.forEach(({ item, image }) => {
+    const target = {
+      x: fitted.x + (item.x - sourceBounds.minX) / sourceW * fitted.w,
+      y: fitted.y + (item.y - sourceBounds.minY) / sourceH * fitted.h,
+      w: item.width / sourceW * fitted.w,
+      h: item.height / sourceH * fitted.h,
+    };
+    const imageBox = item.fit === "cover" ? target : fitRect(image.width, image.height, target);
+    doc.addImage(image.data, image.format, imageBox.x, imageBox.y, imageBox.w, imageBox.h, undefined, "FAST", item.rotation);
+  });
+};
+
+const drawTableHeader = (doc: jsPDF, y: number, tableX: number, tableW: number, columnW: number) => {
+  const height = 28;
+  doc.setFillColor("#f1f5f9");
+  doc.setDrawColor("#cbd5e1");
+  doc.setLineWidth(0.6);
+  doc.rect(tableX, y, tableW, height, "FD");
+  doc.line(tableX + columnW, y, tableX + columnW, y + height);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.setTextColor("#334155");
+  doc.text("TERM", tableX + 9, y + 18);
+  doc.text("DEFINITION", tableX + columnW + 9, y + 18);
+  return y + height;
+};
+
+const generateTablePdf = async (
+  doc: jsPDF,
+  title: string,
+  cards: PdfFlashcard[],
+  options: FlashcardPdfOptions,
+  onProgress?: (completed: number, total: number) => void,
+) => {
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const tableX = PAGE_MARGIN;
+  const tableW = pageW - PAGE_MARGIN * 2;
+  const columnW = tableW / 2;
+  const cellPadding = 9;
+  const contentW = columnW - cellPadding * 2;
+  const bottom = pageH - PAGE_MARGIN - PAGE_FOOTER;
+  const maximumRowHeight = bottom - PAGE_MARGIN - 28;
+  let pageNumber = 1;
+  let y = drawTableHeader(doc, PAGE_MARGIN, tableX, tableW, columnW);
+
+  for (let index = 0; index < cards.length; index += 1) {
+    const card = cards[index];
+    const [frontImages, backImages] = await Promise.all([
+      tableCellImages(card, "front", options.includeTableImages),
+      tableCellImages(card, "back", options.includeTableImages),
+    ]);
+    const hasImages = frontImages.length > 0 || backImages.length > 0;
+    const imageHeight = hasImages ? Math.min(72, maximumRowHeight * .38) : 0;
+    const textAllowance = maximumRowHeight - cellPadding * 2 - imageHeight - (hasImages ? 6 : 0);
+    const frontText = fitTableText(doc, card.term, contentW, textAllowance);
+    const backText = fitTableText(doc, tableBackText(card), contentW, textAllowance);
+    const textHeight = Math.max(frontText.height, backText.height, 11);
+    const rowHeight = Math.min(maximumRowHeight, Math.max(38, cellPadding * 2 + textHeight + imageHeight + (hasImages ? 6 : 0)));
+
+    if (y + rowHeight > bottom && y > PAGE_MARGIN + 28) {
+      footer(doc, title, pageNumber);
+      pageNumber += 1;
+      doc.addPage();
+      y = drawTableHeader(doc, PAGE_MARGIN, tableX, tableW, columnW);
+    }
+
+    doc.setFillColor(index % 2 === 0 ? "#ffffff" : "#f8fafc");
+    doc.setDrawColor("#cbd5e1");
+    doc.setLineWidth(0.45);
+    doc.rect(tableX, y, tableW, rowHeight, "FD");
+    doc.line(tableX + columnW, y, tableX + columnW, y + rowHeight);
+
+    const renderCell = (column: number, fittedText: ReturnType<typeof fitTableText>, images: TableImage[]) => {
+      const x = tableX + column * columnW + cellPadding;
+      let textY = y + cellPadding + fittedText.size;
+      if (images.length) {
+        drawTableImages(doc, images, { x, y: y + cellPadding, w: contentW, h: imageHeight });
+        textY += imageHeight + 6;
+      }
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(fittedText.size);
+      doc.setTextColor("#1e293b");
+      if (fittedText.lines.length) doc.text(fittedText.lines, x, textY, { lineHeightFactor: 1.25, maxWidth: contentW });
+    };
+    renderCell(0, frontText, frontImages);
+    renderCell(1, backText, backImages);
+    y += rowHeight;
+    onProgress?.(index + 1, cards.length);
+  }
+  footer(doc, title, pageNumber);
+};
+
 export const flashcardPdfFilename = (title: string) => `${title.trim().replace(/[^a-z0-9-_]+/gi, "-").replace(/^-+|-+$/g, "") || "flashcards"}.pdf`;
 
 export function downloadFlashcardPdf(blob: Blob, title: string) {
@@ -356,6 +507,10 @@ export async function generateFlashcardPdf(
   onProgress?: (completed: number, total: number) => void,
 ): Promise<Blob> {
   const doc = new jsPDF({ orientation: options.orientation, unit: "pt", format: "letter", compress: true });
+  if (options.format === "table") {
+    await generateTablePdf(doc, title, cards, options, onProgress);
+    return doc.output("blob");
+  }
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
   const totalPanels = cards.length * 2;
