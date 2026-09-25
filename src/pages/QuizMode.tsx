@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { PremiumLockedPanel } from "@/components/PremiumLock";
 import { usePremium } from "@/hooks/usePremium";
+import { TRIAL_USE_LIMIT } from "@/lib/premium";
 
 interface Flashcard {
   id: string;
@@ -50,7 +51,13 @@ const QuizMode = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const { isPremium, loading: premiumLoading, openUpgrade } = usePremium();
+  const { isPremium, isTrial, loading: premiumLoading, openUpgrade, claimTrialUse, refresh, trialUsesLeft } =
+    usePremium();
+  // On a free trial, whether this set's quiz was counted, or refused because
+  // the trial's quizzes are used. Null until the database answers.
+  const [trialQuiz, setTrialQuiz] = useState<{ setId: string; outcome: "counted" | "used_up" } | null>(null);
+  const trialQuizOutcome = trialQuiz?.setId === id ? trialQuiz.outcome : null;
+  const countedFor = useRef<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -64,6 +71,28 @@ const QuizMode = () => {
       fetchData();
     }
   }, [user, id, isPremium]);
+
+  // A free trial includes a few MC Quizzes: opening one takes one, once per
+  // visit and only when there are enough cards to make it. Retaking the same
+  // quiz doesn't count again.
+  useEffect(() => {
+    if (!isTrial || !id || isLoading || flashcards.length < 4 || countedFor.current === id) return;
+    countedFor.current = id;
+    claimTrialUse("quiz")
+      .then((result) => {
+        // The trial ended since the page loaded: this becomes the page for no Premium
+        if (result === "premium_required") {
+          void refresh();
+          return;
+        }
+        setTrialQuiz({ setId: id, outcome: result === "trial_limit_reached" ? "used_up" : "counted" });
+      })
+      .catch((error) => {
+        // Counting failed (the database may be behind): let the quiz run rather than lock anyone out
+        console.error("Couldn't count this MC Quiz against the free trial:", error);
+        setTrialQuiz({ setId: id, outcome: "counted" });
+      });
+  }, [isTrial, id, isLoading, flashcards.length, claimTrialUse, refresh]);
 
   const fetchData = async () => {
     try {
@@ -155,7 +184,11 @@ const QuizMode = () => {
     );
   }
 
-  if (loading || premiumLoading || isLoading) {
+  // On a free trial, the quiz waits until it has been counted
+  const countingTrialQuiz = isTrial && flashcards.length >= 4 && trialQuizOutcome === null;
+  const quizzesLeft = trialUsesLeft("quiz");
+
+  if (loading || premiumLoading || isLoading || countingTrialQuiz) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -193,6 +226,26 @@ const QuizMode = () => {
     );
   }
 
+  if (isTrial && trialQuizOutcome === "used_up") {
+    return (
+      <div className="min-h-screen bg-background">
+        <nav className="border-b">
+          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+            <LogoOrb size="md" showWordmark={true} linkTo="/" />
+            <ThemeToggle />
+          </div>
+        </nav>
+        <PremiumLockedPanel
+          title={`You've used your free trial's ${TRIAL_USE_LIMIT} MC Quizzes`}
+          description="Start your plan now to take as many quizzes as you like. Memorize and Swipe Study stay unlimited in your trial."
+          actionLabel="Start my plan now"
+          onUpgrade={() => openUpgrade("quiz", `/quiz/${id}`)}
+          backTo={`/set/${id}`}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <nav className="border-b sticky top-0 bg-background/95 backdrop-blur z-40">
@@ -219,6 +272,13 @@ const QuizMode = () => {
           </div>
           <h1 className="text-3xl md:text-4xl font-bold">{set.title}</h1>
           <p className="text-muted-foreground mt-2">{questions.length} Questions</p>
+          {isTrial && quizzesLeft !== null && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {quizzesLeft === 0
+                ? "This is your free trial's last MC Quiz."
+                : `Your free trial has ${quizzesLeft} more MC ${quizzesLeft === 1 ? "Quiz" : "Quizzes"} after this one.`}
+            </p>
+          )}
           {isSubmitted && score !== null && (
             <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary font-semibold text-lg">
               Score: {score}/{questions.length} ({Math.round((score / questions.length) * 100)}%)

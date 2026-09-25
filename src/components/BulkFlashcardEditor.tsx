@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
  import { AutoFlashcardDialog } from "@/components/AutoFlashcardDialog";
  import { Sparkles } from "lucide-react";
-import { PremiumPill } from "@/components/PremiumLock";
+import { PremiumPill, TrialUsesPill } from "@/components/PremiumLock";
 import { usePremium } from "@/hooks/usePremium";
 import { isPremiumCardType, isPremiumRequiredError, PREMIUM_CARD_NAMES } from "@/lib/premium";
 
@@ -664,7 +664,8 @@ export const BulkFlashcardEditor = ({
               )}
             </div>
             <ThemeToggle />
-             {/* Auto-Flashcard is Premium: without it, this opens the upgrade dialog */}
+             {/* Auto-Flashcard is Premium: without it, or once a free trial's
+                 generations are used, this opens the upgrade dialog */}
              <Button 
                variant="outline" 
                onClick={() => {
@@ -675,6 +676,7 @@ export const BulkFlashcardEditor = ({
                <Sparkles className="h-4 w-4" />
                Auto-Flashcard
                {premiumLocked && <PremiumPill />}
+               <TrialUsesPill feature="auto_flashcard" />
              </Button>
             <Button onClick={handleSave} disabled={isSaving || isAutoSaving}>
               {isSaving ? "Saving..." : "Done"}

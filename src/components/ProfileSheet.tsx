@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
 import { supabase } from "@/integrations/supabase/client";
-import { describePremiumStatus, openBillingPortal } from "@/lib/premium";
+import { describePremiumStatus, openBillingPortal, PREMIUM_FEATURE_NAMES, TRIAL_LIMITED_FEATURES } from "@/lib/premium";
 import {
   Sheet,
   SheetContent,
@@ -41,7 +41,14 @@ interface ProfileSheetProps {
 
 export const ProfileSheet = ({ children }: ProfileSheetProps) => {
   const { user, signOut } = useAuth();
-  const { isPremium, loading: premiumLoading, status: premiumStatus, openUpgrade } = usePremium();
+  const {
+    isPremium,
+    isTrial,
+    loading: premiumLoading,
+    status: premiumStatus,
+    openUpgrade,
+    trialUsage,
+  } = usePremium();
   const [isOpeningBilling, setIsOpeningBilling] = useState(false);
   const [fullName, setFullName] = useState("");
   const [isEditing, setIsEditing] = useState(false);
@@ -245,6 +252,32 @@ export const ProfileSheet = ({ children }: ProfileSheetProps) => {
                 >
                   {planLine}
                 </p>
+              )}
+              {isTrial && trialUsage && (
+                <div className="space-y-1.5 rounded-lg border border-border px-3 py-2.5">
+                  <p className="text-xs font-medium text-muted-foreground">Left in your free trial</p>
+                  <ul className="space-y-1 text-sm">
+                    {TRIAL_LIMITED_FEATURES.map((feature) => {
+                      const usage = trialUsage[feature];
+                      if (!usage) return null;
+                      return (
+                        <li key={feature} className="flex justify-between gap-3">
+                          <span>{PREMIUM_FEATURE_NAMES[feature]}</span>
+                          <span className="text-muted-foreground">
+                            {Math.max(usage.limit - usage.uses, 0)} of {usage.limit}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  <p className="text-xs text-muted-foreground">Everything else is unlimited, and a paid plan has no limits.</p>
+                </div>
+              )}
+              {isTrial && (
+                <Button variant="brand" size="sm" className="rounded-lg font-bold" onClick={() => openUpgrade()}>
+                  <Crown className="h-4 w-4" />
+                  Start my plan now
+                </Button>
               )}
             </>
           ) : (

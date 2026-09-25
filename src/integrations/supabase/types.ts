@@ -307,6 +307,27 @@ export type Database = {
         }
         Relationships: []
       }
+      premium_trial_usage: {
+        Row: {
+          feature: string
+          updated_at: string
+          user_id: string
+          uses: number
+        }
+        Insert: {
+          feature: string
+          updated_at?: string
+          user_id: string
+          uses?: number
+        }
+        Update: {
+          feature?: string
+          updated_at?: string
+          user_id?: string
+          uses?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -465,6 +486,7 @@ export type Database = {
     }
     Functions: {
       add_shared_flashcards: { Args: { p_share_id: string }; Returns: Json }
+      claim_premium_feature_use: { Args: { p_feature: string }; Returns: string }
       claim_premium_trial: { Args: { p_user_id: string }; Returns: undefined }
       copy_flashcard_set: {
         Args: { p_file_id: string; p_owner: string; p_set_id: string }
@@ -513,6 +535,14 @@ export type Database = {
           is_premium: boolean
           status: string
           trial_available: boolean
+        }[]
+      }
+      get_premium_trial_usage: {
+        Args: never
+        Returns: {
+          feature: string
+          use_limit: number
+          uses: number
         }[]
       }
       get_shared_flashcard_cards: {
@@ -590,6 +620,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      release_premium_feature_use: {
+        Args: { p_feature: string; p_user_id: string }
+        Returns: undefined
       }
       share_flashcards: {
         Args: { p_emails: string[]; p_item_id: string; p_item_type: string }

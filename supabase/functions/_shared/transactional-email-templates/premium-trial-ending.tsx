@@ -186,14 +186,15 @@ const Email = ({ trialEndsAt, hasPaymentMethod, planName, priceLabel }: TrialEnd
               {hasPaymentMethod ? (
                 <Text style={paragraph}>
                   Thanks for trying Phormula Premium. When your trial ends, the card you added will be
-                  charged{priceLabel ? ` ${priceLabel}` : ''} and Premium carries on without a break.
-                  There's nothing you need to do.
+                  charged{priceLabel ? ` ${priceLabel}` : ''} and Premium carries on without a break, with
+                  no limits on Auto-Flashcard, text detection or the MC Quiz. There's nothing you need to do.
                 </Text>
               ) : (
                 <Text style={paragraph}>
                   Thanks for trying Phormula Premium. To keep making cards with Auto-Flashcard and
                   studying with interactive, flowchart and drawing cards and the MC Quiz, add a card
-                  before your trial ends.
+                  before your trial ends. Once your plan starts, there are no limits on Auto-Flashcard,
+                  text detection or the MC Quiz.
                 </Text>
               )}
 

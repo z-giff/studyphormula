@@ -9,18 +9,31 @@ import {
   formatPremiumDate,
   hasTrialAvailable,
   isStaleSubscription,
+  isTrialLimitedFeature,
   openBillingPortal,
+  PREMIUM_FEATURE_NAMES,
   syncPremium,
+  TRIAL_USE_LIMIT,
   type PremiumFeature,
   type PremiumStatus,
+  type TrialLimitedFeature,
+  type TrialUsage,
+  type TrialUseClaim,
 } from "@/lib/premium";
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const onTrial = (status: PremiumStatus | null) => status?.is_premium === true && status.status === "trialing";
+
+// The feature named in ?upgrade=, if it names one
+const asFeature = (value: string | null): PremiumFeature | undefined =>
+  value && Object.prototype.hasOwnProperty.call(PREMIUM_FEATURE_NAMES, value) ? (value as PremiumFeature) : undefined;
+
 /**
- * Knows whether the signed-in user has Premium, owns the one upgrade dialog,
- * and finishes the round trip to Stripe Checkout: the page Checkout returns
- * to carries ?checkout=success or ?checkout=cancelled.
+ * Knows whether the signed-in user has Premium, and on a free trial how many
+ * of its counted uses are left. Owns the one upgrade dialog, and finishes the
+ * round trip to Stripe Checkout: the page Checkout returns to carries
+ * ?checkout=success or ?checkout=cancelled.
  */
 export const PremiumProvider = ({ children }: { children: React.ReactNode }) => {
   const { user, loading: authLoading } = useAuth();
@@ -29,17 +42,50 @@ export const PremiumProvider = ({ children }: { children: React.ReactNode }) => 
   const navigate = useNavigate();
   const [status, setStatus] = useState<PremiumStatus | null>(null);
   const [statusLoading, setStatusLoading] = useState(true);
+  const [trialUsage, setTrialUsage] = useState<TrialUsage | null>(null);
   const [upgrade, setUpgrade] = useState<{ open: boolean; feature?: PremiumFeature; returnPath?: string }>({
     open: false,
   });
   // Only the newest request may set the status, whoever signs in or out meanwhile
   const latestRequest = useRef(0);
+  const latestUsageRequest = useRef(0);
   const syncedStale = useRef(false);
+
+  const openUpgrade = useCallback((feature?: PremiumFeature, returnPath?: string) => {
+    setUpgrade({
+      open: true,
+      feature,
+      returnPath: returnPath ?? `${window.location.pathname}${window.location.search}`,
+    });
+  }, []);
+
+  // The trial's counts, for someone on a trial. Until the database has drizzle
+  // migration 0016 there are none, and nothing shows a count.
+  const loadTrialUsage = useCallback(async (forStatus: PremiumStatus | null) => {
+    const request = ++latestUsageRequest.current;
+    if (!onTrial(forStatus)) {
+      setTrialUsage(null);
+      return;
+    }
+    const { data, error } = await supabase.rpc("get_premium_trial_usage");
+    if (request !== latestUsageRequest.current) return;
+    if (error) {
+      console.error("Failed to load free-trial usage:", error);
+      setTrialUsage(null);
+      return;
+    }
+    const usage: Partial<TrialUsage> = {};
+    for (const row of data ?? []) {
+      if (isTrialLimitedFeature(row.feature)) usage[row.feature] = { uses: row.uses, limit: row.use_limit };
+    }
+    setTrialUsage(usage as TrialUsage);
+  }, []);
 
   const refresh = useCallback(async (): Promise<PremiumStatus | null> => {
     const request = ++latestRequest.current;
     if (!userId) {
       setStatus(null);
+      setTrialUsage(null);
       setStatusLoading(false);
       return null;
     }
@@ -52,8 +98,9 @@ export const PremiumProvider = ({ children }: { children: React.ReactNode }) => 
     }
     const next = (data as PremiumStatus | null) ?? null;
     setStatus(next);
+    await loadTrialUsage(next);
     return next;
-  }, [userId]);
+  }, [userId, loadTrialUsage]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -83,8 +130,8 @@ export const PremiumProvider = ({ children }: { children: React.ReactNode }) => 
         toast.success(trialEnd ? "Your free trial has started" : "Welcome to Phormula Premium", {
           id: toastId,
           description: trialEnd
-            ? `Auto-Flashcard, interactive, flowchart and drawing cards, and the MC Quiz are unlocked until ${formatPremiumDate(trialEnd)}.`
-            : "Auto-Flashcard, interactive, flowchart and drawing cards, and the MC Quiz are unlocked.",
+            ? `Premium is unlocked until ${formatPremiumDate(trialEnd)}, with ${TRIAL_USE_LIMIT} uses each of Auto-Flashcard, text detection and the MC Quiz.`
+            : "Auto-Flashcard, interactive, flowchart and drawing cards, and the MC Quiz are unlocked, with no limits.",
         });
         return;
       }
@@ -103,11 +150,15 @@ export const PremiumProvider = ({ children }: { children: React.ReactNode }) => 
     const fromPortal = params.get("billing") === "portal";
     // The trial-ending email's button: straight on to the Stripe billing page
     const toPortal = params.get("billing") === "manage";
-    if (!outcome && !fromPortal && !toPortal) return;
+    // Open the upgrade dialog on arrival, as when a trial user comes back from
+    // adding a card to start their plan
+    const upgradeOn = params.get("upgrade");
+    if (!outcome && !fromPortal && !toPortal && upgradeOn === null) return;
 
     // Drop the flags so a refresh or the back button doesn't repeat this
     params.delete("checkout");
     params.delete("billing");
+    params.delete("upgrade");
     const search = params.toString();
     navigate(
       { pathname: location.pathname, search: search ? `?${search}` : "", hash: location.hash },
@@ -122,7 +173,12 @@ export const PremiumProvider = ({ children }: { children: React.ReactNode }) => 
     if (fromPortal) {
       void syncPremium()
         .then(() => refresh())
-        .catch((error) => console.error("Failed to re-check Premium with Stripe:", error));
+        .catch((error) => console.error("Failed to re-check Premium with Stripe:", error))
+        .finally(() => {
+          if (upgradeOn !== null) openUpgrade(asFeature(upgradeOn));
+        });
+    } else if (upgradeOn !== null) {
+      openUpgrade(asFeature(upgradeOn));
     }
 
     if (toPortal) {
@@ -130,31 +186,61 @@ export const PremiumProvider = ({ children }: { children: React.ReactNode }) => 
         toast.error(error instanceof Error ? error.message : "Couldn't open billing"),
       );
     }
-  }, [userId, location, navigate, confirmCheckout, refresh]);
+  }, [userId, location, navigate, confirmCheckout, refresh, openUpgrade]);
 
   const isPremium = status?.is_premium === true;
+  const isTrial = onTrial(status);
   const loading = authLoading || statusLoading;
 
-  const openUpgrade = useCallback((feature?: PremiumFeature, returnPath?: string) => {
-    setUpgrade({
-      open: true,
-      feature,
-      returnPath: returnPath ?? `${window.location.pathname}${window.location.search}`,
-    });
-  }, []);
+  const refreshTrialUsage = useCallback(() => loadTrialUsage(status), [loadTrialUsage, status]);
+
+  const trialUsesLeft = useCallback(
+    (feature: TrialLimitedFeature) => {
+      const counted = isTrial ? trialUsage?.[feature] : undefined;
+      return counted ? Math.max(counted.limit - counted.uses, 0) : null;
+    },
+    [isTrial, trialUsage],
+  );
+
+  const claimTrialUse = useCallback(
+    async (feature: TrialLimitedFeature): Promise<TrialUseClaim> => {
+      const { data, error } = await supabase.rpc("claim_premium_feature_use", { p_feature: feature });
+      if (error) throw error;
+      // Fresh counts before the caller shows what's left
+      await loadTrialUsage(status);
+      return data as TrialUseClaim;
+    },
+    [loadTrialUsage, status],
+  );
 
   const requirePremium = useCallback(
     (feature?: PremiumFeature, returnPath?: string) => {
-      if (isPremium || loading) return true;
-      openUpgrade(feature, returnPath);
-      return false;
+      if (loading) return true;
+      // No Premium, or a free trial that has used this feature up
+      if (!isPremium || (isTrialLimitedFeature(feature) && trialUsesLeft(feature) === 0)) {
+        openUpgrade(feature, returnPath);
+        return false;
+      }
+      return true;
     },
-    [isPremium, loading, openUpgrade],
+    [isPremium, loading, openUpgrade, trialUsesLeft],
   );
 
   const value = useMemo<PremiumContextType>(
-    () => ({ isPremium, loading, status, refresh, openUpgrade, requirePremium }),
-    [isPremium, loading, status, refresh, openUpgrade, requirePremium],
+    () => ({
+      isPremium,
+      loading,
+      status,
+      isTrial,
+      trialUsage,
+      trialUsesLeft,
+      refresh,
+      refreshTrialUsage,
+      claimTrialUse,
+      openUpgrade,
+      requirePremium,
+    }),
+    [isPremium, loading, status, isTrial, trialUsage, trialUsesLeft, refresh, refreshTrialUsage, claimTrialUse, openUpgrade, requirePremium],
   );
 
   return (
@@ -166,9 +252,14 @@ export const PremiumProvider = ({ children }: { children: React.ReactNode }) => 
         feature={upgrade.feature}
         returnPath={upgrade.returnPath ?? "/dashboard"}
         isPremium={isPremium}
+        isTrial={isTrial}
+        trialUsage={trialUsage}
+        billingInterval={status?.billing_interval ?? null}
+        billingIntervalCount={status?.billing_interval_count ?? null}
         hasBillingAccount={status?.has_billing_account ?? false}
         trialAvailable={hasTrialAvailable(status)}
         onAlreadyPremium={refresh}
+        onPlanChanged={refresh}
       />
     </PremiumContext.Provider>
   );

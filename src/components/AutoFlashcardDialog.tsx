@@ -73,7 +73,9 @@
    existingSetTitle 
  }: AutoFlashcardDialogProps) => {
    const { user } = useAuth();
-   const { openUpgrade, refresh, requirePremium } = usePremium();
+   const { isTrial, openUpgrade, refresh, refreshTrialUsage, requirePremium, trialUsage } = usePremium();
+   // On a free trial, how its Auto-Flashcard generations stand
+   const trialGenerations = isTrial ? trialUsage?.auto_flashcard : undefined;
    const navigate = useNavigate();
    const fileInputRef = useRef<HTMLInputElement>(null);
    
@@ -160,8 +162,9 @@
        return;
      }
  
-     // Auto-Flashcard is Premium. The buttons that open this dialog check too,
-     // but the plan may still have been loading then
+     // Auto-Flashcard is Premium, and a free trial has a few generations. The
+     // buttons that open this dialog check too, but the plan may still have
+     // been loading then
      if (!requirePremium("auto_flashcard")) return;
  
      if (!isAppendMode && !formData.title.trim()) {
@@ -198,8 +201,9 @@
        });
  
        if (aiError) {
-         // generate-flashcards answers 403 to anyone without Premium. Re-read the
-         // plan first, so the upgrade dialog doesn't say it's already unlocked
+         // generate-flashcards answers 403 without Premium, and to a free trial
+         // whose generations are used. Re-read the plan and its counts first, so
+         // the upgrade dialog shows where they stand
          if ((aiError as { context?: Response }).context?.status === 403) {
            toast.dismiss(generatingToast);
            await refresh();
@@ -275,6 +279,8 @@
        toast.error(error.message || "Failed to generate flashcards");
      } finally {
        setIsLoading(false);
+       // A generation that ran, or one the AI service failed and handed back
+       if (isTrial) void refreshTrialUsage();
      }
    };
  
@@ -405,7 +411,13 @@
            </div>
  
            {/* Actions */}
-           <div className="flex gap-3 justify-end">
+           <div className="flex flex-wrap items-center gap-3 justify-end">
+             {trialGenerations && (
+               <p className="mr-auto text-xs text-muted-foreground">
+                 {Math.max(trialGenerations.limit - trialGenerations.uses, 0)} of {trialGenerations.limit} Auto-Flashcard
+                 generations left in your free trial
+               </p>
+             )}
              <Button
                type="button"
                variant="outline"

@@ -18,7 +18,7 @@ refine quickly, rather than something to ship unreviewed.
 | Regulatory coverage | Global: GDPR + UK GDPR, CCPA/CPRA, and other US state laws |
 | AI training on user content | Never — stated as a firm commitment in both documents |
 | Shared sets | Live: private sharing by email, described in Privacy Policy §2.1, §6.5 and §9. Public sharing is still planned, so the licence and takedown provisions are already in place |
-| Paid plans | Live as Phormula Premium: a Stripe subscription with a free trial. The Privacy Policy names Stripe |
+| Paid plans | Live as Phormula Premium: a Stripe subscription with a free trial. The Privacy Policy names Stripe. The trial caps some features (3 uses each of Auto-Flashcard, text detection and the MC Quiz) and can be ended early by starting the paid plan, which charges at once: ToS §6 and Privacy Policy §2.2 cover both |
 
 ## Placeholders to fill before publishing
 

@@ -17,9 +17,10 @@ function check<T>(what: string, { data, error }: { data: T; error: unknown }): T
 }
 
 export async function buildDataExport(user: User): Promise<Blob> {
-  const [profile, premium, files, sets, shares, pictures] = await Promise.all([
+  const [profile, premium, trialUsage, files, sets, shares, pictures] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
     supabase.rpc("get_premium_status").maybeSingle(),
+    supabase.rpc("get_premium_trial_usage"),
     supabase.from("flashcard_files").select("*").eq("user_id", user.id).order("created_at"),
     // Each set with its sections and cards; bookmarks and resume position are on these rows
     supabase.from("flashcard_sets").select("*, sections(*), flashcards(*)").eq("user_id", user.id).order("created_at"),
@@ -37,6 +38,8 @@ export async function buildDataExport(user: User): Promise<Blob> {
     },
     profile: check("profile", profile),
     premium: check("Premium status", premium),
+    // A free trial's counted uses of Auto-Flashcard, text detection and the MC Quiz
+    premium_trial_usage: check("free-trial usage", trialUsage),
     files: check("files", files),
     sets: check("flashcard sets", sets),
     // Shares you sent (who to, when) and shares sent to you

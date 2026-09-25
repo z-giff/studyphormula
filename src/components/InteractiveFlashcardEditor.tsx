@@ -6,6 +6,7 @@ import { Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { usePremium } from "@/hooks/usePremium";
+import { TrialUsesPill } from "@/components/PremiumLock";
 import { buildLabelMasks } from "@/lib/labelMask";
 import { TextBoxFormatToolbar } from "@/components/TextBoxFormatToolbar";
 import {
@@ -41,7 +42,7 @@ interface InteractiveFlashcardEditorProps {
 
 export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onImageChange }: InteractiveFlashcardEditorProps) => {
   const { toast } = useToast();
-  const { openUpgrade } = usePremium();
+  const { isTrial, openUpgrade, refresh, refreshTrialUsage, requirePremium } = usePremium();
   const [selectedBox, setSelectedBox] = useState<string | null>(null);
   const [editingBox, setEditingBox] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -165,6 +166,8 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
       });
       return;
     }
+    // A free trial includes a few detections; once they're used, this offers the paid plan
+    if (!requirePremium("text_detection")) return;
 
     setIsDetecting(true);
     try {
@@ -274,9 +277,12 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
         });
       }
     } catch (error) {
-      // detect-text answers 403 to anyone without Premium
+      // detect-text answers 403 without Premium, and to a free trial whose
+      // detections are used. Re-read the plan and its counts first, so the
+      // upgrade dialog shows where they stand
       if ((error as { context?: Response })?.context?.status === 403) {
-        openUpgrade("interactive");
+        await refresh();
+        openUpgrade("text_detection");
         return;
       }
       console.error('Error detecting text:', error);
@@ -287,6 +293,8 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
       });
     } finally {
       setIsDetecting(false);
+      // A detection that ran, or one the AI service failed and handed back
+      if (isTrial) void refreshTrialUsage();
     }
   };
 
@@ -374,6 +382,7 @@ export const InteractiveFlashcardEditor = ({ imageUrl, textBoxes, onChange, onIm
         >
           <Wand2 className="h-4 w-4 mr-2" />
           {isDetecting ? "Detecting..." : "Auto-detect Text"}
+          <TrialUsesPill feature="text_detection" className="ml-1.5" />
         </Button>
         <Button
           type="button"
