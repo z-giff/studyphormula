@@ -345,6 +345,149 @@ const addPage = (doc: jsPDF, pageNumber: number) => {
   if (pageNumber > 1) doc.addPage();
 };
 
+interface TableImage {
+  item: StandardCardImage;
+  image: LoadedImage;
+}
+
+const tableCellImages = async (card: PdfFlashcard, side: "front" | "back", includeImages: boolean): Promise<TableImage[]> => {
+  if (!includeImages || (card.flashcard_type && card.flashcard_type !== "standard")) return [];
+  const layout = getStandardCardLayout(card.interactive_data, card.image_url);
+  const loaded = await Promise.all([...layout[side]].sort((a, b) => a.zIndex - b.zIndex).map(async (item) => {
+    const source = await resolveStandardImageSource(item.src).catch(() => null);
+    const image = source ? await loadImage(source) : null;
+    return image ? { item, image } : null;
+  }));
+  return loaded.filter((value): value is TableImage => value !== null);
+};
+
+const tableBackText = (card: PdfFlashcard) => {
+  const type = card.flashcard_type || "standard";
+  return type === "standard" ? card.definition : "";
+};
+
+const fitTableText = (doc: jsPDF, text: string, width: number, maxHeight: number) => {
+  let size = 9;
+  let lines: string[] = [];
+  while (size >= 5.5) {
+    doc.setFontSize(size);
+    lines = doc.splitTextToSize((text || "").replace(/\r/g, ""), width) as string[];
+    if (lines.length * size * 1.25 <= maxHeight) break;
+    size -= 0.5;
+  }
+  const maximumLines = Math.max(1, Math.floor(maxHeight / (size * 1.25)));
+  if (lines.length > maximumLines) {
+    lines = lines.slice(0, maximumLines);
+    const last = lines.length - 1;
+    lines[last] = `${lines[last].replace(/\s+$/, "")}…`;
+  }
+  return { size, lines, height: lines.length * size * 1.25 };
+};
+
+const drawTableImages = (doc: jsPDF, images: TableImage[], box: Box) => {
+  if (!images.length || box.h <= 0) return;
+  const sourceBounds = images.reduce((bounds, { item }) => ({
+    minX: Math.min(bounds.minX, item.x),
+    minY: Math.min(bounds.minY, item.y),
+    maxX: Math.max(bounds.maxX, item.x + item.width),
+    maxY: Math.max(bounds.maxY, item.y + item.height),
+  }), { minX: 100, minY: 100, maxX: 0, maxY: 0 });
+  const sourceW = Math.max(1, sourceBounds.maxX - sourceBounds.minX);
+  const sourceH = Math.max(1, sourceBounds.maxY - sourceBounds.minY);
+  const fitted = fitRect(sourceW, sourceH, box);
+  images.forEach(({ item, image }) => {
+    const target = {
+      x: fitted.x + (item.x - sourceBounds.minX) / sourceW * fitted.w,
+      y: fitted.y + (item.y - sourceBounds.minY) / sourceH * fitted.h,
+      w: item.width / sourceW * fitted.w,
+      h: item.height / sourceH * fitted.h,
+    };
+    const imageBox = item.fit === "cover" ? target : fitRect(image.width, image.height, target);
+    doc.addImage(image.data, image.format, imageBox.x, imageBox.y, imageBox.w, imageBox.h, undefined, "FAST", item.rotation);
+  });
+};
+
+const drawTableHeader = (doc: jsPDF, y: number, tableX: number, tableW: number, columnW: number) => {
+  const height = 28;
+  doc.setFillColor("#f1f5f9");
+  doc.setDrawColor("#cbd5e1");
+  doc.setLineWidth(0.6);
+  doc.rect(tableX, y, tableW, height, "FD");
+  doc.line(tableX + columnW, y, tableX + columnW, y + height);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(9);
+  doc.setTextColor("#334155");
+  doc.text("TERM", tableX + 9, y + 18);
+  doc.text("DEFINITION", tableX + columnW + 9, y + 18);
+  return y + height;
+};
+
+const generateTablePdf = async (
+  doc: jsPDF,
+  title: string,
+  cards: PdfFlashcard[],
+  options: FlashcardPdfOptions,
+  onProgress?: (completed: number, total: number) => void,
+) => {
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const tableX = PAGE_MARGIN;
+  const tableW = pageW - PAGE_MARGIN * 2;
+  const columnW = tableW / 2;
+  const cellPadding = 9;
+  const contentW = columnW - cellPadding * 2;
+  const bottom = pageH - PAGE_MARGIN - PAGE_FOOTER;
+  const maximumRowHeight = bottom - PAGE_MARGIN - 28;
+  let pageNumber = 1;
+  let y = drawTableHeader(doc, PAGE_MARGIN, tableX, tableW, columnW);
+
+  for (let index = 0; index < cards.length; index += 1) {
+    const card = cards[index];
+    const [frontImages, backImages] = await Promise.all([
+      tableCellImages(card, "front", options.includeTableImages),
+      tableCellImages(card, "back", options.includeTableImages),
+    ]);
+    const hasImages = frontImages.length > 0 || backImages.length > 0;
+    const imageHeight = hasImages ? Math.min(72, maximumRowHeight * .38) : 0;
+    const textAllowance = maximumRowHeight - cellPadding * 2 - imageHeight - (hasImages ? 6 : 0);
+    const frontText = fitTableText(doc, card.term, contentW, textAllowance);
+    const backText = fitTableText(doc, tableBackText(card), contentW, textAllowance);
+    const textHeight = Math.max(frontText.height, backText.height, 11);
+    const rowHeight = Math.min(maximumRowHeight, Math.max(38, cellPadding * 2 + textHeight + imageHeight + (hasImages ? 6 : 0)));
+
+    if (y + rowHeight > bottom && y > PAGE_MARGIN + 28) {
+      footer(doc, title, pageNumber);
+      pageNumber += 1;
+      doc.addPage();
+      y = drawTableHeader(doc, PAGE_MARGIN, tableX, tableW, columnW);
+    }
+
+    doc.setFillColor(index % 2 === 0 ? "#ffffff" : "#f8fafc");
+    doc.setDrawColor("#cbd5e1");
+    doc.setLineWidth(0.45);
+    doc.rect(tableX, y, tableW, rowHeight, "FD");
+    doc.line(tableX + columnW, y, tableX + columnW, y + rowHeight);
+
+    const renderCell = (column: number, fittedText: ReturnType<typeof fitTableText>, images: TableImage[]) => {
+      const x = tableX + column * columnW + cellPadding;
+      let textY = y + cellPadding + fittedText.size;
+      if (images.length) {
+        drawTableImages(doc, images, { x, y: y + cellPadding, w: contentW, h: imageHeight });
+        textY += imageHeight + 6;
+      }
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(fittedText.size);
+      doc.setTextColor("#1e293b");
+      if (fittedText.lines.length) doc.text(fittedText.lines, x, textY, { lineHeightFactor: 1.25, maxWidth: contentW });
+    };
+    renderCell(0, frontText, frontImages);
+    renderCell(1, backText, backImages);
+    y += rowHeight;
+    onProgress?.(index + 1, cards.length);
+  }
+  footer(doc, title, pageNumber);
+};
+
 export const flashcardPdfFilename = (title: string) => `${title.trim().replace(/[^a-z0-9-_]+/gi, "-").replace(/^-+|-+$/g, "") || "flashcards"}.pdf`;
 
 export function downloadFlashcardPdf(blob: Blob, title: string) {
@@ -364,6 +507,10 @@ export async function generateFlashcardPdf(
   onProgress?: (completed: number, total: number) => void,
 ): Promise<Blob> {
   const doc = new jsPDF({ orientation: options.orientation, unit: "pt", format: "letter", compress: true });
+  if (options.format === "table") {
+    await generateTablePdf(doc, title, cards, options, onProgress);
+    return doc.output("blob");
+  }
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
   const totalPanels = cards.length * 2;
