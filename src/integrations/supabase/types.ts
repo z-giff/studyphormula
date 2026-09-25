@@ -544,7 +544,29 @@ export type Database = {
       }
       premium_renewal_reminders_due: {
         Args: never
-        Returns: Database["public"]["Tables"]["subscriptions"]["Row"][]
+        Returns: {
+          billing_interval: string | null
+          billing_interval_count: number | null
+          cancel_at: string | null
+          created_at: string
+          current_period_end: string | null
+          has_payment_method: boolean
+          price_id: string | null
+          renewal_reminded_at: string | null
+          renewal_reminder_period_end: string | null
+          started_at: string | null
+          status: string | null
+          stripe_customer_id: string
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "subscriptions"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       premium_trial_email_hash: { Args: { p_email: string }; Returns: string }
       premium_trial_used: { Args: { p_user_id: string }; Returns: boolean }
