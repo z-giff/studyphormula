@@ -15,6 +15,15 @@ export interface DrawingData {
 // white here; otherwise every erased line would show up as a grey smudge.
 const BOARD_COLOR = "#ffffff";
 const EDITOR_ERASER_COLOR = "#f5f5f5";
+const WHITE_PEN_DISPLAY_COLOR = "#6b7280";
+
+const getDisplayStrokeColor = (color: string) => {
+  const normalizedColor = color.toLowerCase();
+
+  if (normalizedColor === EDITOR_ERASER_COLOR) return BOARD_COLOR;
+  if (normalizedColor === BOARD_COLOR) return WHITE_PEN_DISPLAY_COLOR;
+  return color;
+};
 
 interface DrawingCanvasDisplayProps {
   drawingData: DrawingData;
@@ -115,7 +124,7 @@ export const DrawingCanvasDisplay = ({ drawingData, className = "" }: DrawingCan
       if (stroke.points.length < 2) return;
 
       ctx.beginPath();
-      ctx.strokeStyle = stroke.color === EDITOR_ERASER_COLOR ? BOARD_COLOR : stroke.color;
+      ctx.strokeStyle = getDisplayStrokeColor(stroke.color);
       ctx.lineWidth = Math.max(stroke.width * effectiveScale, 0.5);
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
