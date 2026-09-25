@@ -245,14 +245,29 @@ async function generateSectionCards(
   return { cards: validCards, errorStatus: null };
 }
 
+// Hands back a free-trial generation the AI service failed to deliver. Only
+// the service role may, so the app can't hand uses back to take more.
+async function giveBackTrialUse(userId: string) {
+  const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { error } = await admin.rpc('release_premium_feature_use', { p_user_id: userId, p_feature: 'auto_flashcard' });
+  if (error) console.error('Could not give back a trial generation:', error.message);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  // A free-trial generation this request took, and whether it counts. Any way
+  // out but the AI doing its work hands it back.
+  let trialUseOf: string | null = null;
+  let trialUseSpent = false;
   try {
-    // Generating spends AI credits, so it needs a signed-in account. The app
-    // only offers it on pages that already require one.
+    // Generating spends AI credits, so it needs a signed-in account with
+    // Phormula Premium. The app only offers it on pages that already require an
+    // account, and opens the upgrade dialog for anyone without Premium.
     const authHeader = req.headers.get('Authorization');
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
       global: { headers: { Authorization: authHeader ?? '' } },
@@ -263,6 +278,25 @@ serve(async (req) => {
     if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Sign in to generate flashcards' }), {
         status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Auto-Flashcard is part of Phormula Premium
+    const { data: hasPremium, error: premiumError } = await supabase.rpc('has_premium');
+    if (premiumError) {
+      console.error('Premium check failed:', premiumError.message);
+      return new Response(JSON.stringify({ error: 'Service configuration error' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (hasPremium !== true) {
+      return new Response(JSON.stringify({
+        error: 'Auto-Flashcard is part of Phormula Premium',
+        code: 'premium_required',
+      }), {
+        status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -284,6 +318,28 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // A free trial includes three generations: take one before spending AI
+    // credits. Paid plans aren't counted.
+    const { data: access, error: accessError } = await supabase.rpc('claim_premium_feature_use', {
+      p_feature: 'auto_flashcard',
+    });
+    if (accessError) {
+      console.error('Trial usage check failed:', accessError.message);
+      return new Response(JSON.stringify({ error: 'Service configuration error' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (access === 'premium_required' || access === 'trial_limit_reached') {
+      return new Response(JSON.stringify(access === 'premium_required'
+        ? { error: 'Auto-Flashcard is part of Phormula Premium', code: 'premium_required' }
+        : { error: "Your free trial's Auto-Flashcard generations are used up", code: 'trial_limit_reached' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (access === 'claimed') trialUseOf = user.id;
 
     const trimmedContent = content.substring(0, MAX_CONTENT_CHARS);
     const sections = splitIntoSections(trimmedContent);
@@ -326,6 +382,8 @@ serve(async (req) => {
 
     if (flashcards.length === 0) {
       const errorStatuses = results.map((r) => r.errorStatus).filter((s): s is number => s !== null);
+      // Finding nothing to make cards of still counts; the AI service failing doesn't
+      trialUseSpent = errorStatuses.length === 0;
       if (errorStatuses.includes(402)) {
         return new Response(JSON.stringify({ error: 'AI credits exhausted. Please add credits to continue.' }), {
           status: 402,
@@ -352,6 +410,7 @@ serve(async (req) => {
 
     console.log(`Generated ${flashcards.length} flashcards from ${sections.length} section(s)`);
 
+    trialUseSpent = true;
     return new Response(JSON.stringify({ flashcards }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -363,5 +422,7 @@ serve(async (req) => {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
+  } finally {
+    if (trialUseOf && !trialUseSpent) await giveBackTrialUse(trialUseOf);
   }
 });

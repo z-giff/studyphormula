@@ -3,8 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 /**
  * Phormula Premium, from the app's side. What it unlocks is decided here and
  * enforced again on the server: the database refuses premium cards from anyone
- * without it (enforce_premium_flashcard_types), and text detection checks too.
- * Payment itself happens on Stripe's pages, through the billing edge function.
+ * without it (enforce_premium_flashcard_types), and text detection and
+ * Auto-Flashcard (generate-flashcards) check too. A free trial includes a few
+ * uses of those two and of the MC Quiz, counted in the database
+ * (claim_premium_feature_use); the rest of the trial is unlimited. Payment
+ * itself happens on Stripe's pages, through the billing edge function.
  */
 
 /** Card types that need Premium to make, edit or study. */
@@ -15,14 +18,50 @@ export const isPremiumCardType = (type: string | null | undefined): type is Prem
   (PREMIUM_CARD_TYPES as readonly (string | null | undefined)[]).includes(type);
 
 /** What the user reached for when the upgrade dialog opened. */
-export type PremiumFeature = PremiumCardType | "quiz";
+export type PremiumFeature = PremiumCardType | "quiz" | "auto_flashcard" | "text_detection";
 
 export const PREMIUM_FEATURE_NAMES: Record<PremiumFeature, string> = {
   interactive: "Interactive cards",
   flowchart: "Flowchart cards",
   drawing: "Drawing cards",
   quiz: "MC Quiz",
+  auto_flashcard: "Auto-Flashcard",
+  text_detection: "Text detection",
 };
+
+/**
+ * The features a free trial includes only a few uses of. Everything else is
+ * unlimited on a trial, and all of it is on a paid plan.
+ */
+export const TRIAL_LIMITED_FEATURES = ["auto_flashcard", "text_detection", "quiz"] as const;
+export type TrialLimitedFeature = (typeof TRIAL_LIMITED_FEATURES)[number];
+
+export const isTrialLimitedFeature = (feature: string | null | undefined): feature is TrialLimitedFeature =>
+  (TRIAL_LIMITED_FEATURES as readonly (string | null | undefined)[]).includes(feature);
+
+/** Uses of each of those a free trial includes. Mirrors public.premium_trial_use_limit(). */
+export const TRIAL_USE_LIMIT = 3;
+
+/** The trial's uses so far, from get_premium_trial_usage(). */
+export type TrialUsage = Record<TrialLimitedFeature, { uses: number; limit: number }>;
+
+/** What one use of each is called: "1 MC Quiz", "3 text detections". */
+export const TRIAL_USE_NOUNS: Record<TrialLimitedFeature, { one: string; many: string }> = {
+  auto_flashcard: { one: "Auto-Flashcard generation", many: "Auto-Flashcard generations" },
+  text_detection: { one: "text detection", many: "text detections" },
+  quiz: { one: "MC Quiz", many: "MC Quizzes" },
+};
+
+export const trialUseNoun = (feature: TrialLimitedFeature, count: number) =>
+  TRIAL_USE_NOUNS[feature][count === 1 ? "one" : "many"];
+
+/** Said wherever a free trial is offered. */
+export const TRIAL_LIMITS_SENTENCE =
+  `The free trial includes ${TRIAL_USE_LIMIT} Auto-Flashcard generations, ${TRIAL_USE_LIMIT} text detections ` +
+  `and ${TRIAL_USE_LIMIT} MC Quizzes. Everything else is unlimited, and a paid plan has no limits.`;
+
+/** What claim_premium_feature_use() answers. */
+export type TrialUseClaim = "premium_required" | "unlimited" | "claimed" | "trial_limit_reached";
 
 export const PREMIUM_CARD_NAMES: Record<PremiumCardType, string> = {
   interactive: "Interactive card",
@@ -53,6 +92,14 @@ export function billingPeriod(interval: string | null | undefined, count: number
   const n = count ?? 1;
   if (!interval) return "";
   return n === 1 ? `per ${interval}` : `every ${n} ${interval}s`;
+}
+
+/** The plan a subscription is on, from how often it bills. */
+export function planFor(interval: string | null | undefined, count: number | null | undefined): PlanId | null {
+  const n = count ?? 1;
+  if (interval === "year") return n === 1 ? "yearly" : null;
+  if (interval !== "month") return null;
+  return ({ 1: "monthly", 4: "semester", 8: "two_semesters" } as Record<number, PlanId>)[n] ?? null;
 }
 
 /** Months one payment covers, for comparing plans (null for weekly or daily prices). */
@@ -162,6 +209,18 @@ export async function openBillingPortal(returnPath: string): Promise<void> {
 
 /** Re-read the signed-in user's subscription from Stripe now, rather than waiting on the webhook. */
 export const syncPremium = () => invokeBilling<{ isPremium: boolean }>({ action: "sync" });
+
+/** What starting the paid plan now would charge today, from Stripe: discounts and tax included. */
+export interface StartPlanPreview {
+  amount: number;
+  currency: string;
+  hasPaymentMethod: boolean;
+}
+
+export const previewStartPlan = () => invokeBilling<StartPlanPreview>({ action: "start_plan_preview" });
+
+/** End the free trial now and start paying, which lifts the trial's limits at once. */
+export const startPlanNow = () => invokeBilling<{ isPremium: boolean }>({ action: "start_plan" });
 
 /** "$5", "$4.99", "¥600": Stripe amounts are in the smallest unit, which is the whole yen for JPY. */
 export function formatPrice(amount: number, currency: string): string {

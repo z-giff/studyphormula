@@ -2,8 +2,9 @@ import { Link } from "react-router-dom";
 import { Crown, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FlashcardText } from "@/components/FlashcardText";
+import { usePremium } from "@/hooks/usePremium";
 import { cn } from "@/lib/utils";
-import { PREMIUM_CARD_NAMES, type PremiumCardType } from "@/lib/premium";
+import { PREMIUM_CARD_NAMES, trialUseNoun, type PremiumCardType, type TrialLimitedFeature } from "@/lib/premium";
 
 /** The "Premium" tag on anything that needs it. */
 export const PremiumPill = ({ className }: { className?: string }) => (
@@ -11,6 +12,30 @@ export const PremiumPill = ({ className }: { className?: string }) => (
     Premium
   </span>
 );
+
+/**
+ * On a free trial, how many uses of `feature` are left, on the button that
+ * spends one. Nothing on a paid plan, or before the counts load.
+ */
+export const TrialUsesPill = ({ feature, className }: { feature: TrialLimitedFeature; className?: string }) => {
+  const { isTrial, trialUsage } = usePremium();
+  const usage = isTrial ? trialUsage?.[feature] : undefined;
+  if (!usage) return null;
+  const left = Math.max(usage.limit - usage.uses, 0);
+  return (
+    <span
+      title={`${left} of ${usage.limit} ${trialUseNoun(feature, usage.limit)} left in your free trial`}
+      className={cn(
+        "rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground",
+        left === 0 && "font-semibold text-primary",
+        className,
+      )}
+    >
+      {left} of {usage.limit} left
+      <span className="sr-only"> in your free trial</span>
+    </span>
+  );
+};
 
 /** An ember crown pinned to the corner of a round, icon-only button. */
 export const PremiumCornerMark = ({ className }: { className?: string }) => (
@@ -78,15 +103,17 @@ interface PremiumLockedPanelProps {
   onUpgrade: () => void;
   backTo: string;
   backLabel?: string;
+  actionLabel?: string;
 }
 
-/** Stands in for a whole page or session that needs Premium. */
+/** Stands in for a whole page or session that needs Premium, or a paid plan. */
 export const PremiumLockedPanel = ({
   title,
   description,
   onUpgrade,
   backTo,
   backLabel = "Back to Set",
+  actionLabel = "Unlock with Premium",
 }: PremiumLockedPanelProps) => (
   <div className="mx-auto flex max-w-md flex-col items-center gap-4 px-4 py-16 text-center">
     <div
@@ -99,7 +126,7 @@ export const PremiumLockedPanel = ({
     <p className="text-muted-foreground">{description}</p>
     <div className="mt-2 flex flex-wrap justify-center gap-3">
       <Button variant="brand" size="lg" className="rounded-xl font-bold" onClick={onUpgrade}>
-        Unlock with Premium
+        {actionLabel}
       </Button>
       <Button asChild variant="outline" size="lg" className="rounded-xl">
         <Link to={backTo}>{backLabel}</Link>

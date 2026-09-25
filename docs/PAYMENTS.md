@@ -3,25 +3,34 @@
 Premium is a Stripe subscription, billed monthly, every semester (4 months),
 every two semesters (8 months) or yearly: whichever of those you set up. First-time
 subscribers get a **7-day free trial with no card needed**, one per email address.
+The trial includes **3 uses each of Auto-Flashcard, text detection and the MC
+Quiz**; everything else is unlimited, and a paid plan has no limits at all.
 Payment happens on Stripe's own pages: **Stripe Checkout** takes the money and the
 **Stripe Customer Portal** handles cancelling, switching plans, card changes and
 invoices. Phormula never sees card details.
 
 ## What Premium unlocks
 
-| Feature | Free | Premium | Enforced by |
-|---|---|---|---|
-| Standard cards, Memorize, Swipe Study, AI generation, import, sharing | ✓ | ✓ | — |
-| **Interactive cards** (make, edit, study, text detection on the image) | — | ✓ | UI, database trigger, `detect-text` |
-| **Flowchart cards** (make, edit, study) | — | ✓ | UI, database trigger |
-| **Drawing cards** (make, edit, study) | — | ✓ | UI, database trigger |
-| **MC Quiz** (built from standard cards; needs at least 4) | — | ✓ | UI |
+| Feature | Free | Free trial | Paid plan | Enforced by |
+|---|---|---|---|---|
+| Standard cards, Memorize, Swipe Study, import, sharing | ✓ | ✓ | ✓ | — |
+| **Auto-Flashcard** (AI generation from pasted text or an uploaded document, into a new set or an existing one) | — | 3 generations | ✓ | UI, `generate-flashcards` |
+| **Interactive cards** (make, edit, study) | — | ✓ | ✓ | UI, database trigger |
+| **Text detection** (Auto-detect Text on an interactive card's image) | — | 3 detections | ✓ | UI, `detect-text` |
+| **Flowchart cards** (make, edit, study) | — | ✓ | ✓ | UI, database trigger |
+| **Drawing cards** (make, edit, study) | — | ✓ | ✓ | UI, database trigger |
+| **MC Quiz** (built from standard cards; needs at least 4) | — | 3 quizzes | ✓ | UI, with the count in the database |
 
 Someone without Premium who already has premium cards (made while subscribed,
 or in a set shared with them) keeps them. The card's term stays readable,
 but the card itself shows **Unlock with Premium**. They can still bookmark,
 reorder, move or delete those cards. Memorize and Swipe Study leave them out of
 the session with a note saying how many were skipped.
+
+Cards Auto-Flashcard made are ordinary standard cards, so they stay fully
+usable after Premium ends; only generating new ones needs it. Without Premium,
+the **Auto-Flashcard** buttons (dashboard and Edit Set) carry a Premium tag and
+open the upgrade dialog instead of the generator.
 
 ## The free trial
 
@@ -46,6 +55,57 @@ the session with a note saying how many were skipped.
 
 The upgrade dialog only offers the trial when Checkout will give it:
 `get_premium_status()` returns `trial_available` from the same check.
+
+## The free trial's limits
+
+A trial includes **3 of each**: Auto-Flashcard generations, text detections,
+and MC Quizzes. Everything else in the trial is unlimited, and on a paid plan
+nothing is counted.
+
+- **What counts as one:** a press of **Generate Flashcards**, a press of
+  **Auto-detect Text**, and each MC Quiz opened. Retaking the quiz on the page
+  doesn't count again; opening it again later does.
+- **What doesn't:** if the AI service fails, the generation or detection is
+  handed back. One that runs but finds nothing (no cards to make, no text in
+  the picture) still counts, since the AI did the work.
+- **Where it's enforced:** `generate-flashcards` and `detect-text` take a use
+  before calling the AI and answer `403` (`trial_limit_reached`) once they're
+  gone, so the limit holds even when they're called directly. The MC Quiz is
+  built in the browser from the user's own cards, which they can always read,
+  so its limit is kept by the app. The count still lives in the database.
+- **Where it's said:** before the trial, in the upgrade dialog and on Stripe
+  Checkout (a line under its button); when it starts, in the welcome message;
+  during it, on each button (*"2 of 3 left"*), in the Auto-Flashcard dialog, on
+  the quiz page, and in the profile; and in the trial-ending email, which says
+  the paid plan has no limits.
+- **How it's stored:** `public.premium_trial_usage`, one row per user and
+  feature, with no client access. `claim_premium_feature_use()` takes a use for
+  the signed-in user and can't go over the limit, even with many requests at
+  once. `release_premium_feature_use()` hands one back, for the service role
+  only, so the app can't hand uses back to take more.
+  `get_premium_trial_usage()` gives the app its counts. The limit is
+  `premium_trial_use_limit()` (drizzle migration 0016). To change it, redefine
+  that in a new migration, and update `TRIAL_USE_LIMIT` in `src/lib/premium.ts`
+  and `supabase/functions/billing/index.ts`, which word the offer.
+
+### Start my plan now
+
+Once a trial has used all of a feature, that feature's button opens the upgrade
+dialog, which shows what's left of each and offers to **start the paid plan
+now** (the profile offers it too, any time during the trial):
+
+- It shows what starting today costs, from Stripe's invoice preview, so
+  discounts and tax are included.
+- **Start my plan now** ends the trial (`trial_end: now`) and charges the card
+  on file for the first billing period. Everything is unlimited at once.
+- If that charge fails or needs 3-D Secure, Stripe refuses the change
+  (`payment_behavior: error_if_incomplete`): nothing is charged, the trial
+  carries on as it was, and the dialog says so.
+- With no card on file, the button is **Add a card** instead. It opens the
+  Customer Portal (so **Update payment methods** must stay on), which comes
+  back to the same page and opens the dialog again, ready to start.
+
+This is the billing function's `start_plan_preview` and `start_plan`.
 
 ## Reminder emails
 
@@ -106,15 +166,16 @@ cron (hourly) ──► renewal-reminders ──► send-transactional-email
 
 | Piece | File | Purpose |
 |---|---|---|
-| Database | `drizzle/migrations/0000_premium_subscriptions.sql`, `0002_premium_semester_plans.sql`, `0008_one_free_trial_per_email.sql`, `0009_premium_renewal_reminders.sql` | `subscriptions` table (no client access), `get_premium_status()`, the trigger that refuses premium cards from anyone without Premium; each plan's billing interval count; the free-trial list; renewal reminders and their cron job |
-| Billing function | `supabase/functions/billing/index.ts` | `pricing`, `checkout`, `portal`, `sync` |
+| Database | `drizzle/migrations/0000_premium_subscriptions.sql`, `0002_premium_semester_plans.sql`, `0008_one_free_trial_per_email.sql`, `0009_premium_renewal_reminders.sql`, `0016_premium_trial_limits.sql` | `subscriptions` table (no client access), `get_premium_status()`, the trigger that refuses premium cards from anyone without Premium; each plan's billing interval count; the free-trial list; renewal reminders and their cron job; the free trial's counted uses |
+| Billing function | `supabase/functions/billing/index.ts` | `pricing`, `checkout`, `portal`, `sync`, `start_plan_preview`, `start_plan` |
+| AI functions | `supabase/functions/generate-flashcards/index.ts`, `supabase/functions/detect-text/index.ts` | Refuse anyone without Premium; take a trial's use before calling the AI, and hand it back if the AI service fails |
 | Webhook | `supabase/functions/stripe-webhook/index.ts` | Verifies Stripe's signature, then re-reads the subscription from Stripe |
 | Renewal reminders | `supabase/functions/renewal-reminders/index.ts` | Emails subscribers before their plan renews |
 | Shared | `supabase/functions/_shared/stripe-billing.ts` | Stripe client, and the one sync routine the functions use, which also cancels duplicates |
 | App state | `src/components/PremiumProvider.tsx`, `src/hooks/usePremium.ts` | Who has Premium; finishes the return from Checkout |
 | Upgrade dialog | `src/components/UpgradeDialog.tsx` | Live prices from Stripe for every plan on offer, checkout |
 | Plan & billing | `src/components/ProfileSheet.tsx` | Plan section: upgrade, renewal date, **Manage billing** |
-| Gates | `src/lib/premium.ts`, `src/components/PremiumLock.tsx` | What's premium, locked cards, locked pages |
+| Gates | `src/lib/premium.ts`, `src/components/PremiumLock.tsx` | What's premium and what a trial counts, locked cards, locked pages, the *"2 of 3 left"* tags |
 | Emails | `supabase/functions/_shared/transactional-email-templates/premium-trial-ending.tsx`, `premium-renewal-reminder.tsx` | Trial ending, renewal reminder |
 
 The webhook never trusts the event's own copy of the subscription. It takes
@@ -184,11 +245,14 @@ indefinitely. Turn on the emails there that ask customers to update their card.
 
 Migrations live in `drizzle/migrations/`, and Lovable doesn't run new ones when
 commits sync from GitHub. In the Lovable chat, ask it to **apply the pending
-migrations in `drizzle/migrations`**. Premium needs 0000, 0002, 0008 and 0009.
+migrations in `drizzle/migrations`**. Premium needs 0000, 0002, 0008, 0009 and
+0016.
 
 Do this **before** deploying the functions: until 0009 has run, saving a
 subscription fails (it writes the new `started_at` column), so the app never
-hears about new subscribers; until 0008 has run, Checkout fails.
+hears about new subscribers; until 0008 has run, Checkout fails; until 0016 has
+run, Auto-Flashcard and text detection fail for everyone, because they count
+the trial's uses first.
 
 ### 5. Add the webhook endpoint
 
@@ -254,7 +318,8 @@ After the migrations (step 4), ask it in the chat to **deploy** these, then
 check each one's deploy time under **More → Cloud → Edge functions**:
 
 `billing`, `stripe-webhook`, `renewal-reminders`, `delete-account`,
-`send-transactional-email`, `preview-transactional-email`, `detect-text`
+`send-transactional-email`, `preview-transactional-email`, `detect-text`,
+`generate-flashcards`
 
 `supabase/config.toml` already turns JWT verification **off** for
 `stripe-webhook`, because Stripe can't send a Supabase login. With the Supabase
@@ -268,6 +333,7 @@ supabase functions deploy delete-account
 supabase functions deploy send-transactional-email
 supabase functions deploy preview-transactional-email
 supabase functions deploy detect-text
+supabase functions deploy generate-flashcards
 ```
 
 ### 8. Test the whole loop
@@ -296,6 +362,29 @@ dialog: it offers no trial, and Checkout asks for payment.
 
 To check duplicates, open the upgrade dialog in two tabs and continue to
 Checkout in both. The first tab's Checkout page now says it has expired.
+
+To check the Auto-Flashcard lock, sign in with an account without Premium.
+**Auto-Flashcard** on the dashboard and in **Edit Set** opens the upgrade
+dialog, which leads with *"Auto-Flashcard is part of Premium"*, and
+`generate-flashcards` answers `403` (`premium_required`) even when called
+directly.
+
+To check the trial's limits, start a trial (no card) and generate with
+Auto-Flashcard three times. The button's tag goes from *"3 of 3 left"* to *"0
+of 3 left"*, and a fourth press opens the upgrade dialog on *"You've used all 3
+Auto-Flashcard generations in your free trial"*. **Auto-detect Text** on an
+interactive card and the **MC Quiz** do the same after three. Then **Start my
+plan now**:
+
+1. With no card on file, the dialog offers **Add a card**. Add
+   `4000 0000 0000 0341` in the Customer Portal and return: the dialog opens
+   again with what starting costs today. That card saves but declines every
+   charge, so **Start my plan now** says *"Your card couldn't be charged, so
+   your free trial carries on"*. The profile still says free trial.
+2. In the portal, replace it with `4242 4242 4242 4242`, then **Start my plan
+   now** again. *"Your plan has started"*: the tags disappear, the profile
+   reads *"Renews …"*, and Stripe shows the subscription active with a paid
+   invoice.
 
 `4000 0025 0000 3155` tests a card that asks for 3-D Secure authentication.
 `4000 0000 0000 0002` tests a declined card: Checkout shows the error and

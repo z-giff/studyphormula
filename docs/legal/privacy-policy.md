@@ -73,6 +73,10 @@ addresses that have unsubscribed or that have bounced, so that we do not email t
 **Sharing records.** For each share we record who sent it, the address it was sent to, when, whether
 the recipient has seen it, and whether they added a copy to their account or removed the share.
 
+**Free-trial usage.** A free trial of Phormula Premium includes a limited number of uses of
+Auto-Flashcard, text detection and the MC Quiz, so during a trial we count how many times you use
+each. We keep only those counts.
+
 **Free-trial record.** Each email address can start one free trial of Phormula Premium. When you
 subscribe, we keep a one-way cryptographic hash of your email address, so that we can recognise the
 address if it is used for another trial later. The address is normalised first, so variations that
@@ -281,6 +285,7 @@ We keep personal information only as long as we need it:
 | Pictures you upload to cards | While a card uses them. A picture no card uses (taken off its card, on a deleted card, or never saved) is deleted automatically, no sooner than a week after it was uploaded. All of them are deleted with your account |
 | Shares, including the email address of the person shared with | Until the shared set or file is deleted or the sender deletes their account. A share someone received also goes when they delete their account. A share waiting for someone without an account is kept on the same terms |
 | Subscription status (plan, status, billing and trial dates, renewal reminders sent, Stripe customer identifier) | For as long as your account is active |
+| Free-trial usage counts (how many times you used Auto-Flashcard, text detection and the MC Quiz during a trial) | For as long as your account is active |
 | Free-trial record (a one-way hash of your email address) | Indefinitely, including after your account is deleted, so that the free trial stays one per email address |
 | Payment, invoice, and tax records, held in Stripe | For as long as tax, accounting, and anti-fraud laws require |
 | Waitlist email addresses | Until you unsubscribe or the information is no longer needed for the waitlist purpose |
@@ -323,9 +328,9 @@ relevant supervisory authorities as required by law. Please tell us promptly at
 ## 11. Your Choices
 
 **Access your data.** You can export all of your Phormula data as a JSON file at any time from
-Privacy & Security in your account settings: your account details and profile, your Premium status,
-your files and flashcard sets with their sections and cards, the pictures you uploaded, and the shares
-you sent and received. Records we keep to run the Service, such as email delivery logs, are available
+Privacy & Security in your account settings: your account details and profile, your Premium status
+and free-trial usage counts, your files and flashcard sets with their sections and cards, the pictures
+you uploaded, and the shares you sent and received. Records we keep to run the Service, such as email delivery logs, are available
 on request at **support@phormula.co**.
 
 **Correct your data.** You can update your name and email address in your account settings.
@@ -341,7 +346,9 @@ do not have an account and do not want to hear about shares, use the unsubscribe
 
 **Manage your subscription.** You can cancel Premium, switch to a different billing plan, add
 or update your card, and download invoices at any time from Manage billing in your profile.
-Cancelling takes effect at the end of your current billing period or free trial.
+Cancelling takes effect at the end of your current billing period or free trial. On a free trial,
+you can also start your paid plan early from your profile; the trial then ends, and you are charged
+straight away.
 
 **Email preferences.** Every marketing and product-update email contains an unsubscribe link. You can
 unsubscribe at any time, and we will honour it immediately. We will still send you transactional

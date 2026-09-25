@@ -1,10 +1,14 @@
-// Phormula Premium, from the app's side. One function, four actions:
+// Phormula Premium, from the app's side. One function, six actions:
 //
-//   pricing   the Premium prices, read live from Stripe for the upgrade dialog
-//   checkout  a Stripe Checkout page to subscribe on (monthly, 1 or 2 semesters, or yearly)
-//   portal    the Stripe Customer Portal: cancel, add or change a card, invoices
-//   sync      re-read the caller's subscription from Stripe right now, for the
-//             moment they land back from Checkout before the webhook arrives
+//   pricing             the Premium prices, read live from Stripe for the upgrade dialog
+//   checkout            a Stripe Checkout page to subscribe on (monthly, 1 or 2 semesters, or yearly)
+//   portal              the Stripe Customer Portal: cancel, add or change a card, invoices
+//   sync                re-read the caller's subscription from Stripe right now, for the
+//                       moment they land back from Checkout before the webhook arrives
+//   start_plan_preview  what starting the paid plan now would charge today, for
+//                       someone on the free trial
+//   start_plan          end the free trial now and start paying, which lifts the
+//                       trial's limits on Auto-Flashcard, text detection and the MC Quiz
 //
 // Secrets (Supabase -> Edge Functions -> Secrets):
 //   STRIPE_SECRET_KEY      sk_test_... while testing, sk_live_... at launch
@@ -69,6 +73,10 @@ function trialDays(): number {
   const days = Number.parseInt(Deno.env.get('STRIPE_TRIAL_DAYS') ?? '7', 10)
   return Number.isFinite(days) ? Math.min(Math.max(days, 0), 730) : 7
 }
+
+// Uses of Auto-Flashcard, text detection and the MC Quiz a free trial
+// includes. Mirrors public.premium_trial_use_limit().
+const TRIAL_USE_LIMIT = 3
 
 // ---------------------------------------------------------------------------
 // Where Stripe sends people back to
@@ -279,7 +287,17 @@ async function checkout(admin: Admin, req: Request, caller: Caller, body: Record
     success_url: returnUrl(req, body.returnPath, { checkout: 'success' }),
     cancel_url: returnUrl(req, body.returnPath, { checkout: 'cancelled' }),
     consent_collection: { terms_of_service: 'required' },
-    custom_text: { terms_of_service_acceptance: { message: termsAcceptance() } },
+    custom_text: {
+      terms_of_service_acceptance: { message: termsAcceptance() },
+      // A trial's limits, said on Stripe's page too, next to the button that starts it
+      ...(trial > 0 && {
+        submit: {
+          message:
+            `Your ${trial}-day free trial includes ${TRIAL_USE_LIMIT} uses each of Auto-Flashcard, text detection ` +
+            'and the MC Quiz. Everything else is unlimited, and a paid plan has no limits.',
+        },
+      }),
+    },
     ...(automaticTax && {
       automatic_tax: { enabled: true },
       customer_update: { address: 'auto', name: 'auto' },
@@ -313,6 +331,59 @@ async function sync(admin: Admin, caller: Caller) {
   return { isPremium: await hasPremium(admin, caller.id) }
 }
 
+// The caller's subscription as Stripe has it now, for starting a plan early
+async function currentSubscription(admin: Admin, caller: Caller) {
+  const customer = await storedCustomerId(admin, caller.id)
+  if (!customer) throw new HttpError(409, "You're not on a free trial", 'not_trialing')
+  return { customer, ...(await syncCustomer(admin, customer, caller.id)) }
+}
+
+// What starting now charges today, discounts and tax included, for the
+// confirmation in the upgrade dialog
+async function startPlanPreview(admin: Admin, caller: Caller) {
+  const { subscription, fields } = await currentSubscription(admin, caller)
+  if (subscription?.status !== 'trialing') throw new HttpError(409, "You're not on a free trial", 'not_trialing')
+  const invoice = await stripe().invoices.createPreview({
+    subscription: subscription.id,
+    subscription_details: { trial_end: 'now' },
+  })
+  return { amount: invoice.amount_due, currency: invoice.currency, hasPaymentMethod: fields.has_payment_method }
+}
+
+// End the free trial now and start paying, which lifts the trial's limits at
+// once. The card on file is charged for the first billing period today.
+// error_if_incomplete makes Stripe refuse the change when that charge fails
+// or needs the bank's approval, so a failed payment leaves the trial as it
+// was, rather than an unpaid plan with Premium on.
+async function startPlan(admin: Admin, caller: Caller) {
+  const { customer, subscription, fields } = await currentSubscription(admin, caller)
+  // Started already: a second click, or another tab
+  if (subscription?.status === 'active') return { isPremium: await hasPremium(admin, caller.id) }
+  if (subscription?.status !== 'trialing') throw new HttpError(409, "You're not on a free trial", 'not_trialing')
+  if (!fields.has_payment_method) {
+    throw new HttpError(402, 'Add a card to start your plan', 'payment_method_required')
+  }
+
+  try {
+    await stripe().subscriptions.update(subscription.id, {
+      trial_end: 'now',
+      payment_behavior: 'error_if_incomplete',
+    })
+  } catch (error) {
+    if ((error as { statusCode?: number }).statusCode === 402) {
+      throw new HttpError(
+        402,
+        "Your card couldn't be charged, so your free trial carries on. Check your card in Manage billing, then try again.",
+        'payment_failed',
+      )
+    }
+    throw error
+  }
+  // Show the paid plan straight away, rather than when the webhook lands
+  await syncCustomer(admin, customer, caller.id)
+  return { isPremium: await hasPremium(admin, caller.id) }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -335,6 +406,10 @@ Deno.serve(async (req) => {
         return json(await portal(admin, req, caller, body))
       case 'sync':
         return json(await sync(admin, caller))
+      case 'start_plan_preview':
+        return json(await startPlanPreview(admin, caller))
+      case 'start_plan':
+        return json(await startPlan(admin, caller))
       default:
         return json({ error: 'Unknown action' }, 400)
     }

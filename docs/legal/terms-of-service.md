@@ -152,8 +152,11 @@ If you do not accept the change, you may cancel before it takes effect.
 
 **Free plans and trials.** We may offer free plans or trial periods. We may change or discontinue a
 free plan or trial at any time. Free trials are limited to one per email address, including an
-address used on an account that has since been deleted. If a trial converts into a paid
-subscription, we will tell you clearly before it does.
+address used on an account that has since been deleted. A trial may limit how often you can use
+some features, such as a set number of AI generations; we show any such limits before you start the
+trial. If a trial converts into a paid subscription, we will tell you clearly before it does. You can
+also end a trial early by starting your paid plan: the trial then ends immediately, and your payment
+method is charged for the first billing period straight away.
 
 **Failed payments.** If a payment fails, we may retry it and may suspend or downgrade your access to
 paid features until payment succeeds.

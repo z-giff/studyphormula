@@ -19,6 +19,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RenameSetDialog } from "@/components/RenameSetDialog";
  import { AutoFlashcardDialog } from "@/components/AutoFlashcardDialog";
  import { Sparkles } from "lucide-react";
+import { PremiumPill, TrialUsesPill } from "@/components/PremiumLock";
+import { usePremium } from "@/hooks/usePremium";
 interface FlashcardSet {
   id: string;
   title: string;
@@ -39,6 +41,7 @@ const Dashboard = () => {
     loading
   } = useAuth();
   const navigate = useNavigate();
+  const { isPremium, loading: premiumLoading, requirePremium } = usePremium();
   const [sets, setSets] = useState<FlashcardSet[]>([]);
   const [files, setFiles] = useState<FlashcardFile[]>([]);
   const [bookmarkedCount, setBookmarkedCount] = useState<number>(0);
@@ -418,14 +421,19 @@ const Dashboard = () => {
                Create New Set
              </Button>
 
-             {/* Secondary — subtle */}
+             {/* Secondary — subtle. Auto-Flashcard is Premium: without it, or once a free
+                 trial's generations are used, this opens the upgrade dialog */}
              <Button
-               onClick={() => setIsAutoFlashcardDialogOpen(true)}
+               onClick={() => {
+                 if (requirePremium("auto_flashcard")) setIsAutoFlashcardDialogOpen(true);
+               }}
                variant="outline"
                className="h-11 px-5 text-sm font-medium bg-card border-border hover:bg-secondary hover:border-foreground/20 transition-all"
              >
                <Sparkles className="h-4 w-4 mr-2 text-primary" strokeWidth={1.75} />
                Auto-Flashcard
+               {!premiumLoading && !isPremium && <PremiumPill className="ml-1.5" />}
+               <TrialUsesPill feature="auto_flashcard" className="ml-1.5" />
              </Button>
            </div>
 

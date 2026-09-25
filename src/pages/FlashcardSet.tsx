@@ -19,7 +19,7 @@ import LogoOrb from "@/components/LogoOrb";
 import { RenameSetDialog } from "@/components/RenameSetDialog";
 import { ShareDialog } from "@/components/ShareDialog";
 import { ExportPdfDialog } from "@/components/ExportPdfDialog";
-import { PremiumPill } from "@/components/PremiumLock";
+import { PremiumPill, TrialUsesPill } from "@/components/PremiumLock";
 import { usePremium } from "@/hooks/usePremium";
 
 const PRESET_COLORS = [
@@ -336,13 +336,15 @@ const FlashcardSetPage = () => {
                   <Link
                     to={`/quiz/${id}`}
                     onClick={(e) => {
-                      // Without Premium, offer it here and come back to the quiz after checkout
+                      // Without Premium, or once a free trial's quizzes are used, offer it
+                      // here and come back to the quiz after checkout
                       if (!requirePremium("quiz", `/quiz/${id}`)) e.preventDefault();
                     }}
                   >
                     <QuizIcon className="mr-1.5" />
                     MC Quiz
                     {!premiumLoading && !isPremium && <PremiumPill className="ml-1.5" />}
+                    <TrialUsesPill feature="quiz" className="ml-1.5" />
                   </Link>
                 </Button>
               </div>

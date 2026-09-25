@@ -174,11 +174,25 @@ async function imageUrlToDataUrl(urlString: string): Promise<string> {
   return `data:${contentType};base64,${base64}`;
 }
 
+// Hands back a free-trial detection the AI service failed to deliver. Only the
+// service role may, so the app can't hand uses back to take more.
+async function giveBackTrialUse(userId: string) {
+  const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { error } = await admin.rpc('release_premium_feature_use', { p_user_id: userId, p_feature: 'text_detection' });
+  if (error) console.error('Could not give back a trial detection:', error.message);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // A free-trial detection this request took, and whether it counts. Any way
+  // out but the AI reading the image and answering hands it back.
+  let trialUseOf: string | null = null;
+  let trialUseSpent = false;
   try {
     // Verify authentication
     const authHeader = req.headers.get('Authorization');
@@ -256,6 +270,28 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // A free trial includes three detections: take one before spending AI
+    // credits. Paid plans aren't counted.
+    const { data: access, error: accessError } = await supabase.rpc('claim_premium_feature_use', {
+      p_feature: 'text_detection',
+    });
+    if (accessError) {
+      console.error('Trial usage check failed:', accessError.message);
+      return new Response(JSON.stringify({ error: 'Service configuration error' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (access === 'premium_required' || access === 'trial_limit_reached') {
+      return new Response(JSON.stringify(access === 'premium_required'
+        ? { error: 'Text detection is part of Phormula Premium', code: 'premium_required' }
+        : { error: "Your free trial's text detections are used up", code: 'trial_limit_reached' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (access === 'claimed') trialUseOf = user.id;
 
     console.log('Detecting text in image for user:', user.id);
 
@@ -352,6 +388,8 @@ Return ONLY a JSON array, no prose, no markdown. Include confidence on every ite
     const textBoxes = sanitizeTextBoxes(parsedBoxes);
     console.log('Detected high-confidence text boxes count:', textBoxes.length);
 
+    // The AI read the image, so this counts even if it found no text
+    trialUseSpent = true;
     return new Response(JSON.stringify({ textBoxes }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -361,5 +399,7 @@ Return ONLY a JSON array, no prose, no markdown. Include confidence on every ite
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
+  } finally {
+    if (trialUseOf && !trialUseSpent) await giveBackTrialUse(trialUseOf);
   }
 });

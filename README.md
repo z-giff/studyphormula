@@ -42,9 +42,11 @@ sketch — and the app turns your own notes, slides, and PDFs into study sets fo
 **Organisation** — sets live in files, cards can be copied or moved between sets,
 and bookmarks collect into a set of their own.
 
-**Premium** — interactive, flowchart and drawing cards and the MC Quiz are part
-of Phormula Premium, a Stripe subscription billed monthly, per semester, or yearly. Everything else is
-free. See [`docs/PAYMENTS.md`](./docs/PAYMENTS.md) for setup and operations.
+**Premium** — AI generation (Auto-Flashcard), interactive, flowchart and drawing cards,
+and the MC Quiz are part of Phormula Premium, a Stripe subscription billed monthly, per semester, or yearly. Everything else is
+free. The 7-day free trial includes 3 uses each of Auto-Flashcard, text detection on
+interactive cards, and the MC Quiz, and can switch to the paid plan early; a paid plan has
+no limits. See [`docs/PAYMENTS.md`](./docs/PAYMENTS.md) for setup and operations.
 
 **Sharing** — share a set or a whole file with up to 25 people at once by email.
 They find it under **Shared flashcards** on the dashboard (a red dot marks anything
