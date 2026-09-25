@@ -12,6 +12,8 @@ import { InteractiveFlashcardEditor } from "@/components/InteractiveFlashcardEdi
 import { FlowchartCanvasEditor } from "@/components/FlowchartCanvasEditor";
 import { DrawingCanvasEditor } from "@/components/DrawingCanvasEditor";
 import { ImageUploader } from "@/components/ImageUploader";
+import { StandardCardImageEditor } from "@/components/StandardCardImageEditor";
+import { emptyStandardCardLayout, getStandardCardLayout, withStandardCardLayout, type StandardCardLayout } from "@/lib/standardCardLayout";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
  import { AutoFlashcardDialog } from "@/components/AutoFlashcardDialog";
@@ -50,6 +52,7 @@ interface BulkCardRow {
   term: string;
   definition: string;
   imageUrl: string;
+  standardLayout: StandardCardLayout;
   interactiveData: {
     textBoxes: TextBox[];
   };
@@ -173,6 +176,7 @@ export const BulkFlashcardEditor = ({
       term: card.term,
       definition: card.definition,
       imageUrl: card.image_url || "",
+      standardLayout: getStandardCardLayout(card.interactive_data, card.image_url),
       interactiveData: {
         textBoxes: card.interactive_data?.textBoxes || [],
       },
@@ -243,8 +247,8 @@ export const BulkFlashcardEditor = ({
         };
         if (row.type === "standard") {
           updateData.definition = row.definition.trim();
-          updateData.image_url = row.imageUrl || null;
-          updateData.interactive_data = null;
+          updateData.image_url = null;
+          updateData.interactive_data = withStandardCardLayout(null, row.standardLayout);
         } else if (row.type === "interactive") {
           updateData.definition = "Fill in the blanks";
           updateData.image_url = row.imageUrl;
@@ -291,7 +295,8 @@ export const BulkFlashcardEditor = ({
           };
           if (row.type === "standard") {
             insertData.definition = row.definition.trim() || "";
-            insertData.image_url = row.imageUrl || null;
+            insertData.image_url = null;
+            insertData.interactive_data = withStandardCardLayout(null, row.standardLayout);
           } else if (row.type === "interactive") {
             insertData.definition = "Fill in the blanks";
             insertData.image_url = row.imageUrl;
@@ -366,6 +371,7 @@ export const BulkFlashcardEditor = ({
     term: "",
     definition: "",
     imageUrl: "",
+    standardLayout: emptyStandardCardLayout(),
     interactiveData: { textBoxes: [] },
     flowchartData: { nodes: [], edges: [] },
     drawingData: { strokes: [], width: 0, height: 0 },
@@ -547,8 +553,8 @@ export const BulkFlashcardEditor = ({
           };
           if (row.type === "standard") {
             updateData.definition = row.definition.trim();
-            updateData.image_url = row.imageUrl || null;
-            updateData.interactive_data = null;
+            updateData.image_url = null;
+            updateData.interactive_data = withStandardCardLayout(null, row.standardLayout);
           } else if (row.type === "interactive") {
             updateData.definition = "Fill in the blanks";
             updateData.image_url = row.imageUrl;
@@ -589,7 +595,8 @@ export const BulkFlashcardEditor = ({
           };
           if (row.type === "standard") {
             insertData.definition = row.definition.trim();
-            insertData.image_url = row.imageUrl || null;
+            insertData.image_url = null;
+            insertData.interactive_data = withStandardCardLayout(null, row.standardLayout);
           } else if (row.type === "interactive") {
             insertData.definition = "Fill in the blanks";
             insertData.image_url = row.imageUrl;
@@ -844,6 +851,7 @@ export const BulkFlashcardEditor = ({
 
                   {/* Standard Card Layout */}
                   {row.type === "standard" && (
+                    <div className="space-y-4">
                     <div className="flex gap-4">
                       <div className="flex-1 space-y-1">
                         <Input
@@ -872,48 +880,9 @@ export const BulkFlashcardEditor = ({
                         />
                         <span className="text-xs text-muted-foreground uppercase tracking-wide">Definition</span>
                       </div>
-                      {/* Image slot */}
-                      <div className="w-24 flex-shrink-0">
-                        {row.imageUrl ? (
-                          <div className="relative w-full aspect-square border rounded-lg overflow-hidden bg-muted/50">
-                            <img
-                              src={row.imageUrl}
-                              alt=""
-                              loading="lazy"
-                              decoding="async"
-                              className="w-full h-full object-cover"
-                            />
-                            <Button
-                              variant="destructive"
-                              size="icon"
-                              className="absolute top-1 right-1 h-6 w-6"
-                              onClick={() => handleRowChange(row.id, "imageUrl", "")}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <label className="w-full aspect-square border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors text-muted-foreground hover:text-foreground">
-                            <Image className="h-5 w-5 mb-1" />
-                            <span className="text-xs">Image</span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  const reader = new FileReader();
-                                  reader.onloadend = () => {
-                                    handleRowChange(row.id, "imageUrl", reader.result as string);
-                                  };
-                                  reader.readAsDataURL(file);
-                                }
-                              }}
-                            />
-                          </label>
-                        )}
-                      </div>
+                      <Button type="button" variant="outline" onClick={() => setExpandedRow(isExpanded ? null : row.id)}><Image className="mr-2 h-4 w-4" />Pictures ({row.standardLayout.front.length + row.standardLayout.back.length})</Button>
+                    </div>
+                    {isExpanded && <StandardCardImageEditor term={row.term} definition={row.definition} color="#38b6ff" layout={row.standardLayout} onChange={(standardLayout) => handleRowChange(row.id, "standardLayout", standardLayout)} />}
                     </div>
                   )}
 

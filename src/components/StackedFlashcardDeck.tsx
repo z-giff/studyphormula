@@ -6,6 +6,7 @@ import { FlashcardBoardBack } from "@/components/FlashcardBoardBack";
 import { BOARD_BACK_COLOR, hasBoardBack } from "@/lib/flashcardBoard";
 import { InteractiveFlashcardStudy } from "@/components/InteractiveFlashcardStudy";
 import { FlashcardText } from "@/components/FlashcardText";
+import { StandardCardFace } from "@/components/StandardCardFace";
 import { LockedFlashcard } from "@/components/PremiumLock";
 import { usePremium } from "@/hooks/usePremium";
 import { isPremiumCardType } from "@/lib/premium";
@@ -270,22 +271,7 @@ export const StackedFlashcardDeck = ({
                           backgroundColor: cardColor,
                         }}
                       >
-                        <CardContent className="flex flex-col items-center justify-center h-full p-6 text-center">
-                          {card.image_url && (
-                            <img
-                              src={card.image_url}
-                              alt={card.term}
-                              loading="lazy"
-                              decoding="async"
-                              className="w-full max-h-32 object-contain rounded-lg mb-4"
-                            />
-                          )}
-                          <FlashcardText
-                            text={card.term}
-                            className="max-h-full overflow-y-auto text-2xl font-bold"
-                            style={{ color: textColor }}
-                          />
-                        </CardContent>
+                        <CardContent className="h-full p-0"><StandardCardFace side="front" term={card.term} definition={card.definition} imageUrl={card.image_url} interactiveData={card.interactive_data} textColor={textColor} /></CardContent>
                       </Card>
 
                       {/* Back of card */}
@@ -307,13 +293,7 @@ export const StackedFlashcardDeck = ({
                             backgroundColor: cardColor,
                           }}
                         >
-                          <CardContent className="flex flex-col items-center justify-center h-full p-6 text-center">
-                            <FlashcardText
-                              text={card.definition}
-                              className="max-h-full overflow-y-auto text-lg"
-                              style={{ color: textColor }}
-                            />
-                          </CardContent>
+                          <CardContent className="h-full p-0"><StandardCardFace side="back" term={card.term} definition={card.definition} imageUrl={card.image_url} interactiveData={card.interactive_data} textColor={textColor} /></CardContent>
                         </Card>
                       )}
                     </>

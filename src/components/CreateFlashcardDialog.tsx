@@ -12,6 +12,8 @@ import { InteractiveFlashcardEditor } from "./InteractiveFlashcardEditor";
 import { FlowchartCanvasEditor } from "./FlowchartCanvasEditor";
 import { DrawingCanvasEditor } from "./DrawingCanvasEditor";
 import { ImageUploader } from "./ImageUploader";
+import { StandardCardImageEditor } from "./StandardCardImageEditor";
+import { emptyStandardCardLayout, withStandardCardLayout, type StandardCardLayout } from "@/lib/standardCardLayout";
 import { FlashcardTextarea } from "./FlashcardTextarea";
 import { PremiumCornerMark } from "./PremiumLock";
 import { usePremium } from "@/hooks/usePremium";
@@ -56,6 +58,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
   });
   const [flowchartData, setFlowchartData] = useState({ nodes: [], edges: [] });
   const [drawingData, setDrawingData] = useState({ strokes: [], width: 0, height: 0 });
+  const [standardLayout, setStandardLayout] = useState<StandardCardLayout>(emptyStandardCardLayout());
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,7 +129,8 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
           ...insertData,
           term: formData.term.trim(),
           definition: formData.definition.trim(),
-          image_url: formData.imageUrl.trim() || null,
+          image_url: null,
+          interactive_data: withStandardCardLayout(null, standardLayout),
         };
       } else if (flashcardType === "interactive") {
         insertData = {
@@ -161,6 +165,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
       setInteractiveData({ imageUrl: "", term: "", textBoxes: [] });
       setFlowchartData({ nodes: [], edges: [] });
       setDrawingData({ strokes: [], width: 0, height: 0 });
+      setStandardLayout(emptyStandardCardLayout());
       setFlashcardType("standard");
       onOpenChange(false);
       onSuccess();
@@ -250,16 +255,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
                   />
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Image <span className="normal-case font-normal text-muted-foreground/70">— optional</span></Label>
-                  <ImageUploader
-                    imageUrl={formData.imageUrl}
-                    onImageChange={(imageUrl) => setFormData({ ...formData, imageUrl })}
-                    disabled={isLoading}
-                    required={false}
-                    label=""
-                  />
-                </div>
+                <StandardCardImageEditor term={formData.term} definition={formData.definition} color="#38b6ff" layout={standardLayout} onChange={setStandardLayout} disabled={isLoading} />
               </TabsContent>
 
               <TabsContent value="interactive" className="space-y-5 mt-6">
