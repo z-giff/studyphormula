@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useStudyPosition } from "@/hooks/useStudyPosition";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft, Edit, Pencil, Share2 } from "lucide-react";
+import { Plus, ArrowLeft, Edit, Pencil, Share2, FileText } from "lucide-react";
 import { MemorizeIcon, SwipeIcon, QuizIcon } from "@/components/StudyModeIcons";
 import { toast } from "sonner";
 import { CreateFlashcardDialog } from "@/components/CreateFlashcardDialog";
@@ -18,6 +18,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import LogoOrb from "@/components/LogoOrb";
 import { RenameSetDialog } from "@/components/RenameSetDialog";
 import { ShareDialog } from "@/components/ShareDialog";
+import { ExportPdfDialog } from "@/components/ExportPdfDialog";
 import { PremiumPill } from "@/components/PremiumLock";
 import { usePremium } from "@/hooks/usePremium";
 
@@ -69,6 +70,7 @@ const FlashcardSetPage = () => {
   const [copyingFlashcard, setCopyingFlashcard] = useState<{ id: string; setId: string } | null>(null);
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
   // Where this set was left off, so reopening it resumes on the same card
   const saveStudyPosition = useStudyPosition(id);
   const { isPremium, loading: premiumLoading, requirePremium } = usePremium();
@@ -361,10 +363,16 @@ const FlashcardSetPage = () => {
             Import Flashcards
           </Button>
           {flashcards.length > 0 && (
-            <Button variant="outline" onClick={() => setIsShareDialogOpen(true)}>
-              <Share2 className="h-4 w-4 mr-2" />
-              Share
-            </Button>
+            <>
+              <Button variant="outline" onClick={() => setIsShareDialogOpen(true)}>
+                <Share2 className="h-4 w-4 mr-2" />
+                Share
+              </Button>
+              <Button variant="outline" onClick={() => setIsPdfDialogOpen(true)}>
+                <FileText className="h-4 w-4 mr-2" />
+                PDF
+              </Button>
+            </>
           )}
         </div>
 
@@ -434,6 +442,14 @@ const FlashcardSetPage = () => {
         itemType="set"
         itemId={id!}
         itemTitle={set.title}
+      />
+
+      <ExportPdfDialog
+        open={isPdfDialogOpen}
+        onOpenChange={setIsPdfDialogOpen}
+        title={set.title}
+        setColor={set.color}
+        flashcards={flashcards}
       />
 
       {copyingFlashcard && (
