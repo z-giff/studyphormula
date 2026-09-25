@@ -9,6 +9,8 @@
 - Add a live, settings-aware PDF viewer with page navigation and zoom before download
 
 ## Open
+- Add a table PDF format with live preview, text extraction across card types, optional regular images, and unsplit rows
+- Scale complete flashcard faces uniformly in the existing PDF layout
 - Email-sending update: blocked — welcome + flashcard-share emails are sent from DB triggers via legacy `send-transactional-email`. Waiting on Lovable review or user retry.
 
 - Wire Stripe checkout/webhook into `subscriptions` (deployed)
