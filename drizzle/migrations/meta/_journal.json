@@ -71,6 +71,13 @@
       "when": 1790361780000,
       "tag": "0009_premium_renewal_reminders",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790364453243,
+      "tag": "0010_link_flashcard_files_to_users",
+      "breakpoints": true
     }
   ]
 }
