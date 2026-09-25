@@ -292,21 +292,6 @@ export type Database = {
           },
         ]
       }
-      premium_trial_claims: {
-        Row: {
-          claimed_at: string
-          email_hash: string
-        }
-        Insert: {
-          claimed_at?: string
-          email_hash: string
-        }
-        Update: {
-          claimed_at?: string
-          email_hash?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           created_at: string | null
@@ -369,9 +354,6 @@ export type Database = {
           current_period_end: string | null
           has_payment_method: boolean
           price_id: string | null
-          renewal_reminded_at: string | null
-          renewal_reminder_period_end: string | null
-          started_at: string | null
           status: string | null
           stripe_customer_id: string
           stripe_subscription_id: string | null
@@ -386,9 +368,6 @@ export type Database = {
           current_period_end?: string | null
           has_payment_method?: boolean
           price_id?: string | null
-          renewal_reminded_at?: string | null
-          renewal_reminder_period_end?: string | null
-          started_at?: string | null
           status?: string | null
           stripe_customer_id: string
           stripe_subscription_id?: string | null
@@ -403,9 +382,6 @@ export type Database = {
           current_period_end?: string | null
           has_payment_method?: boolean
           price_id?: string | null
-          renewal_reminded_at?: string | null
-          renewal_reminder_period_end?: string | null
-          started_at?: string | null
           status?: string | null
           stripe_customer_id?: string
           stripe_subscription_id?: string | null
@@ -465,7 +441,6 @@ export type Database = {
     }
     Functions: {
       add_shared_flashcards: { Args: { p_share_id: string }; Returns: Json }
-      claim_premium_trial: { Args: { p_user_id: string }; Returns: undefined }
       copy_flashcard_set: {
         Args: { p_file_id: string; p_owner: string; p_set_id: string }
         Returns: string
@@ -499,7 +474,6 @@ export type Database = {
           has_payment_method: boolean
           is_premium: boolean
           status: string
-          trial_available: boolean
         }[]
       }
       get_shared_flashcard_cards: {
@@ -542,12 +516,6 @@ export type Database = {
         }
         Returns: number
       }
-      premium_renewal_reminders_due: {
-        Args: never
-        Returns: Database["public"]["Tables"]["subscriptions"]["Row"][]
-      }
-      premium_trial_email_hash: { Args: { p_email: string }; Returns: string }
-      premium_trial_used: { Args: { p_user_id: string }; Returns: boolean }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
