@@ -17,7 +17,7 @@ refine quickly, rather than something to ship unreviewed.
 | Legal entity | Not yet incorporated — placeholders throughout |
 | Regulatory coverage | Global: GDPR + UK GDPR, CCPA/CPRA, and other US state laws |
 | AI training on user content | Never — stated as a firm commitment in both documents |
-| Public/shared sets | Planned, so the licence and takedown provisions are already in place |
+| Shared sets | Live: private sharing by email, described in Privacy Policy §2.1, §6.5 and §9. Public sharing is still planned, so the licence and takedown provisions are already in place |
 | Paid plans | Live as Phormula Premium: a Stripe subscription with a free trial. The Privacy Policy names Stripe |
 
 ## Placeholders to fill before publishing
@@ -70,5 +70,7 @@ The Privacy Policy names specific subprocessors and AI models. Revisit it whenev
 - add analytics, error tracking, or any tracking SDK — §2.3 currently promises you have none, which
   is a real commitment worth protecting;
 - change or add a payment processor (currently Stripe, §6.1);
-- add file uploads to object storage (document parsing is client-side today, and §2.3 says so);
-- ship public sharing, which moves that section from forward-looking to live.
+- add file uploads to object storage beyond card pictures (pictures are in private storage, §2.1
+  and §6.1; document parsing is still client-side, and §2.3 says so);
+- change what sharing shows or keeps (§2.1, §6.5, §9), or what the data export includes (§11);
+- ship public sharing.

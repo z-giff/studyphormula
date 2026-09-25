@@ -1,6 +1,7 @@
-// Shared by the billing and stripe-webhook functions: the Stripe and Supabase
-// clients, and the one routine that copies a customer's subscription from
-// Stripe into public.subscriptions.
+// Shared by the billing, stripe-webhook, renewal-reminders and delete-account
+// functions: the Stripe and Supabase clients, and the one routine that copies
+// a customer's subscription from Stripe into public.subscriptions (and
+// cancels a duplicate one).
 //
 // Nothing here trusts what a webhook event says about a subscription. Every
 // change is re-read from the Stripe API, so events that arrive late, twice or
@@ -71,14 +72,35 @@ export function describeBillingPeriod(
 /** Statuses that still unlock Premium. Mirrors public.user_has_premium(). */
 export const LIVE_STATUSES = new Set(['active', 'trialing', 'past_due'])
 
-/** The subscription that decides a customer's access: a live one if there is one, else the newest. */
+/** Statuses Stripe could still bill, or bring back. */
+export const BILLABLE_STATUSES = new Set([...LIVE_STATUSES, 'unpaid', 'paused', 'incomplete'])
+
+/**
+ * The subscription that decides a customer's access: the first live one they
+ * started, else the newest. A second live one is a duplicate, and
+ * syncCustomer cancels it.
+ */
 export function pickSubscription(subscriptions: Stripe.Subscription[]): Stripe.Subscription | null {
+  const live = subscriptions.filter((s) => LIVE_STATUSES.has(s.status)).sort((a, b) => a.created - b.created)
   // Stripe lists subscriptions newest first
-  return subscriptions.find((s) => LIVE_STATUSES.has(s.status)) ?? subscriptions[0] ?? null
+  return live[0] ?? subscriptions[0] ?? null
 }
 
 const toIso = (seconds: number | null | undefined) =>
   seconds ? new Date(seconds * 1000).toISOString() : null
+
+/** "$5.99", "$60", "¥600": Stripe amounts are in the smallest unit, except for zero-decimal currencies like JPY. */
+export function formatAmount(amount: number, currency: string): string {
+  const code = currency.toUpperCase()
+  const digits =
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: code }).resolvedOptions().maximumFractionDigits ?? 2
+  const value = amount / 10 ** digits
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: code,
+    minimumFractionDigits: Number.isInteger(value) ? 0 : digits,
+  }).format(value)
+}
 
 // A card Stripe can charge when the subscription renews or its trial ends: the
 // subscription's own, or the customer's default (where the Customer Portal
@@ -108,6 +130,8 @@ export function subscriptionFields(subscription: Stripe.Subscription | null) {
       subscription?.cancel_at ?? (subscription?.cancel_at_period_end ? periodEnd : null),
     ),
     has_payment_method: subscription ? hasPaymentMethod(subscription) : false,
+    // The first monthly renewal reminder comes six months after this
+    started_at: toIso(subscription?.start_date),
   }
 }
 
@@ -133,6 +157,11 @@ export interface SyncResult {
  * decides their access. `userIdHint` links a customer the table does not know
  * yet (Checkout passes the user as client_reference_id); failing that, the
  * user id stamped on the customer is used.
+ *
+ * A second subscription Stripe could still bill is then cancelled. That comes
+ * after storing the one that counts, so a problem cancelling never costs
+ * anyone their Premium; the error still fails the sync, and Stripe retries
+ * the webhook.
  */
 export async function syncCustomer(
   admin: Admin,
@@ -147,20 +176,33 @@ export async function syncCustomer(
   })
   const subscription = pickSubscription(subscriptions)
   const fields = subscriptionFields(subscription)
-  const result = { fields, subscription, hadSubscription: subscriptions.length > 0 }
 
+  await storeSubscription(admin, customerId, fields, userIdHint)
+  if (subscription && LIVE_STATUSES.has(subscription.status)) {
+    await cancelDuplicates(customerId, subscription, subscriptions)
+  }
+
+  return { fields, subscription, hadSubscription: subscriptions.length > 0 }
+}
+
+async function storeSubscription(
+  admin: Admin,
+  customerId: string,
+  fields: SubscriptionFields,
+  userIdHint?: string | null,
+) {
   const { data: updated, error } = await admin
     .from('subscriptions')
     .update(fields)
     .eq('stripe_customer_id', customerId)
     .select('user_id')
   if (error) throw error
-  if (updated.length > 0) return result
+  if (updated.length > 0) return
 
   const userId = userIdHint || (await customerUserId(customerId))
   if (!userId) {
     console.warn(`Stripe customer ${customerId} is not linked to a Phormula user; nothing stored`)
-    return result
+    return
   }
 
   // Replaces a customer left over from test mode or deleted in Stripe
@@ -170,8 +212,64 @@ export async function syncCustomer(
   // 23503: the user has since deleted their account, so there's no one to update
   if (upsertError?.code === '23503') {
     console.warn(`Stripe customer ${customerId} belongs to a deleted account; nothing stored`)
-    return result
+    return
   }
   if (upsertError) throw upsertError
-  return result
+}
+
+/**
+ * Once a customer has a live subscription, any other one Stripe could still
+ * bill is a duplicate: two Checkout tabs, or an old Checkout page paid later.
+ * What a duplicate was paid is refunded in full, a bill it left unpaid is
+ * voided so it can't be paid later, and then it is cancelled. The idempotency
+ * keys make a retried or concurrent webhook do each step once.
+ */
+async function cancelDuplicates(customerId: string, kept: Stripe.Subscription, subscriptions: Stripe.Subscription[]) {
+  const duplicates = subscriptions.filter((s) => s.id !== kept.id && BILLABLE_STATUSES.has(s.status))
+  for (const duplicate of duplicates) {
+    console.warn(`Cancelling ${duplicate.id}, a duplicate of ${kept.id} for Stripe customer ${customerId}`)
+    await settleDuplicateInvoice(duplicate)
+    await stripe().subscriptions.cancel(
+      duplicate.id,
+      { invoice_now: false, prorate: false, cancellation_details: { comment: `Duplicate of ${kept.id}` } },
+      { idempotencyKey: `cancel-duplicate-${duplicate.id}` },
+    )
+  }
+}
+
+const errorCode = (error: unknown) => (error as { code?: string })?.code
+
+async function settleDuplicateInvoice(duplicate: Stripe.Subscription) {
+  const invoiceId =
+    typeof duplicate.latest_invoice === 'string' ? duplicate.latest_invoice : duplicate.latest_invoice?.id
+  if (!invoiceId) return
+  const invoice = await stripe().invoices.retrieve(invoiceId)
+
+  if (invoice.status === 'draft') {
+    await stripe().invoices.del(invoice.id).catch((error) => {
+      if (errorCode(error) !== 'resource_missing') throw error
+    })
+    return
+  }
+  if (invoice.status === 'open') {
+    await stripe().invoices.voidInvoice(invoice.id, {}, { idempotencyKey: `void-duplicate-${invoice.id}` })
+    return
+  }
+  // A free trial's first invoice is paid, for nothing
+  if (invoice.status !== 'paid' || invoice.amount_paid <= 0) return
+
+  const { data: payments } = await stripe().invoicePayments.list({ invoice: invoice.id, status: 'paid' })
+  for (const { id, payment } of payments) {
+    const paymentIntent = typeof payment.payment_intent === 'string' ? payment.payment_intent : payment.payment_intent?.id
+    const charge = typeof payment.charge === 'string' ? payment.charge : payment.charge?.id
+    if (!paymentIntent && !charge) continue
+    try {
+      await stripe().refunds.create(
+        { ...(paymentIntent ? { payment_intent: paymentIntent } : { charge }), reason: 'duplicate' },
+        { idempotencyKey: `refund-duplicate-${id}` },
+      )
+    } catch (error) {
+      if (errorCode(error) !== 'charge_already_refunded') throw error
+    }
+  }
 }

@@ -1,6 +1,7 @@
 // Sharing flashcard sets and files with other people by email. The rules live
-// in the database (supabase/migrations/*_flashcard_sharing.sql); this is the
-// shape the app sees and the wording it shows.
+// in the database (drizzle/migrations/0003_flashcard_sharing.sql, and 0006 for
+// the email a share sends); this is the shape the app sees and the wording it
+// shows.
 
 import { supabase } from "@/integrations/supabase/client";
 

@@ -76,6 +76,11 @@ export interface PremiumStatus {
   has_billing_account: boolean;
   /** Stripe has a card to charge. Free trials start without one. */
   has_payment_method: boolean;
+  /**
+   * A free trial is still theirs: neither this account nor its email address
+   * has subscribed before. Absent until the database has drizzle migration 0008.
+   */
+  trial_available?: boolean;
 }
 
 export interface PricingPlan {
@@ -94,8 +99,9 @@ export interface Pricing {
   trialDays: number;
 }
 
-/** Someone who has never subscribed still has their free trial. */
-export const hasTrialAvailable = (status: PremiumStatus | null): boolean => !status?.status;
+/** One free trial per email address: someone who has never subscribed, on any account, still has theirs. */
+export const hasTrialAvailable = (status: PremiumStatus | null): boolean =>
+  status?.trial_available ?? !status?.status;
 
 /** A save the database refused because the card type needs Premium. */
 export const isPremiumRequiredError = (error: unknown): boolean =>

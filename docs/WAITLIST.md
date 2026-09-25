@@ -13,11 +13,12 @@ collected.
 | Waitlist page | `src/pages/Waitlist.tsx` | Email + captcha form, success states, social proof count |
 | Captcha widget | `src/components/TurnstileWidget.tsx` | Renders Cloudflare Turnstile |
 | Edge function | `supabase/functions/waitlist-signup/index.ts` | Verifies captcha server-side, inserts email, sends confirmation |
-| Database | `supabase/migrations/20260711000000_waitlist.sql` | `waitlist` table (RLS: no client access) + `waitlist_count()` RPC |
+| Database | `supabase/migrations/20260711180416_243b8b19-….sql`, tightened by `…20260711183510_85c8d314-….sql` and `…20260724162153_48de71ad-….sql` | `waitlist` table (RLS: no client access) + `waitlist_count()` RPC, callable only by the service role |
 
-The `waitlist` table has RLS enabled with **no policies**, so browsers cannot
-read or scrape emails — the edge function (service role) is the only write
-path, and the only public read is the aggregate `waitlist_count()`.
+The `waitlist` table has RLS enabled with policies that refuse every browser
+read and write, so nobody can scrape emails — the edge function (service role)
+is the only write path, and the only public read is the aggregate count, served
+by the `waitlist-count` function.
 
 ## Developer access (bypass the gate)
 
