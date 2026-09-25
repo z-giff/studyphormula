@@ -12,6 +12,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { getContrastColor } from "@/lib/utils";
 import { InteractiveFlashcardStudy } from "@/components/InteractiveFlashcardStudy";
 import { FlashcardText } from "@/components/FlashcardText";
+import { StandardCardFace } from "@/components/StandardCardFace";
 import { FlashcardBoardBack } from "@/components/FlashcardBoardBack";
 import { BOARD_BACK_COLOR, hasBoardBack } from "@/lib/flashcardBoard";
 import { PremiumLockedPanel, SkippedPremiumCardsNotice } from "@/components/PremiumLock";
@@ -343,38 +344,13 @@ const StudyMode = () => {
                 onClick={handleFlip}
               >
                 <div
-                  className="p-12 w-full max-w-3xl mx-auto text-center space-y-6 flex flex-col items-center justify-center flex-1"
+                  className="w-full max-w-3xl mx-auto flex-1"
                   style={{
                     transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
                     transformStyle: "preserve-3d",
                   }}
                 >
-                  {isFlipped && (
-                    <p className="text-sm uppercase tracking-wide opacity-80">
-                      Definition
-                    </p>
-                  )}
-
-                  {!isFlipped ? (
-                    <>
-                      <FlashcardText text={currentCard.term} className="text-4xl font-bold" />
-                      <p className="text-sm opacity-70 mt-8">Click to reveal answer</p>
-                    </>
-                  ) : (
-                    <>
-                      {currentCard.image_url && (
-                        <img
-                          src={currentCard.image_url}
-                          alt={currentCard.term}
-                          className="max-h-64 mx-auto rounded-lg object-contain mb-6"
-                        />
-                      )}
-                      <FlashcardText
-                        text={currentCard.definition}
-                        className="text-2xl leading-relaxed"
-                      />
-                    </>
-                  )}
+                  <StandardCardFace side={isFlipped ? "back" : "front"} term={currentCard.term} definition={currentCard.definition} imageUrl={currentCard.image_url} interactiveData={currentCard.interactive_data} textColor={textColor} />
                 </div>
               </Card>
             )}

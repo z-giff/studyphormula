@@ -5,6 +5,7 @@
  import { FlashcardBoardBack } from "@/components/FlashcardBoardBack";
  import { BOARD_BACK_COLOR, hasBoardBack } from "@/lib/flashcardBoard";
  import { FlashcardText } from "@/components/FlashcardText";
+ import { StandardCardFace } from "@/components/StandardCardFace";
  
  interface SwipeCardProps {
    card: {
@@ -66,30 +67,7 @@
      }
  
      // Standard flashcard
-     return (
-       <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center">
-         <p className="text-sm uppercase tracking-wide opacity-80 mb-4">
-           {isFlipped ? "Definition" : "Term"}
-         </p>
-         {!isFlipped ? (
-           <>
-             <FlashcardText text={card.term} className="text-2xl md:text-3xl font-bold" />
-             <p className="text-sm opacity-70 mt-8">Tap to reveal answer</p>
-           </>
-         ) : (
-           <>
-             {card.image_url && (
-               <img
-                 src={card.image_url}
-                 alt={card.term}
-                 className="max-h-32 mx-auto rounded-lg object-contain mb-4"
-               />
-             )}
-             <FlashcardText text={card.definition} className="text-xl leading-relaxed" />
-           </>
-         )}
-       </div>
-     );
+      return <StandardCardFace side={isFlipped ? "back" : "front"} term={card.term} definition={card.definition} imageUrl={card.image_url} interactiveData={card.interactive_data} textColor={textColor} />;
    };
  
    return (

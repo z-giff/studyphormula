@@ -12,6 +12,8 @@ import { InteractiveFlashcardEditor } from "@/components/InteractiveFlashcardEdi
 import { FlowchartCanvasEditor } from "@/components/FlowchartCanvasEditor";
 import { DrawingCanvasEditor } from "@/components/DrawingCanvasEditor";
 import { ImageUploader } from "@/components/ImageUploader";
+import { StandardCardImageEditor } from "@/components/StandardCardImageEditor";
+import { getStandardCardLayout, withStandardCardLayout, type StandardCardLayout } from "@/lib/standardCardLayout";
 import { FlashcardTextarea } from "./FlashcardTextarea";
 import { usePremium } from "@/hooks/usePremium";
 import { isPremiumCardType, isPremiumRequiredError } from "@/lib/premium";
@@ -80,6 +82,7 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
       ? flashcard.interactive_data
       : { strokes: [], width: 0, height: 0 }
   );
+  const [standardLayout, setStandardLayout] = useState<StandardCardLayout>(() => getStandardCardLayout(flashcard.interactive_data, flashcard.image_url));
 
   // Turning a card into an interactive, flowchart or drawing card needs Premium
   const handleTypeChange = (value: string) => {
@@ -131,6 +134,7 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
         ? flashcard.interactive_data
         : { strokes: [], width: 0, height: 0 }
     );
+    setStandardLayout(getStandardCardLayout(flashcard.interactive_data, flashcard.image_url));
   }, [flashcard]);
 
   const handleEyeDropper = async () => {
@@ -224,8 +228,8 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
       if (flashcardType === "standard") {
         updateData.term = formData.term.trim();
         updateData.definition = formData.definition.trim();
-        updateData.image_url = formData.imageUrl.trim() || null;
-        updateData.interactive_data = null;
+        updateData.image_url = null;
+        updateData.interactive_data = withStandardCardLayout(flashcard.interactive_data, standardLayout);
       } else if (flashcardType === "interactive") {
         updateData.term = formData.term.trim() || "Interactive Flashcard";
         updateData.definition = "Fill in the blanks";
@@ -323,13 +327,7 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
                 />
               </div>
 
-              <ImageUploader
-                imageUrl={formData.imageUrl}
-                onImageChange={(imageUrl) => setFormData({ ...formData, imageUrl })}
-                disabled={isLoading}
-                required={false}
-                label="Image"
-              />
+              <StandardCardImageEditor term={formData.term} definition={formData.definition} color={selectedSetColor} layout={standardLayout} onChange={setStandardLayout} disabled={isLoading} />
             </TabsContent>
 
             <TabsContent value="interactive" className="space-y-4 mt-4">
