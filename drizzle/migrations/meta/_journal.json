@@ -78,6 +78,13 @@
       "when": 1790364453243,
       "tag": "0010_link_flashcard_files_to_users",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1790364486625,
+      "tag": "0011_one_free_trial_per_email",
+      "breakpoints": true
     }
   ]
 }
