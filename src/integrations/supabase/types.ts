@@ -486,7 +486,10 @@ export type Database = {
     }
     Functions: {
       add_shared_flashcards: { Args: { p_share_id: string }; Returns: Json }
-      claim_premium_feature_use: { Args: { p_feature: string }; Returns: string }
+      claim_premium_feature_use: {
+        Args: { p_feature: string }
+        Returns: string
+      }
       claim_premium_trial: { Args: { p_user_id: string }; Returns: undefined }
       copy_flashcard_set: {
         Args: { p_file_id: string; p_owner: string; p_set_id: string }
@@ -612,6 +615,7 @@ export type Database = {
         }
       }
       premium_trial_email_hash: { Args: { p_email: string }; Returns: string }
+      premium_trial_use_limit: { Args: never; Returns: number }
       premium_trial_used: { Args: { p_user_id: string }; Returns: boolean }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
