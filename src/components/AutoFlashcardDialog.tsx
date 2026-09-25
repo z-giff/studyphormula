@@ -8,6 +8,7 @@
  import { supabase } from "@/integrations/supabase/client";
  import { toast } from "sonner";
  import { useAuth } from "@/hooks/useAuth";
+ import { usePremium } from "@/hooks/usePremium";
  import { Plus, Upload, FileText, Loader2, Sparkles } from "lucide-react";
  import * as pdfjsLib from "pdfjs-dist";
  import pdfjsWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
@@ -72,6 +73,7 @@
    existingSetTitle 
  }: AutoFlashcardDialogProps) => {
    const { user } = useAuth();
+   const { openUpgrade, refresh, requirePremium } = usePremium();
    const navigate = useNavigate();
    const fileInputRef = useRef<HTMLInputElement>(null);
    
@@ -158,6 +160,10 @@
        return;
      }
  
+     // Auto-Flashcard is Premium. The buttons that open this dialog check too,
+     // but the plan may still have been loading then
+     if (!requirePremium("auto_flashcard")) return;
+ 
      if (!isAppendMode && !formData.title.trim()) {
        toast.error("Please enter a title for your flashcard set");
        return;
@@ -183,7 +189,7 @@
  
      try {
        // Call AI to generate flashcards
-       toast.info("Generating flashcards with AI...");
+       const generatingToast = toast.info("Generating flashcards with AI...");
        
        const { data: aiData, error: aiError } = await supabase.functions.invoke('generate-flashcards', {
          body: { 
@@ -192,6 +198,14 @@
        });
  
        if (aiError) {
+         // generate-flashcards answers 403 to anyone without Premium. Re-read the
+         // plan first, so the upgrade dialog doesn't say it's already unlocked
+         if ((aiError as { context?: Response }).context?.status === 403) {
+           toast.dismiss(generatingToast);
+           await refresh();
+           openUpgrade("auto_flashcard");
+           return;
+         }
          console.error("AI generation error:", aiError);
          throw new Error(aiError.message || "Failed to generate flashcards");
        }

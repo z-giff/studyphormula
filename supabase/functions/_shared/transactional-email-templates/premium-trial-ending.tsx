@@ -161,7 +161,7 @@ const Email = ({ trialEndsAt, hasPaymentMethod, planName, priceLabel }: TrialEnd
       <Preview>
         {hasPaymentMethod
           ? `Your Premium trial ends ${when}, and Premium carries on after that.`
-          : `Add a card to keep interactive, flowchart and drawing cards and the MC Quiz.`}
+          : `Add a card to keep Auto-Flashcard, interactive, flowchart and drawing cards, and the MC Quiz.`}
       </Preview>
       <Body style={main}>
         <Container style={container}>
@@ -191,8 +191,9 @@ const Email = ({ trialEndsAt, hasPaymentMethod, planName, priceLabel }: TrialEnd
                 </Text>
               ) : (
                 <Text style={paragraph}>
-                  Thanks for trying Phormula Premium. To keep studying with interactive, flowchart and
-                  drawing cards and the MC Quiz, add a card before your trial ends.
+                  Thanks for trying Phormula Premium. To keep making cards with Auto-Flashcard and
+                  studying with interactive, flowchart and drawing cards and the MC Quiz, add a card
+                  before your trial ends.
                 </Text>
               )}
 

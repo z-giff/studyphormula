@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Crown, GitBranch, Layers, Loader2, Signature } from "lucide-react";
+import { Crown, GitBranch, Layers, Loader2, Signature, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -22,8 +22,9 @@ import {
   type PricingPlan,
 } from "@/lib/premium";
 
-// Same lines as the homepage's card-type showcase
+// The card and quiz lines match the homepage's card-type showcase
 const UNLOCKS = [
+  { feature: "auto_flashcard", Icon: Sparkles, line: "Turn your notes and PDFs into cards." },
   { feature: "interactive", Icon: Layers, line: "Label the image from memory." },
   { feature: "flowchart", Icon: GitBranch, line: "See how it connects." },
   { feature: "drawing", Icon: Signature, line: "Sketch it to remember it." },
@@ -39,6 +40,7 @@ const FEATURE_LEADS: Record<PremiumFeature, string> = {
   flowchart: "Flowchart cards are part of Premium.",
   drawing: "Drawing cards are part of Premium.",
   quiz: "The MC Quiz is part of Premium.",
+  auto_flashcard: "Auto-Flashcard is part of Premium.",
 };
 
 // How much cheaper a longer plan is than paying monthly for the same months
