@@ -331,6 +331,36 @@ const getBoxes = (count: number, pageW: number, pageH: number): Box[] => {
   });
 };
 
+export interface FlashcardPagePanel {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  side: "front" | "back";
+}
+
+// US Letter in points, the page every export is printed on
+const LETTER_WIDTH = 612;
+const LETTER_HEIGHT = 792;
+
+/** Where each card face lands on a full page, as fractions of the page, so the export dialog can draw the layout. */
+export const flashcardPageLayout = (
+  orientation: PdfOrientation,
+  cardsPerPage: FlashcardPdfOptions["cardsPerPage"],
+  sides: PdfSides,
+): FlashcardPagePanel[] => {
+  const pageW = orientation === "portrait" ? LETTER_WIDTH : LETTER_HEIGHT;
+  const pageH = orientation === "portrait" ? LETTER_HEIGHT : LETTER_WIDTH;
+  const panelCount = sides === "same-page" ? cardsPerPage * 2 : cardsPerPage;
+  return getBoxes(panelCount, pageW, pageH).map((box, index) => ({
+    x: box.x / pageW,
+    y: box.y / pageH,
+    width: box.w / pageW,
+    height: box.h / pageH,
+    side: sides === "same-page" && index % 2 === 1 ? "back" : "front",
+  }));
+};
+
 const footer = (doc: jsPDF, title: string, pageNumber: number) => {
   const width = doc.internal.pageSize.getWidth();
   const height = doc.internal.pageSize.getHeight();
