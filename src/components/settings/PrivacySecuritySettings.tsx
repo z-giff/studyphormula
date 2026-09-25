@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremium } from "@/hooks/usePremium";
 import { supabase } from "@/integrations/supabase/client";
+import { buildDataExport } from "@/lib/dataExport";
 import {
   Dialog,
   DialogContent,
@@ -59,6 +60,7 @@ export const PrivacySecuritySettings = ({
   const [deleteStage, setDeleteStage] = useState<0 | 1 | 2>(0);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
@@ -126,25 +128,24 @@ export const PrivacySecuritySettings = ({
     setDeleteConfirmText("");
   };
 
+  // Everything about the account in one JSON file (src/lib/dataExport.ts)
   const handleExportData = async () => {
-    // Fetch user's flashcard sets
-    const { data: sets } = await supabase
-      .from("flashcard_sets")
-      .select("*, flashcards(*)")
-      .eq("user_id", user?.id);
-
-    if (sets) {
-      const dataStr = JSON.stringify(sets, null, 2);
-      const blob = new Blob([dataStr], { type: "application/json" });
+    if (!user) return;
+    setIsExporting(true);
+    try {
+      const blob = await buildDataExport(user);
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "phormula-data-export.json";
+      a.download = `phormula-data-export-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
-      URL.revokeObjectURL(url);
+      // Some browsers cancel a download whose URL is revoked straight away
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
       toast.success("Data exported successfully");
-    } else {
-      toast.error("Failed to export data");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to export data");
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -285,11 +286,13 @@ export const PrivacySecuritySettings = ({
                 variant="outline"
                 onClick={handleExportData}
                 className="w-full"
+                disabled={isExporting}
               >
-                Export My Data
+                {isExporting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                {isExporting ? "Preparing your export…" : "Export My Data"}
               </Button>
               <p className="text-xs text-muted-foreground pl-2">
-                Download all your flashcards and study data
+                Download everything in your account: flashcards, files, pictures, shares and Premium details
               </p>
             </div>
           </div>
@@ -320,9 +323,10 @@ export const PrivacySecuritySettings = ({
                   Are you sure you want to delete your account?
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  This permanently deletes your account, your flashcard sets and files, your study
-                  progress, and anything you've shared. It can't be undone, so export your data first
-                  if you want a copy.
+                  This permanently deletes your account, your flashcard sets and files, the pictures
+                  you uploaded, your study progress, and the shares you've sent. Copies that people you
+                  shared with already added to their own accounts stay theirs. It can't be undone, so
+                  export your data first if you want a copy.
                 </p>
                 {isPremium && (
                   <p className="text-xs text-muted-foreground">

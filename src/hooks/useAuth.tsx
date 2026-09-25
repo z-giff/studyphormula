@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { User, Session } from "@supabase/supabase-js";
+import { AuthError, User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useNavigate } from "react-router-dom";
@@ -10,7 +10,15 @@ const PENDING_REDIRECT_KEY = "phormula.pendingRedirect";
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  signUp: (email: string, password: string, fullName: string, next?: string) => Promise<{ error: any }>;
+  /** needsConfirmation: the account exists, but not until they open the link in the confirmation email. */
+  signUp: (
+    email: string,
+    password: string,
+    fullName: string,
+    next?: string,
+  ) => Promise<{ error: any; needsConfirmation?: boolean }>;
+  /** Sends the confirmation email again, with the same link on to `next`. */
+  resendConfirmation: (email: string, next?: string) => Promise<{ error: AuthError | null }>;
   signIn: (email: string, password: string, next?: string) => Promise<{ error: any }>;
   signInWithGoogle: (next?: string) => Promise<{ error: any }>;
   
@@ -73,8 +81,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signUp = async (email: string, password: string, fullName: string, next?: string) => {
     const target = safeNext(next);
     const redirectUrl = `${window.location.origin}${target}`;
-    
-    const { error } = await supabase.auth.signUp({
+
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -84,11 +92,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         },
       },
     });
-    
-    if (!error) {
-      navigate(target);
-    }
-    
+    if (error) return { error };
+
+    // With email confirmation on there's no session until they open the link
+    // in the email, so there's nowhere to go yet
+    if (!data.session) return { error: null, needsConfirmation: true };
+
+    navigate(target);
+    return { error: null };
+  };
+
+  const resendConfirmation = async (email: string, next?: string) => {
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: `${window.location.origin}${safeNext(next)}` },
+    });
     return { error };
   };
 
@@ -146,6 +165,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     user,
     session,
     signUp,
+    resendConfirmation,
     signIn,
     signInWithGoogle,
     

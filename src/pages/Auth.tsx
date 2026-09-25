@@ -9,6 +9,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LogoOrb from "@/components/LogoOrb";
 import { Checkbox } from "@/components/ui/checkbox";
+import { MailCheck } from "lucide-react";
 
 /** A few drifting cards on the narrative panel — the flock at rest. */
 const DriftingCards = () => (
@@ -36,8 +37,62 @@ const DriftingCards = () => (
   </div>
 );
 
+interface CheckYourEmailProps {
+  email: string;
+  /** They came from a share invite, so something is waiting for them */
+  invited: boolean;
+  onResend: () => Promise<boolean>;
+  onBack: () => void;
+}
+
+/** In place of the forms while the confirmation email is on its way. */
+const CheckYourEmail = ({ email, invited, onResend, onBack }: CheckYourEmailProps) => {
+  const [isResending, setIsResending] = useState(false);
+  const [resent, setResent] = useState(false);
+
+  const handleResend = async () => {
+    setIsResending(true);
+    setResent(await onResend());
+    setIsResending(false);
+  };
+
+  return (
+    <Card className="border-border bg-card shadow-[var(--shadow-card)]">
+      <CardContent className="space-y-5 p-6">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary">
+          <MailCheck className="h-6 w-6 text-foreground" strokeWidth={1.75} />
+        </div>
+        <p className="text-sm leading-relaxed text-foreground">
+          We sent a link to <strong className="break-all font-semibold">{email}</strong>. Open it to confirm your
+          address, and you're in.
+        </p>
+        {invited && (
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            What was shared with you will be waiting under Shared flashcards.
+          </p>
+        )}
+        <Button
+          type="button"
+          variant="outline"
+          className="h-11 w-full"
+          onClick={handleResend}
+          disabled={isResending || resent}
+        >
+          {isResending ? "Sending..." : resent ? "Sent again" : "Send the email again"}
+        </Button>
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          Can't find it? Check your spam folder. Wrong address, or already confirmed?{" "}
+          <button type="button" onClick={onBack} className="text-foreground underline underline-offset-2">
+            Go back
+          </button>
+        </p>
+      </CardContent>
+    </Card>
+  );
+};
+
 const Auth = () => {
-  const { signIn, signUp, signInWithGoogle } = useAuth();
+  const { signIn, signUp, signInWithGoogle, resendConfirmation } = useAuth();
   const [searchParams] = useSearchParams();
   const nextParam = searchParams.get("next") ?? undefined;
   // Invite emails for shared flashcards link here with the invited address
@@ -49,7 +104,8 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [acceptedLegal, setAcceptedLegal] = useState(false);
-  
+  // Where a confirmation email just went: "Check your email" replaces the forms
+  const [confirmationEmail, setConfirmationEmail] = useState<string | null>(null);
 
   useEffect(() => {
     setTab(searchParams.get("mode") === "signup" ? "signup" : "login");
@@ -99,9 +155,23 @@ const Auth = () => {
     const { error } = await signIn(loginData.email, loginData.password, nextParam);
     setIsLoading(false);
 
-    if (error) {
+    // Signing in before opening the confirmation link
+    if (error?.code === "email_not_confirmed") {
+      setConfirmationEmail(loginData.email.trim());
+    } else if (error) {
       toast.error(error.message || "Failed to sign in");
     }
+  };
+
+  const handleResendConfirmation = async () => {
+    if (!confirmationEmail) return false;
+    const { error } = await resendConfirmation(confirmationEmail, nextParam);
+    if (error) {
+      toast.error(error.message || "Couldn't send the email again");
+      return false;
+    }
+    toast.success("Sent again. It can take a minute to arrive.");
+    return true;
   };
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -128,11 +198,18 @@ const Auth = () => {
     }
 
     setIsLoading(true);
-    const { error } = await signUp(signupData.email, signupData.password, signupData.fullName, nextParam);
+    const { error, needsConfirmation } = await signUp(
+      signupData.email,
+      signupData.password,
+      signupData.fullName,
+      nextParam,
+    );
     setIsLoading(false);
 
     if (error) {
       toast.error(error.message || "Failed to sign up");
+    } else if (needsConfirmation) {
+      setConfirmationEmail(signupData.email.trim());
     } else {
       toast.success("Account created successfully!");
     }
@@ -179,13 +256,21 @@ const Auth = () => {
           <div className="w-full max-w-md space-y-6">
             <div className="space-y-2 text-center lg:text-left">
               <h1 className="font-display text-3xl font-medium tracking-tight text-foreground">
-                {tab === "signup" ? "Create your account" : "Welcome back"}
+                {confirmationEmail ? "Check your email" : tab === "signup" ? "Create your account" : "Welcome back"}
               </h1>
               <p className="text-sm text-muted-foreground">
-                Master any subject with visual flashcards
+                {confirmationEmail ? "One step left before you start studying" : "Master any subject with visual flashcards"}
               </p>
             </div>
 
+            {confirmationEmail ? (
+              <CheckYourEmail
+                email={confirmationEmail}
+                invited={!!emailParam}
+                onResend={handleResendConfirmation}
+                onBack={() => setConfirmationEmail(null)}
+              />
+            ) : (
             <Card className="border-border bg-card shadow-[var(--shadow-card)]">
               <CardHeader className="pb-4">
                 <CardTitle className="sr-only">
@@ -383,6 +468,7 @@ const Auth = () => {
                 </Tabs>
               </CardContent>
             </Card>
+            )}
           </div>
         </div>
       </div>

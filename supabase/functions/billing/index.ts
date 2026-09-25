@@ -16,6 +16,9 @@
 //   SITE_URL               where Stripe sends people back to (default https://phormula.co)
 //   STRIPE_TRIAL_DAYS      free trial for first-time subscribers, no card needed (default 7, 0 = none)
 //   STRIPE_AUTOMATIC_TAX   "true" to have Stripe Tax add sales tax / VAT (optional)
+//
+// Checkout makes subscribers agree to the Terms, so Stripe needs their URL:
+// Settings → Public details → Terms of service.
 
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors'
 import {
@@ -73,6 +76,17 @@ function trialDays(): number {
 
 function siteUrl(): string {
   return new URL(Deno.env.get('SITE_URL') || 'https://phormula.co').origin
+}
+
+// Next to the box Checkout makes them tick. EU and UK consumers can withdraw
+// within 14 days, but may lose that right once a service they asked to start
+// straight away has been fully provided; the Terms (§6, Refunds) say Checkout
+// tells them so and asks them to confirm.
+function termsAcceptance(): string {
+  return (
+    `I agree to the [Terms of Service](${siteUrl()}/terms) and ask for Premium to start straight away. ` +
+    `If I'm in the EU or UK, I understand I may lose my 14-day right to withdraw once Premium has been fully provided.`
+  )
 }
 
 // Back to the page the request came from when that is the site, a local dev
@@ -264,10 +278,19 @@ async function checkout(admin: Admin, req: Request, caller: Caller, body: Record
     ...(trial > 0 && { payment_method_collection: 'if_required' }),
     success_url: returnUrl(req, body.returnPath, { checkout: 'success' }),
     cancel_url: returnUrl(req, body.returnPath, { checkout: 'cancelled' }),
+    consent_collection: { terms_of_service: 'required' },
+    custom_text: { terms_of_service_acceptance: { message: termsAcceptance() } },
     ...(automaticTax && {
       automatic_tax: { enabled: true },
       customer_update: { address: 'auto', name: 'auto' },
     }),
+  }).catch((error) => {
+    // Stripe only asks for the Terms once their URL is in its public details
+    // (Settings → Public details)
+    if (/terms of service/i.test(error?.message ?? '')) {
+      throw new ConfigError(`Stripe has no Terms of Service URL to show at Checkout: ${error.message}`)
+    }
+    throw error
   })
   if (!session.url) throw new Error('Stripe returned a Checkout session without a URL')
   return { url: session.url }

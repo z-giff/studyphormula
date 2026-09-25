@@ -234,10 +234,8 @@ send them about the share shows the same name and the title.
 People you share with see the current version of what you shared, including changes you make later
 and, for a file, every set you put into it, until they remove it from their list. To stop sharing
 something, delete it, or move a set out of the shared file. They can also add a copy to their own
-account. That copy is theirs: it does not change when you edit yours, and it stays in their account
-if you delete the original or your account. Pictures you uploaded are not copied, though: the copy
-shows them from your storage only while the share exists, so they stop appearing in it once you
-delete the original or your account, or the recipient removes the share.
+account. That copy is theirs, including copies of the pictures you uploaded to it: it does not change
+when you edit yours, and it stays in their account if you delete the original or your account.
 
 Please do not include personal or confidential information in content you share.
 
@@ -280,7 +278,7 @@ We keep personal information only as long as we need it:
 | --- | --- |
 | Account information | For as long as your account is active |
 | Study content (sets, cards, sections, folders) | For as long as your account is active, or until you delete it |
-| Pictures you upload to cards | For as long as your account is active |
+| Pictures you upload to cards | While a card uses them. A picture no card uses (taken off its card, on a deleted card, or never saved) is deleted automatically, no sooner than a week after it was uploaded. All of them are deleted with your account |
 | Shares, including the email address of the person shared with | Until the shared set or file is deleted or the sender deletes their account. A share someone received also goes when they delete their account. A share waiting for someone without an account is kept on the same terms |
 | Subscription status (plan, status, billing and trial dates, renewal reminders sent, Stripe customer identifier) | For as long as your account is active |
 | Free-trial record (a one-way hash of your email address) | Indefinitely, including after your account is deleted, so that the free trial stays one per email address |
@@ -324,9 +322,11 @@ relevant supervisory authorities as required by law. Please tell us promptly at
 
 ## 11. Your Choices
 
-**Access your data.** You can export your flashcard sets and cards as a JSON file at any time from
-Privacy & Security in your account settings. For a copy of everything else we hold about you, such
-as your files, profile, shares, and subscription details, email **support@phormula.co**.
+**Access your data.** You can export all of your Phormula data as a JSON file at any time from
+Privacy & Security in your account settings: your account details and profile, your Premium status,
+your files and flashcard sets with their sections and cards, the pictures you uploaded, and the shares
+you sent and received. Records we keep to run the Service, such as email delivery logs, are available
+on request at **support@phormula.co**.
 
 **Correct your data.** You can update your name and email address in your account settings.
 
@@ -345,7 +345,8 @@ Cancelling takes effect at the end of your current billing period or free trial.
 
 **Email preferences.** Every marketing and product-update email contains an unsubscribe link. You can
 unsubscribe at any time, and we will honour it immediately. We will still send you transactional
-emails that are necessary to operate your account, such as password resets and security notices.
+emails that are necessary to operate your account, such as password resets, security notices, and
+billing notices (for example, a reminder before your free trial ends or your subscription renews).
 
 **Third-party authorisations.** You can revoke an external application's access to your flashcards at
 any time from your account settings.

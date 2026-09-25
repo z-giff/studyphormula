@@ -153,11 +153,15 @@ Deno.serve(async (req) => {
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
   // 2. Check suppression list (fail-closed: if we can't verify, don't send)
-  const { data: suppressed, error: suppressionError } = await supabase
+  const { data: suppressedRow, error: suppressionError } = await supabase
     .from('suppressed_emails')
-    .select('id')
+    .select('id, reason')
     .eq('email', effectiveRecipient.toLowerCase())
     .maybeSingle()
+  // An unsubscribe doesn't stop an essential billing notice; a bounce or a
+  // complaint stops everything
+  const suppressed =
+    suppressedRow && !(template.essential && suppressedRow.reason === 'unsubscribe') ? suppressedRow : null
 
   if (suppressionError) {
     console.error('Suppression check failed — refusing to send', {
@@ -226,8 +230,9 @@ Deno.serve(async (req) => {
     )
   }
 
-  if (existingToken && !existingToken.used_at) {
-    // Reuse existing unused token
+  if (existingToken && (!existingToken.used_at || template.essential)) {
+    // Reuse the existing token; for an essential notice, even one already
+    // used to unsubscribe
     unsubscribeToken = existingToken.token
   } else if (!existingToken) {
     // Create new token — upsert handles concurrent inserts gracefully

@@ -14,6 +14,10 @@ export interface TemplateEntry {
   // Only the database (service role) may send it: the template shows text users
   // typed, so a browser holding the public anon key must not choose its content.
   serviceRoleOnly?: boolean
+  // A billing notice the Terms promise (trial ending, renewal reminders): it
+  // still goes to an address that unsubscribed from Phormula's other emails,
+  // but never to one that bounced or complained.
+  essential?: boolean
 }
 
 export const TEMPLATES: Record<string, TemplateEntry> = {

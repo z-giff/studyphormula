@@ -237,4 +237,6 @@ export const template = {
   // Only the webhook sends it: a browser holding the public anon key must not be
   // able to send billing notices to arbitrary addresses.
   serviceRoleOnly: true,
+  // The Terms promise this notice before a trial converts
+  essential: true,
 } satisfies TemplateEntry

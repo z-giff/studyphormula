@@ -54,12 +54,15 @@ Before going live:
 
 ### 2. Confirmation email
 
-Confirmation emails are handled through **Lovable**, not this codebase. The
-`waitlist-signup` edge function only verifies the captcha and records the
-signup; it does not send email. Edit the email content and trigger in Lovable.
+After recording a new signup, `waitlist-signup` sends the `welcome` email
+(*"We're not quite ready for you yet"*) through `send-transactional-email`, like
+every Phormula email (see [`EMAILS.md`](./EMAILS.md)), and stamps
+`confirmation_sent_at`. A repeat signup gets no second email. The template is
+`supabase/functions/_shared/transactional-email-templates/welcome.tsx`.
 
-The `waitlist` table keeps an unused `confirmation_sent_at` column in case
-email sending is ever moved back into the edge function later.
+The same email also goes to anyone who confirms a new account's email address
+(the `send_welcome_email_on_confirm` trigger). Before launch that's only you and
+your testers; the launch checklist below replaces it for real sign-ups.
 
 ## Social proof counter
 
@@ -72,3 +75,8 @@ The page shows "Join N+ students already waiting" once the waitlist reaches
 2. Restore `/auth` in `public/sitemap.xml` and update `public/llms.txt`.
 3. Remove "Join the waitlist" phrasing from meta descriptions in `index.html`.
 4. Email the waitlist (export from Supabase → Table Editor → `waitlist`).
+5. Give account sign-ups their own welcome email. Until then, everyone who
+   confirms a new account gets the waitlist's *"We're not quite ready for you
+   yet"* email (the `send_welcome_email_on_confirm` trigger sends `welcome`).
+   Write a sign-up welcome template, point the trigger at it, and keep
+   `welcome` for the waitlist.

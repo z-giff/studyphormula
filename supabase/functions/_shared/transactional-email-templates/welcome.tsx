@@ -130,4 +130,8 @@ export const template = {
   subject: 'Welcome to Phormula',
   displayName: 'Welcome Email',
   previewData: {},
+  // Only the server sends it (waitlist-signup and the email-confirmed
+  // trigger): a browser holding the public anon key must not be able to send
+  // it to any address it likes.
+  serviceRoleOnly: true,
 } satisfies TemplateEntry

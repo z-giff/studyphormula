@@ -53,7 +53,9 @@ Both go through the same email system as the welcome and sharing emails
 (`send-transactional-email`; see [`EMAILS.md`](./EMAILS.md)), and both buttons
 open `phormula.co/dashboard?billing=manage`, which takes them straight to
 Stripe's billing page (after signing in if needed). **Leave Stripe's own trial
-and renewal reminder emails turned off**, so nobody gets two.
+and renewal reminder emails turned off**, so nobody gets two. Both are billing
+notices the Terms promise, so they still reach someone who unsubscribed from
+Phormula's other emails; an address that bounced or complained gets nothing.
 
 **Trial ending.** Three days before a trial ends, Stripe tells the webhook
 (`customer.subscription.trial_will_end`), and Phormula sends *"Your free trial
@@ -144,6 +146,12 @@ has to be done in both.
    is set, in that order, with each longer plan's monthly equivalent and how
    much it saves over paying monthly.
 4. Copy each price's ID (`price_…`) from the product page.
+5. **Settings → Public details:** set **Terms of service** to
+   `https://phormula.co/terms`. Checkout makes every subscriber tick a box
+   agreeing to the Terms and asking for Premium to start straight away, with
+   the EU/UK withdrawal acknowledgement the Terms promise (§6, Refunds). Stripe
+   won't show that box without the URL, so until it's set, the upgrade dialog
+   says Premium isn't available to buy yet.
 
 ### 2. Turn on the Customer Portal
 
@@ -269,7 +277,8 @@ set, and press **MC Quiz**.
 
 1. The upgrade dialog shows your prices and offers the trial. **Start 7-day
    free trial.**
-2. Stripe asks for no card. Confirm.
+2. Stripe asks for no card, only that you tick the box agreeing to the Terms.
+   Confirm.
 3. You land back on the quiz with *"Your free trial has started"*, unlocked.
 4. Stripe → Webhooks → your endpoint: the deliveries show `200`.
 5. Profile → **Add a card** → add `4242 4242 4242 4242`, any future expiry and

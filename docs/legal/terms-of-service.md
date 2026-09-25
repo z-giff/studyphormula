@@ -1,7 +1,7 @@
 # Phormula Terms of Service
 
-**Last updated:** September 24, 2026
-**Effective:** September 24, 2026
+**Last updated:** September 25, 2026
+**Effective:** September 25, 2026
 
 ## 1. Agreement to These Terms
 
@@ -62,8 +62,8 @@ improving the Service for you**.
 This licence is limited to what we need in order to run Phormula. It does not permit us to publish
 Your Content, license it to others, or use it for our own commercial purposes. It ends when you
 delete Your Content or close your account, except that residual copies may persist in backups for a
-limited period, and except where content you have chosen to share publicly has been retained by
-others.
+limited period, and except for copies of content you shared that other people have already added to
+their own accounts or otherwise kept.
 
 ### 4.3 We do not train AI models on Your Content
 
@@ -94,8 +94,9 @@ study, and you grant Phormula the additional right to display, distribute, and m
 available through the Service. Do not share content containing personal, confidential, or sensitive
 information.
 
-Content shared publicly may be copied or retained by others. Removing a public set from Phormula does
-not retrieve copies that others have already made.
+People you share a set or file with can add their own copy of it, and content shared publicly may be
+copied by others. Deleting the original, or your account, does not remove copies that others have
+already made.
 
 ## 5. AI-Generated Content
 
@@ -142,16 +143,17 @@ provide partial refunds for the unused portion of a billing period, except where
 **Refunds.** Except where required by law or expressly stated at the point of purchase, fees are
 non-refundable. If you are a consumer in the EEA or the UK, you have a statutory right to withdraw
 from a purchase within 14 days; by requesting immediate access to paid features, you acknowledge that
-you may lose that right once the service has been fully performed, and you will be told this before
-you buy.
+you may lose that right once the service has been fully performed. Checkout tells you this, and asks
+you to confirm it, before you buy.
 
 **Price changes.** We may change subscription prices. We will give you at least 30 days' notice before
 a price change takes effect for your subscription, and the new price applies from your next renewal.
 If you do not accept the change, you may cancel before it takes effect.
 
 **Free plans and trials.** We may offer free plans or trial periods. We may change or discontinue a
-free plan or trial at any time. If a trial converts into a paid subscription, we will tell you
-clearly before it does.
+free plan or trial at any time. Free trials are limited to one per email address, including an
+address used on an account that has since been deleted. If a trial converts into a paid
+subscription, we will tell you clearly before it does.
 
 **Failed payments.** If a payment fails, we may retry it and may suspend or downgrade your access to
 paid features until payment succeeds.
