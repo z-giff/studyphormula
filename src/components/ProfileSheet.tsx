@@ -251,7 +251,7 @@ export const ProfileSheet = ({ children }: ProfileSheetProps) => {
             <>
               <p className="text-sm font-medium">Free</p>
               <p className="text-sm text-muted-foreground">
-                {planLine ? `${planLine} ` : ""}Upgrade for interactive, flowchart and drawing cards and the MC Quiz.
+                {planLine ? `${planLine} ` : ""}Upgrade for Auto-Flashcard, interactive, flowchart and drawing cards, and the MC Quiz.
               </p>
               <Button variant="brand" size="sm" className="rounded-lg font-bold" onClick={() => openUpgrade()}>
                 <Crown className="h-4 w-4" />

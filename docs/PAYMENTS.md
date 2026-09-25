@@ -11,7 +11,8 @@ invoices. Phormula never sees card details.
 
 | Feature | Free | Premium | Enforced by |
 |---|---|---|---|
-| Standard cards, Memorize, Swipe Study, AI generation, import, sharing | ✓ | ✓ | — |
+| Standard cards, Memorize, Swipe Study, import, sharing | ✓ | ✓ | — |
+| **Auto-Flashcard** (AI generation from pasted text or an uploaded document, into a new set or an existing one) | — | ✓ | UI, `generate-flashcards` |
 | **Interactive cards** (make, edit, study, text detection on the image) | — | ✓ | UI, database trigger, `detect-text` |
 | **Flowchart cards** (make, edit, study) | — | ✓ | UI, database trigger |
 | **Drawing cards** (make, edit, study) | — | ✓ | UI, database trigger |
@@ -22,6 +23,11 @@ or in a set shared with them) keeps them. The card's term stays readable,
 but the card itself shows **Unlock with Premium**. They can still bookmark,
 reorder, move or delete those cards. Memorize and Swipe Study leave them out of
 the session with a note saying how many were skipped.
+
+Cards Auto-Flashcard made are ordinary standard cards, so they stay fully
+usable after Premium ends; only generating new ones needs it. Without Premium,
+the **Auto-Flashcard** buttons (dashboard and Edit Set) carry a Premium tag and
+open the upgrade dialog instead of the generator.
 
 ## The free trial
 
@@ -246,7 +252,8 @@ After the migrations (step 4), ask it in the chat to **deploy** these, then
 check each one's deploy time under **More → Cloud → Edge functions**:
 
 `billing`, `stripe-webhook`, `renewal-reminders`, `delete-account`,
-`send-transactional-email`, `preview-transactional-email`, `detect-text`
+`send-transactional-email`, `preview-transactional-email`, `detect-text`,
+`generate-flashcards`
 
 `supabase/config.toml` already turns JWT verification **off** for
 `stripe-webhook`, because Stripe can't send a Supabase login. With the Supabase
@@ -260,6 +267,7 @@ supabase functions deploy delete-account
 supabase functions deploy send-transactional-email
 supabase functions deploy preview-transactional-email
 supabase functions deploy detect-text
+supabase functions deploy generate-flashcards
 ```
 
 ### 8. Test the whole loop
@@ -287,6 +295,12 @@ dialog: it offers no trial, and Checkout asks for payment.
 
 To check duplicates, open the upgrade dialog in two tabs and continue to
 Checkout in both. The first tab's Checkout page now says it has expired.
+
+To check the Auto-Flashcard lock, sign in with an account without Premium.
+**Auto-Flashcard** on the dashboard and in **Edit Set** opens the upgrade
+dialog, which leads with *"Auto-Flashcard is part of Premium"*, and
+`generate-flashcards` answers `403` (`premium_required`) even when called
+directly.
 
 `4000 0025 0000 3155` tests a card that asks for 3-D Secure authentication.
 `4000 0000 0000 0002` tests a declined card: Checkout shows the error and

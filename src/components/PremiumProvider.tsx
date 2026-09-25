@@ -83,8 +83,8 @@ export const PremiumProvider = ({ children }: { children: React.ReactNode }) => 
         toast.success(trialEnd ? "Your free trial has started" : "Welcome to Phormula Premium", {
           id: toastId,
           description: trialEnd
-            ? `Interactive, flowchart and drawing cards and the MC Quiz are unlocked until ${formatPremiumDate(trialEnd)}.`
-            : "Interactive, flowchart and drawing cards and the MC Quiz are unlocked.",
+            ? `Auto-Flashcard, interactive, flowchart and drawing cards, and the MC Quiz are unlocked until ${formatPremiumDate(trialEnd)}.`
+            : "Auto-Flashcard, interactive, flowchart and drawing cards, and the MC Quiz are unlocked.",
         });
         return;
       }

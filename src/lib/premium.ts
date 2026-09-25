@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 /**
  * Phormula Premium, from the app's side. What it unlocks is decided here and
  * enforced again on the server: the database refuses premium cards from anyone
- * without it (enforce_premium_flashcard_types), and text detection checks too.
- * Payment itself happens on Stripe's pages, through the billing edge function.
+ * without it (enforce_premium_flashcard_types), and text detection and
+ * Auto-Flashcard (generate-flashcards) check too. Payment itself happens on
+ * Stripe's pages, through the billing edge function.
  */
 
 /** Card types that need Premium to make, edit or study. */
@@ -15,13 +16,14 @@ export const isPremiumCardType = (type: string | null | undefined): type is Prem
   (PREMIUM_CARD_TYPES as readonly (string | null | undefined)[]).includes(type);
 
 /** What the user reached for when the upgrade dialog opened. */
-export type PremiumFeature = PremiumCardType | "quiz";
+export type PremiumFeature = PremiumCardType | "quiz" | "auto_flashcard";
 
 export const PREMIUM_FEATURE_NAMES: Record<PremiumFeature, string> = {
   interactive: "Interactive cards",
   flowchart: "Flowchart cards",
   drawing: "Drawing cards",
   quiz: "MC Quiz",
+  auto_flashcard: "Auto-Flashcard",
 };
 
 export const PREMIUM_CARD_NAMES: Record<PremiumCardType, string> = {

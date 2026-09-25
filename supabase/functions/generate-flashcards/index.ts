@@ -251,8 +251,9 @@ serve(async (req) => {
   }
 
   try {
-    // Generating spends AI credits, so it needs a signed-in account. The app
-    // only offers it on pages that already require one.
+    // Generating spends AI credits, so it needs a signed-in account with
+    // Phormula Premium. The app only offers it on pages that already require an
+    // account, and opens the upgrade dialog for anyone without Premium.
     const authHeader = req.headers.get('Authorization');
     const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
       global: { headers: { Authorization: authHeader ?? '' } },
@@ -263,6 +264,25 @@ serve(async (req) => {
     if (authError || !user) {
       return new Response(JSON.stringify({ error: 'Sign in to generate flashcards' }), {
         status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Auto-Flashcard is part of Phormula Premium
+    const { data: hasPremium, error: premiumError } = await supabase.rpc('has_premium');
+    if (premiumError) {
+      console.error('Premium check failed:', premiumError.message);
+      return new Response(JSON.stringify({ error: 'Service configuration error' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (hasPremium !== true) {
+      return new Response(JSON.stringify({
+        error: 'Auto-Flashcard is part of Phormula Premium',
+        code: 'premium_required',
+      }), {
+        status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
