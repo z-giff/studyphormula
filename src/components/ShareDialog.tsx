@@ -137,8 +137,8 @@ export function ShareDialog({ open, onOpenChange, itemType, itemId, itemTitle }:
           <DialogTitle>Share {itemType === "file" ? "file" : "set"}</DialogTitle>
           <DialogDescription>
             {itemType === "file"
-              ? `Everyone you add gets "${itemTitle}" and every set in it.`
-              : `Everyone you add gets a copy of "${itemTitle}".`}{" "}
+              ? `Everyone you add can view "${itemTitle}" and every set in it, including changes and sets you add later, and can add a copy to their own dashboard.`
+              : `Everyone you add can view "${itemTitle}", including changes you make later, and can add a copy to their own dashboard.`}{" "}
             People who aren't on Phormula yet get an email invite.
           </DialogDescription>
         </DialogHeader>

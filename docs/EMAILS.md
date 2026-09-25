@@ -18,15 +18,26 @@ the sender ──► send-transactional-email ──► transactional_emails que
 | Renewal reminder | `premium-renewal-reminder` | `renewal-reminders` function, woken hourly by a cron job (drizzle 0009) | Before a plan renews; see [`PAYMENTS.md`](./PAYMENTS.md) |
 
 The templates live in `supabase/functions/_shared/transactional-email-templates/`.
-Every template except `welcome` is `serviceRoleOnly`: only the server can send
-it, because it shows text users typed or concerns billing.
+Every template is `serviceRoleOnly`: only the server can send it, never a
+browser holding the public key. The two share emails link the Privacy Policy in
+their footer, since an invite reaches people who have never seen it.
 
-Two kinds of email don't take this path. Sign-in emails (confirm your address,
-reset your password, change your email) come from the sign-in system itself.
-Receipts, refunds and "update your card" come from Stripe (see `PAYMENTS.md`).
+`send-transactional-email` refuses any address on the suppression list, with one
+exception: the two billing notices (`premium-trial-ending` and
+`premium-renewal-reminder`, marked `essential`) still go to an address that only
+unsubscribed, because the Terms promise them. A bounce or a complaint stops
+everything.
 
-`send-transactional-email` refuses any address on the suppression list
-(unsubscribed, bounced or complained), for every template.
+**Sign-in emails** (confirm your address, reset your password, change your email)
+join this system once Lovable's auth emails are on: in Lovable, **Emails → Auth
+emails → Customize auth emails**. Lovable then generates branded templates and
+sends them from `notify.phormula.co` through the same queue system (its
+`auth_emails` queue, which `process-email-queue` sends first). Until then they
+come from the sign-in service's own sender. Turn this on before you turn on
+Confirm email for real users.
+
+Receipts, refunds and "update your card" come from Stripe, deliberately (see
+`PAYMENTS.md`).
 
 ## Checks
 
@@ -42,7 +53,8 @@ curl -s -X POST https://awvwrdjtptjyalmsyejt.supabase.co/functions/v1/send-trans
 ```
 
 Expect `403` *"can only be sent by the server"*. A `404` naming the templates it
-does know means an older build is deployed. Repeat with `flashcards-invite`.
+does know means an older build is deployed. Repeat with `welcome`: the current
+build answers `403` too, an older one `400` (no recipient). Neither sends anything.
 
 **2. The database pieces are there.** In the SQL editor:
 
@@ -54,8 +66,9 @@ select
   (select string_agg(jobname, ', ') from cron.job where active) as cron_jobs;
 ```
 
-Expect `vault_key` 1, both triggers `true`, and `process-email-queue` and
-`premium-renewal-reminders` among the cron jobs.
+Expect `vault_key` 1, both triggers `true`, and `process-email-queue`,
+`premium-renewal-reminders` and `clean-up-card-pictures` among the cron jobs (the
+last one deletes unused card pictures, not email).
 
 **3. Each email actually went out.** After a test share, trial or sign-up:
 
@@ -94,7 +107,7 @@ The functions' own logs are under **More → Cloud → Edge functions** in Lovab
 - **The server-only check must survive.** Rerun check 1.
 - **New API keys** (`sb_secret_…`) are not JWTs, and several pieces assume the
   old ones: the vault key the triggers and both cron jobs sign in with, the role
-  checks in `send-transactional-email`, `process-email-queue` and
-  `renewal-reminders`, and `verify_jwt` on the functions. Switch them together,
+  checks in `send-transactional-email`, `process-email-queue`,
+  `renewal-reminders` and `clean-up-pictures`, and `verify_jwt` on the functions. Switch them together,
   and don't turn the legacy keys off until checks 1–4 pass on the new ones.
 - Then rerun checks 1–4.

@@ -169,7 +169,8 @@ const SharedItemPage = () => {
           </div>
 
           <p className="mt-4 text-sm text-muted-foreground">
-            You're viewing a copy shared with you. Add it to your dashboard to edit it or use the study modes.
+            You're viewing the latest version of what was shared with you. Add a copy to your dashboard to edit it
+            or use the study modes.
           </p>
         </div>
 

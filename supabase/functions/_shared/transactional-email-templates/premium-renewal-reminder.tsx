@@ -228,4 +228,6 @@ export const template = {
   // Only the renewal-reminders function sends it: a browser holding the public
   // anon key must not be able to send billing notices to arbitrary addresses.
   serviceRoleOnly: true,
+  // The Terms promise a reminder before renewals where the law requires one
+  essential: true,
 } satisfies TemplateEntry

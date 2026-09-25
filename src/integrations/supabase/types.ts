@@ -484,6 +484,19 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      export_flashcard_shares: {
+        Args: never
+        Returns: {
+          added_at: string
+          created_at: string
+          direction: string
+          item_type: string
+          person: string
+          removed_at: string
+          seen_at: string
+          title: string
+        }[]
+      }
       flashcard_share_sender_name: {
         Args: { p_user_id: string }
         Returns: string
@@ -584,6 +597,10 @@ export type Database = {
           email: string
           status: string
         }[]
+      }
+      unreferenced_card_pictures: {
+        Args: { p_limit?: number }
+        Returns: string[]
       }
       user_has_premium: { Args: { p_user_id: string }; Returns: boolean }
       waitlist_count: { Args: never; Returns: number }

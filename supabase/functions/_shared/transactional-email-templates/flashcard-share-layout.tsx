@@ -6,6 +6,7 @@ import {
   Head,
   Heading,
   Html,
+  Link,
   Preview,
   Section,
   Text,
@@ -13,7 +14,9 @@ import {
 
 // Shared look for the two emails a flashcard share sends: the invite
 // (flashcards-invite) and the heads-up to an existing user (flashcards-shared).
-// Same frame as the welcome email.
+// Same frame as the welcome email. The footer links the Privacy Policy: an
+// invite goes to someone who has never seen it, and it explains why we have
+// their address.
 
 export const SITE_URL = 'https://phormula.co'
 
@@ -155,6 +158,11 @@ const footer = {
   textAlign: 'center' as const,
 }
 
+const footerLink = {
+  color: '#8A7F90',
+  textDecoration: 'underline',
+}
+
 interface LayoutProps {
   preview: string
   heading: string
@@ -205,7 +213,14 @@ export const ShareEmailLayout = (props: LayoutProps) => (
             {props.afterAction}
           </Section>
         </Section>
-        <Text style={footer}>{props.footer}</Text>
+        <Text style={footer}>
+          {props.footer}
+          <br />
+          How Phormula handles your email address:{' '}
+          <Link href={`${SITE_URL}/privacy`} style={footerLink}>
+            Privacy Policy
+          </Link>
+        </Text>
       </Container>
     </Body>
   </Html>
