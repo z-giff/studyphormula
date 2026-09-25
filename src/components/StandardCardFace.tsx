@@ -35,11 +35,11 @@ export const StandardCardFace = ({ side, term, definition, imageUrl, interactive
 
   return (
     <div className={`relative h-full w-full overflow-hidden ${className}`}>
-      <div className="absolute z-20 flex items-center justify-center overflow-auto p-4 text-center" style={textStyle}>
+      <div className="absolute z-[500] flex items-center justify-center overflow-auto p-4 text-center" style={textStyle}>
         <FlashcardText text={side === "front" ? term : definition} className={side === "front" ? "text-2xl font-bold" : "text-lg"} style={{ color: textColor }} />
       </div>
       {[...images].sort((a, b) => a.zIndex - b.zIndex).map((image) => sources[image.id] && (
-        <img key={image.id} src={sources[image.id]} alt="" loading="lazy" decoding="async" className="pointer-events-none absolute" style={{ left: `${image.x}%`, top: `${image.y}%`, width: `${image.width}%`, height: `${image.height}%`, objectFit: image.fit, transform: `rotate(${image.rotation}deg)`, zIndex: image.zIndex + 1 }} />
+        <img key={image.id} src={sources[image.id]} alt="" loading="lazy" decoding="async" className="pointer-events-none absolute" style={{ left: `${image.x}%`, top: `${image.y}%`, width: `${image.width}%`, height: `${image.height}%`, objectFit: image.fit, transform: `rotate(${image.rotation}deg)`, zIndex: (image.textFlow === "overlap" ? 1000 : 1) + image.zIndex }} />
       ))}
     </div>
   );

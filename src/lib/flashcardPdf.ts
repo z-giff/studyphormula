@@ -115,8 +115,13 @@ const drawStandard = async (doc: jsPDF, card: PdfFlashcard, box: Box, side: "fro
       ? { x: box.x + box.w * .06, y: box.y + box.h * .05, w: box.w * .88, h: box.h * Math.max(.18, (top - 8) / 100) }
       : { x: box.x + box.w * .06, y: box.y + box.h * (1 - Math.max(.18, (bottom - 8) / 100) - .05), w: box.w * .88, h: box.h * Math.max(.18, (bottom - 8) / 100) };
   }
+  for (const item of images.filter((image) => image.textFlow === "avoid")) {
+    const source = await resolveStandardImageSource(item.src).catch(() => null);
+    const image = source ? await loadImage(source) : null;
+    if (image) drawPositionedImage(doc, image, item, box);
+  }
   drawText(doc, side === "front" ? card.term : card.definition, textBox, color, side === "front");
-  for (const item of images) {
+  for (const item of images.filter((image) => image.textFlow === "overlap")) {
     const source = await resolveStandardImageSource(item.src).catch(() => null);
     const image = source ? await loadImage(source) : null;
     if (image) drawPositionedImage(doc, image, item, box);
