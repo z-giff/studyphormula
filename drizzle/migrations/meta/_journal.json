@@ -36,6 +36,13 @@
       "when": 1790360485591,
       "tag": "0004_flashcard_image_storage_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790360609910,
+      "tag": "0005_allow_shared_flashcard_image_reads",
+      "breakpoints": true
     }
   ]
 }
