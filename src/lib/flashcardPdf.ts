@@ -52,20 +52,29 @@ const loadImage = (url: string): Promise<LoadedImage | null> => {
       const response = await fetch(url, { mode: "cors" });
       if (!response.ok) return null;
       const blob = await response.blob();
-      const data = await new Promise<string>((resolve, reject) => {
+      const source = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(String(reader.result));
         reader.onerror = reject;
         reader.readAsDataURL(blob);
       });
-      const dimensions = await new Promise<{ width: number; height: number }>((resolve, reject) => {
+      const image = await new Promise<HTMLImageElement>((resolve, reject) => {
         const image = new Image();
-        image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight });
+        image.onload = () => resolve(image);
         image.onerror = reject;
-        image.src = data;
+        image.src = source;
       });
-      const format = blob.type.includes("png") ? "PNG" : blob.type.includes("webp") ? "WEBP" : "JPEG";
-      return { data, format, ...dimensions };
+      const maximumDimension = 1800;
+      const outputScale = Math.min(1, maximumDimension / Math.max(image.naturalWidth, image.naturalHeight));
+      const width = Math.max(1, Math.round(image.naturalWidth * outputScale));
+      const height = Math.max(1, Math.round(image.naturalHeight * outputScale));
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d");
+      if (!context) return null;
+      context.drawImage(image, 0, 0, width, height);
+      return { data: canvas.toDataURL("image/png"), format: "PNG", width, height };
     } catch {
       return null;
     }
