@@ -10,6 +10,7 @@
 - Add a table PDF format with live preview, text from every card type, optional regular-card images, repeated headers, and unsplit rows
 - Scale complete flashcard faces proportionally in the existing PDF layout
 - Apply pending migrations 0006–0009: share-email trigger restored, files linked to users (cascade delete), one free trial per email, premium renewal reminders + hourly cron
+- Redesign the PDF export dialog: a settings rail with visual pickers (cards per page drawn from the real print layout), a fit-to-page preview with page and zoom controls, a page-count summary beside Download, and a preview-first layout on phones
 
 ## Open
 
