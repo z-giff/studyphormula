@@ -1,4 +1,5 @@
 import { jsPDF } from "jspdf";
+import { getStandardCardLayout, resolveStandardImageSource, type StandardCardImage } from "@/lib/standardCardLayout";
 
 export type PdfOrientation = "portrait" | "landscape";
 export type PdfSides = "same-page" | "duplex";
@@ -94,6 +95,32 @@ const drawImage = (doc: jsPDF, image: LoadedImage, target: Box) => {
   const fitted = fitRect(image.width, image.height, target);
   doc.addImage(image.data, image.format, fitted.x, fitted.y, fitted.w, fitted.h, undefined, "FAST");
   return fitted;
+};
+
+const drawPositionedImage = (doc: jsPDF, image: LoadedImage, item: StandardCardImage, box: Box) => {
+  const target = { x: box.x + box.w * item.x / 100, y: box.y + box.h * item.y / 100, w: box.w * item.width / 100, h: box.h * item.height / 100 };
+  const fitted = item.fit === "cover" ? target : fitRect(image.width, image.height, target);
+  doc.addImage(image.data, image.format, fitted.x, fitted.y, fitted.w, fitted.h, undefined, "FAST", item.rotation);
+};
+
+const drawStandard = async (doc: jsPDF, card: PdfFlashcard, box: Box, side: "front" | "back", color: string, removeImages: boolean) => {
+  const layout = getStandardCardLayout(card.interactive_data, card.image_url);
+  const images = removeImages ? [] : [...layout[side]].sort((a, b) => a.zIndex - b.zIndex);
+  const avoid = images.filter((image) => image.textFlow === "avoid");
+  let textBox = box;
+  if (avoid.length) {
+    const top = Math.min(...avoid.map((image) => image.y));
+    const bottom = 100 - Math.max(...avoid.map((image) => image.y + image.height));
+    textBox = top >= bottom
+      ? { x: box.x + box.w * .06, y: box.y + box.h * .05, w: box.w * .88, h: box.h * Math.max(.18, (top - 8) / 100) }
+      : { x: box.x + box.w * .06, y: box.y + box.h * (1 - Math.max(.18, (bottom - 8) / 100) - .05), w: box.w * .88, h: box.h * Math.max(.18, (bottom - 8) / 100) };
+  }
+  drawText(doc, side === "front" ? card.term : card.definition, textBox, color, side === "front");
+  for (const item of images) {
+    const source = await resolveStandardImageSource(item.src).catch(() => null);
+    const image = source ? await loadImage(source) : null;
+    if (image) drawPositionedImage(doc, image, item, box);
+  }
 };
 
 const drawText = (
@@ -254,17 +281,7 @@ const drawCard = async (
     drawDrawing(doc, card, content);
   } else if (side === "back" && card.flashcard_type === "flowchart") {
     await drawFlowchart(doc, card, content);
-  } else if (side === "front") {
-    const includeImage = !!card.image_url && !(options.removeStandardImages && (!card.flashcard_type || card.flashcard_type === "standard"));
-    const image = includeImage && card.image_url ? await loadImage(card.image_url) : null;
-    if (image) {
-      const imageH = content.h * 0.46;
-      drawImage(doc, image, { ...content, h: imageH });
-      drawText(doc, card.term, { ...content, y: content.y + imageH + 4, h: content.h - imageH - 4 }, contrastColor(cardColor), true);
-    } else drawText(doc, card.term, content, contrastColor(cardColor), true);
-  } else {
-    drawText(doc, card.definition, content, contrastColor(cardColor));
-  }
+  } else await drawStandard(doc, card, content, side, contrastColor(cardColor), options.removeStandardImages);
 };
 
 const chooseGrid = (count: number, width: number, height: number) => {
