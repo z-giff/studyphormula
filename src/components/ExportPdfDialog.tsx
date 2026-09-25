@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Download, FileText, RefreshCw } from "lucide-react";
+import { Download, FileText, LayoutGrid, RefreshCw, Table2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -20,10 +20,12 @@ interface ExportPdfDialogProps {
 
 export function ExportPdfDialog({ open, onOpenChange, title, setColor, flashcards }: ExportPdfDialogProps) {
   const [options, setOptions] = useState<FlashcardPdfOptions>({
+    format: "flashcards",
     orientation: "portrait",
     cardsPerPage: 4,
     sides: "same-page",
     removeStandardImages: false,
+    includeTableImages: true,
   });
   const [isExporting, setIsExporting] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -87,7 +89,23 @@ export function ExportPdfDialog({ open, onOpenChange, title, setColor, flashcard
 
         <div className="grid min-h-0 flex-1 gap-5 overflow-y-auto py-1 lg:grid-cols-[340px_minmax(0,1fr)] lg:overflow-hidden">
           <div className="space-y-5">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label>Format</Label>
+            <RadioGroup value={options.format} onValueChange={(value: FlashcardPdfOptions["format"]) => setOptions((current) => ({ ...current, format: value }))} disabled={isExporting} className="grid grid-cols-2 gap-2">
+              <label className={`flex cursor-pointer items-center gap-3 rounded-md border p-3 transition-colors ${options.format === "flashcards" ? "border-primary bg-primary/5" : "hover:bg-muted/50"}`}>
+                <RadioGroupItem value="flashcards" className="sr-only" />
+                <LayoutGrid className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Flashcards</span>
+              </label>
+              <label className={`flex cursor-pointer items-center gap-3 rounded-md border p-3 transition-colors ${options.format === "table" ? "border-primary bg-primary/5" : "hover:bg-muted/50"}`}>
+                <RadioGroupItem value="table" className="sr-only" />
+                <Table2 className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Table</span>
+              </label>
+            </RadioGroup>
+          </div>
+
+          <div className={`grid grid-cols-1 gap-4 ${options.format === "flashcards" ? "sm:grid-cols-2" : ""}`}>
             <div className="space-y-2">
               <Label>Orientation</Label>
               <Select value={options.orientation} onValueChange={(value: FlashcardPdfOptions["orientation"]) => setOptions((current) => ({ ...current, orientation: value }))} disabled={isExporting}>
@@ -98,7 +116,7 @@ export function ExportPdfDialog({ open, onOpenChange, title, setColor, flashcard
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
+            {options.format === "flashcards" && <div className="space-y-2">
               <Label>Flashcards per page</Label>
               <Select value={String(options.cardsPerPage)} onValueChange={(value) => setOptions((current) => ({ ...current, cardsPerPage: Number(value) as FlashcardPdfOptions["cardsPerPage"] }))} disabled={isExporting}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -106,10 +124,10 @@ export function ExportPdfDialog({ open, onOpenChange, title, setColor, flashcard
                   {[1, 2, 4, 6, 8].map((count) => <SelectItem key={count} value={String(count)}>{count}</SelectItem>)}
                 </SelectContent>
               </Select>
-            </div>
+            </div>}
           </div>
 
-          <div className="space-y-3">
+          {options.format === "flashcards" && <div className="space-y-3">
             <Label>Front and back placement</Label>
             <RadioGroup value={options.sides} onValueChange={(value: FlashcardPdfOptions["sides"]) => setOptions((current) => ({ ...current, sides: value }))} disabled={isExporting}>
               <label className="flex cursor-pointer items-start gap-3 rounded-md border p-3">
@@ -121,12 +139,15 @@ export function ExportPdfDialog({ open, onOpenChange, title, setColor, flashcard
                 <span><span className="block text-sm font-medium">Separate duplex pages</span><span className="block text-xs text-muted-foreground">Backs are mirrored to align when printed double-sided on the long edge.</span></span>
               </label>
             </RadioGroup>
-          </div>
+          </div>}
 
-          <label className="flex cursor-pointer items-start gap-3 rounded-md border p-3">
+          {options.format === "flashcards" ? <label className="flex cursor-pointer items-start gap-3 rounded-md border p-3">
             <Checkbox checked={options.removeStandardImages} onCheckedChange={(checked) => setOptions((current) => ({ ...current, removeStandardImages: checked === true }))} disabled={isExporting} className="mt-0.5" />
             <span><span className="block text-sm font-medium">Remove images from standard flashcards</span><span className="block text-xs text-muted-foreground">Drawings, flowcharts, and interactive diagrams are always retained.</span></span>
-          </label>
+          </label> : <label className="flex cursor-pointer items-start gap-3 rounded-md border p-3">
+            <Checkbox checked={options.includeTableImages} onCheckedChange={(checked) => setOptions((current) => ({ ...current, includeTableImages: checked === true }))} disabled={isExporting} className="mt-0.5" />
+            <span><span className="block text-sm font-medium">Include regular-card images</span><span className="block text-xs text-muted-foreground">Pictures appear with their matching term or definition. Visual study diagrams stay out of the table.</span></span>
+          </label>}
 
           {isExporting && (
             <div className="space-y-2" aria-live="polite">
