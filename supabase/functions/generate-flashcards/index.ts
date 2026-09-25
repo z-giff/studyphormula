@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -250,6 +251,22 @@ serve(async (req) => {
   }
 
   try {
+    // Generating spends AI credits, so it needs a signed-in account. The app
+    // only offers it on pages that already require one.
+    const authHeader = req.headers.get('Authorization');
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      global: { headers: { Authorization: authHeader ?? '' } },
+    });
+    const { data: { user }, error: authError } = authHeader
+      ? await supabase.auth.getUser()
+      : { data: { user: null }, error: null };
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Sign in to generate flashcards' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { content } = await req.json();
 
     if (!content || typeof content !== 'string') {

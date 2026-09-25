@@ -1,7 +1,8 @@
 // Stripe calls this whenever a subscription changes: bought, renewed, failed
 // to renew, cancelled, ended. Each event is checked against the webhook's
 // signing secret, then the customer's subscription is re-read from Stripe and
-// stored, so the event's own copy of the data is never trusted.
+// stored, so the event's own copy of the data is never trusted. A second
+// subscription for the same customer is cancelled and refunded there too.
 //
 // Secrets (Supabase -> Edge Functions -> Secrets):
 //   STRIPE_SECRET_KEY       the same key the billing function uses
@@ -17,6 +18,7 @@ import {
   type SyncResult,
   adminClient,
   describeBillingPeriod,
+  formatAmount,
   requireEnv,
   stripe,
   syncCustomer,
@@ -70,17 +72,7 @@ function planDetails(subscription: Stripe.Subscription): { planName?: string; pr
   const price = subscription.items.data[0]?.price
   const { planName, every } = describeBillingPeriod(price?.recurring?.interval, price?.recurring?.interval_count)
   if (!price?.unit_amount || !price.currency || !every) return { planName }
-  const currency = price.currency.toUpperCase()
-  // Stripe amounts are in the smallest unit, except for zero-decimal currencies like JPY
-  const digits =
-    new Intl.NumberFormat('en-US', { style: 'currency', currency }).resolvedOptions().maximumFractionDigits ?? 2
-  const value = price.unit_amount / 10 ** digits
-  const amount = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: Number.isInteger(value) ? 0 : digits,
-  }).format(value)
-  return { planName, priceLabel: `${amount} ${every}` }
+  return { planName, priceLabel: `${formatAmount(price.unit_amount, price.currency)} ${every}` }
 }
 
 // Phormula's own heads-up, three days before a free trial ends: add a card to

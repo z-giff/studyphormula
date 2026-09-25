@@ -66,7 +66,7 @@ interface UpgradeDialogProps {
   returnPath: string;
   isPremium: boolean;
   hasBillingAccount: boolean;
-  /** The user has never subscribed, so a free trial is theirs if one is on offer. */
+  /** Neither the account nor its email address has subscribed, so a free trial is theirs if one is on offer. */
   trialAvailable: boolean;
   /** Checkout found a subscription we hadn't heard about yet. */
   onAlreadyPremium: () => void;

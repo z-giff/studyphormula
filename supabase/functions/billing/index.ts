@@ -171,6 +171,28 @@ async function hasPremium(admin: Admin, userId: string): Promise<boolean> {
   return data === true
 }
 
+// Subscribed on this account, or with this email address on any account
+async function trialUsed(admin: Admin, userId: string): Promise<boolean> {
+  const { data, error } = await admin.rpc('premium_trial_used', { p_user_id: userId })
+  if (error) throw error
+  return data === true
+}
+
+// One Checkout page at a time: a page left open in another tab, or paid days
+// later, would otherwise start a second subscription. If one slips through
+// anyway, syncCustomer cancels it.
+async function expireOpenCheckouts(customer: string) {
+  const { data: sessions } = await stripe().checkout.sessions.list({ customer, status: 'open', limit: 100 })
+  await Promise.all(
+    sessions.map((session) =>
+      stripe()
+        .checkout.sessions.expire(session.id)
+        // Finished or expired in the meantime
+        .catch((error) => console.warn(`Could not expire Checkout session ${session.id}:`, error.message)),
+    ),
+  )
+}
+
 // ---------------------------------------------------------------------------
 // Actions
 // ---------------------------------------------------------------------------
@@ -218,10 +240,13 @@ async function checkout(admin: Admin, req: Request, caller: Caller, body: Record
     throw new HttpError(409, 'You already have Phormula Premium', 'already_premium')
   }
 
-  // One free trial per account, and no card needed for it. A trial that ends
-  // without a card is cancelled rather than charged; upgrading again then
-  // goes straight to a paid subscription.
-  const trial = hadSubscription ? 0 : trialDays()
+  // One free trial per email address, and no card needed for it. An address
+  // keeps its used trial when its account is deleted and signed up again
+  // (public.premium_trial_claims). A trial that ends without a card is
+  // cancelled rather than charged; upgrading again then goes straight to a
+  // paid subscription.
+  const trial = hadSubscription || (await trialUsed(admin, caller.id)) ? 0 : trialDays()
+  await expireOpenCheckouts(customer)
   const automaticTax = Deno.env.get('STRIPE_AUTOMATIC_TAX') === 'true'
   const session = await stripe().checkout.sessions.create({
     mode: 'subscription',

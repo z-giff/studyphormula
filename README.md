@@ -75,6 +75,10 @@ npm run dev
 
 The dev server runs on [http://localhost:8080](http://localhost:8080).
 
+Lovable builds from `bun.lock`, the only lockfile. It points some packages at
+Lovable's own package mirror, which isn't reachable from elsewhere, so a local
+`npm install` resolves from `package.json` instead.
+
 Create a `.env` in the project root before starting:
 
 ```sh
@@ -110,10 +114,13 @@ src/
   lib/           Launch gate, label masking, MCP tool definitions
 supabase/
   functions/     Deno edge functions
-  migrations/    Schema history
+  migrations/    Schema history until September 2026
+drizzle/
+  migrations/    Schema changes since then, applied by Lovable in journal order
 docs/
   WAITLIST.md    Pre-launch gate and operations
   PAYMENTS.md    Premium subscriptions with Stripe
+  EMAILS.md      Every email Phormula sends, and how to check they all go out
   design/        Rebrand and motion direction
   legal/         Privacy policy and terms drafts
 ```
@@ -121,5 +128,19 @@ docs/
 ## Contributing
 
 Branch off `main`, keep changes focused, and run `npm run lint` and `npm run build`
-before opening a pull request. Database changes go in a new file under
-`supabase/migrations/` rather than edits to an existing migration.
+before opening a pull request.
+
+**Database changes** go in a new migration under `drizzle/migrations/`, the way
+Lovable writes them, never as an edit to an existing one:
+
+1. `drizzle/migrations/NNNN_what_it_does.sql`, numbered after the last one.
+2. `drizzle/migrations/meta/NNNN_snapshot.json`: a copy of the previous snapshot
+   with a new `id`, and `prevId` set to the previous snapshot's `id`.
+3. An entry in `drizzle/migrations/meta/_journal.json` whose `when` (milliseconds)
+   is later than every entry before it. Drizzle only runs entries newer than the
+   last one it applied.
+
+**Nothing on the backend changes when a pull request merges.** Lovable doesn't run
+new migrations or deploy changed edge functions when commits sync from GitHub. Ask
+it in the project chat to apply the pending migrations first, then to deploy each
+changed function, and check them under More → Cloud.

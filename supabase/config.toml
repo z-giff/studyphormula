@@ -4,7 +4,7 @@ project_id = "awvwrdjtptjyalmsyejt"
  verify_jwt = true
  
  [functions.generate-flashcards]
- verify_jwt = false
+ verify_jwt = true
 
  [functions.waitlist-signup]
  verify_jwt = false
@@ -34,4 +34,7 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.delete-account]
+verify_jwt = true
+
+[functions.renewal-reminders]
 verify_jwt = true

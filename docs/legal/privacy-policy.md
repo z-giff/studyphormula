@@ -1,7 +1,7 @@
 # Phormula Privacy Policy
 
-**Last updated:** September 24, 2026
-**Effective:** September 24, 2026
+**Last updated:** September 25, 2026
+**Effective:** September 25, 2026
 
 ## 1. Introduction
 
@@ -34,8 +34,16 @@ your email address, your name, and your Google account identifier. We do not rec
 password, and we do not request access to your Gmail, Drive, Contacts, or any other Google service.
 
 **Study content.** We store the content you create in Phormula: flashcards, flashcard sets, sections,
-folders, titles, descriptions, and any images you add to cards. We also store text you paste or
-upload for flashcard generation. See Section 5 for how this content is processed.
+folders, titles, descriptions, and any images you add to cards. Pictures you upload to cards are kept
+in private file storage that only you, and people you share the card with, can open. We also store
+text you paste or upload for flashcard generation. See Section 5 for how this content is processed.
+
+**People you share with.** When you share a flashcard set or file, we collect the email address of
+each person you share it with and store it with the share, including for people who do not have a
+Phormula account. We use it to show them what you shared, to email them about it (an invitation to
+join Phormula if they do not have an account yet), and to hand a waiting share to the account they
+later create and confirm with that address. Please share only with people who would expect to hear
+from you.
 
 **Waitlist information.** If you join our waitlist before launch, we collect your email address and
 the date you signed up.
@@ -61,6 +69,16 @@ timestamps for creation and updates.
 **Email delivery records.** When we send you a transactional email, we log the message identifier,
 the template used, the recipient address, and the delivery outcome. We keep a suppression list of
 addresses that have unsubscribed or that have bounced, so that we do not email them again.
+
+**Sharing records.** For each share we record who sent it, the address it was sent to, when, whether
+the recipient has seen it, and whether they added a copy to their account or removed the share.
+
+**Free-trial record.** Each email address can start one free trial of Phormula Premium. When you
+subscribe, we keep a one-way cryptographic hash of your email address, so that we can recognise the
+address if it is used for another trial later. The address is normalised first, so variations that
+reach the same inbox (capital letters, a "+tag", or dots in a Gmail address) count as one. The hash
+cannot be turned back into your address; it can only confirm an address someone already knows. We
+keep it after your account is deleted (see Section 9).
 
 **Technical and security data.** Our hosting and infrastructure providers process standard server
 logs on our behalf, which may include IP address, browser and device type, and request timestamps.
@@ -91,11 +109,13 @@ We use personal information to:
 
 - create and maintain your account and authenticate you;
 - store, sync, and display the study content you create;
+- let you share flashcards with the people you choose, and email them about what you shared;
 - generate flashcards and detect text in images when you ask us to;
 - process payments, run free trials, and manage your Premium subscription, including cancellations,
-  refunds, and invoices;
+  refunds, and invoices, and limit free trials to one per email address;
 - send you transactional emails, such as account confirmations, password resets, billing notices
-  (for example, a reminder before your free trial ends), and important service notices;
+  (for example, a reminder before your free trial ends and before your subscription renews), and
+  important service notices;
 - send waitlist and product-update emails, which you can unsubscribe from at any time;
 - provide customer support and respond to your enquiries;
 - monitor for, investigate, and prevent fraud, abuse, and security incidents;
@@ -112,9 +132,11 @@ of the GDPR:
 | Creating your account; storing and syncing your study content; providing core features | **Performance of a contract** (Art. 6(1)(b)) |
 | Generating flashcards and detecting text when you request it | **Performance of a contract** (Art. 6(1)(b)) |
 | Sending transactional and service-critical emails | **Performance of a contract** (Art. 6(1)(b)) |
+| Sharing flashcards you choose to share, and emailing the people you share with | **Performance of a contract** (Art. 6(1)(b)) with you; for the people you share with, **legitimate interests** (Art. 6(1)(f)) — delivering what someone chose to share with them, which they can remove or unsubscribe from |
 | Processing payments, running free trials, managing subscriptions, and sending billing notices | **Performance of a contract** (Art. 6(1)(b)) |
 | Keeping payment, invoice, and tax records | **Legal obligation** (Art. 6(1)(c)) |
 | Preventing payment fraud | **Legitimate interests** (Art. 6(1)(f)) — our and Stripe's interest in stopping fraudulent payments |
+| Keeping free trials to one per email address, including after an account is deleted | **Legitimate interests** (Art. 6(1)(f)) — preventing repeated free trials |
 | Security monitoring, abuse prevention, and service reliability | **Legitimate interests** (Art. 6(1)(f)) — our interest in operating a secure and functional service |
 | Sending product-update and marketing emails | **Consent** (Art. 6(1)(a)), withdrawable at any time |
 | Bot protection on public forms | **Legitimate interests** (Art. 6(1)(f)) — preventing automated abuse |
@@ -160,7 +182,7 @@ on our instructions and under a written agreement.
 
 | Provider | What it does | What it processes |
 | --- | --- | --- |
-| **Supabase** | Database, authentication, and serverless functions | Account information, study content, email logs, server logs |
+| **Supabase** | Database, authentication, file storage, and serverless functions | Account information, study content (including pictures you upload), sharing records, email logs, server logs |
 | **Lovable** | AI gateway and transactional email delivery | Study material submitted for AI processing; email addresses and message content for delivery |
 | **OpenAI** | Flashcard generation model | Text you submit for flashcard generation |
 | **Google** | Text-detection model; Google Sign-In; web fonts | Images submitted for text detection; authentication data if you use Google Sign-In |
@@ -202,12 +224,22 @@ information may be transferred as part of that transaction. We will notify you b
 information becomes subject to a materially different privacy policy, and you will have the
 opportunity to delete your account first.
 
-### 6.5 Content you choose to make public
+### 6.5 Content you share
 
-If you use features that let you publish or share a flashcard set, the content of that set — and the
-display name associated with it — becomes visible to the people you share it with, or to anyone, if
-you make it publicly available. Please do not include personal or confidential information in
-content you publish. Sharing features are optional; all sets are private by default.
+Sharing is optional; all sets and files are private by default. When you share a set or a file with
+someone, they can see its title and its cards, including pictures, and your name. Your name is the
+name on your profile; if you have not set one, they see your email address instead. The email we
+send them about the share shows the same name and the title.
+
+People you share with see the current version of what you shared, including changes you make later
+and, for a file, every set you put into it, until they remove it from their list. To stop sharing
+something, delete it, or move a set out of the shared file. They can also add a copy to their own
+account. That copy is theirs: it does not change when you edit yours, and it stays in their account
+if you delete the original or your account. Pictures you uploaded are not copied, though: the copy
+shows them from your storage only while the share exists, so they stop appearing in it once you
+delete the original or your account, or the recipient removes the share.
+
+Please do not include personal or confidential information in content you share.
 
 ## 7. Cookies and Local Storage
 
@@ -248,7 +280,10 @@ We keep personal information only as long as we need it:
 | --- | --- |
 | Account information | For as long as your account is active |
 | Study content (sets, cards, sections, folders) | For as long as your account is active, or until you delete it |
-| Subscription status (plan, status, billing and trial dates, Stripe customer identifier) | For as long as your account is active |
+| Pictures you upload to cards | For as long as your account is active |
+| Shares, including the email address of the person shared with | Until the shared set or file is deleted or the sender deletes their account. A share someone received also goes when they delete their account. A share waiting for someone without an account is kept on the same terms |
+| Subscription status (plan, status, billing and trial dates, renewal reminders sent, Stripe customer identifier) | For as long as your account is active |
+| Free-trial record (a one-way hash of your email address) | Indefinitely, including after your account is deleted, so that the free trial stays one per email address |
 | Payment, invoice, and tax records, held in Stripe | For as long as tax, accounting, and anti-fraud laws require |
 | Waitlist email addresses | Until you unsubscribe or the information is no longer needed for the waitlist purpose |
 | Email delivery logs | For as long as reasonably necessary to operate and protect our email service and comply with legal obligations |
@@ -256,11 +291,14 @@ We keep personal information only as long as we need it:
 | Server and security logs | For as long as reasonably necessary for security, abuse prevention, fault diagnosis, and legal compliance |
 | Support correspondence | For as long as reasonably necessary to resolve the enquiry, maintain support history, and comply with legal obligations |
 
-When you delete your account, we delete or de-identify your account information and study content as
-soon as reasonably practicable, except where we are required to retain something to comply with a
-legal obligation, resolve a dispute, or enforce our agreements. Residual copies may remain in backups
-until those backups are overwritten in the ordinary course. Your email address remains on our
-suppression list so that we continue to honour your unsubscribe.
+When you delete your account, we delete or de-identify your account information and study content,
+including the pictures you uploaded, as soon as reasonably practicable, except where we are required
+to retain something to comply with a legal obligation, resolve a dispute, or enforce our agreements.
+Residual copies may remain in backups until those backups are overwritten in the ordinary course.
+Your email address remains on our suppression list so that we continue to honour your unsubscribe,
+and, if you ever subscribed to Premium, the one-way hash of it remains in our free-trial record.
+Copies of your flashcards that other people added to their own accounts before you deleted yours
+stay in their accounts.
 
 Deleting your account also cancels any Premium subscription straight away, so you are not charged
 again. The unused part of a paid billing period is not refunded, except where the law requires it.
@@ -286,15 +324,20 @@ relevant supervisory authorities as required by law. Please tell us promptly at
 
 ## 11. Your Choices
 
-**Access your data.** You can export all of your Phormula data as a JSON file at any time from
-Privacy & Security in your account settings.
+**Access your data.** You can export your flashcard sets and cards as a JSON file at any time from
+Privacy & Security in your account settings. For a copy of everything else we hold about you, such
+as your files, profile, shares, and subscription details, email **support@phormula.co**.
 
 **Correct your data.** You can update your name and email address in your account settings.
 
 **Delete your account.** You can delete your account yourself, at any time, from Privacy & Security
 in your account settings. Deletion happens immediately and is permanent: it removes your account,
-your flashcard sets and files, your study progress, and anything you have shared, and it cancels any
-Premium subscription.
+your flashcard sets and files, the pictures you uploaded, your study progress, and the shares you sent
+and received, and it cancels any Premium subscription. Copies that people you shared with had already
+added to their own accounts stay theirs.
+
+**Shared with you.** You can remove anything someone shared with you from Shared flashcards. If you
+do not have an account and do not want to hear about shares, use the unsubscribe link in the email.
 
 **Manage your subscription.** You can cancel Premium, switch to a different billing plan, add
 or update your card, and download invoices at any time from Manage billing in your profile.
