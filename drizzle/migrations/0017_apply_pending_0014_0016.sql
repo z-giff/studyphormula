@@ -1,0 +1,1 @@
+COMMENT ON FUNCTION public.premium_trial_use_limit() IS 'Uses of each capped feature a free trial includes (see 0016_premium_trial_limits).';
