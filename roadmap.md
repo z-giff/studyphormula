@@ -9,8 +9,8 @@
 - Add a live, settings-aware PDF viewer with page navigation and zoom before download
 - Add a table PDF format with live preview, text from every card type, optional regular-card images, repeated headers, and unsplit rows
 - Scale complete flashcard faces proportionally in the existing PDF layout
+- Apply pending migrations 0006–0009: share-email trigger restored, files linked to users (cascade delete), one free trial per email, premium renewal reminders + hourly cron
 
 ## Open
-- Email-sending update: blocked — welcome + flashcard-share emails are sent from DB triggers via legacy `send-transactional-email`. Waiting on Lovable review or user retry.
 
 - Wire Stripe checkout/webhook into `subscriptions` (deployed)
