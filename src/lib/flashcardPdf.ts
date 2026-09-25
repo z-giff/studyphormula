@@ -337,7 +337,16 @@ const addPage = (doc: jsPDF, pageNumber: number) => {
   if (pageNumber > 1) doc.addPage();
 };
 
-const safeFilename = (title: string) => `${title.trim().replace(/[^a-z0-9-_]+/gi, "-").replace(/^-+|-+$/g, "") || "flashcards"}.pdf`;
+export const flashcardPdfFilename = (title: string) => `${title.trim().replace(/[^a-z0-9-_]+/gi, "-").replace(/^-+|-+$/g, "") || "flashcards"}.pdf`;
+
+export function downloadFlashcardPdf(blob: Blob, title: string) {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = flashcardPdfFilename(title);
+  anchor.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
+}
 
 export async function generateFlashcardPdf(
   title: string,
@@ -345,7 +354,7 @@ export async function generateFlashcardPdf(
   setColor: string,
   options: FlashcardPdfOptions,
   onProgress?: (completed: number, total: number) => void,
-) {
+): Promise<Blob> {
   const doc = new jsPDF({ orientation: options.orientation, unit: "pt", format: "letter", compress: true });
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
@@ -391,5 +400,5 @@ export async function generateFlashcardPdf(
     }
   }
 
-  doc.save(safeFilename(title));
+  return doc.output("blob");
 }
