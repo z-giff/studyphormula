@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import LogoOrb from "@/components/LogoOrb";
-import { Loader2, CheckCircle2, XCircle, Mail } from "lucide-react";
+import { CheckCircle2, XCircle, Mail } from "lucide-react";
 
 const Unsubscribe = () => {
   const [searchParams] = useSearchParams();
