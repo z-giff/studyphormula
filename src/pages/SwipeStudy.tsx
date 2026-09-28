@@ -11,6 +11,7 @@
  import { SwipeCompletionDialog } from "@/components/SwipeCompletionDialog";
  import { SaveNotLearnedDialog } from "@/components/SaveNotLearnedDialog";
  import { Progress } from "@/components/ui/progress";
+import SwirlLoader from "@/components/SwirlLoader";
 import { PremiumLockedPanel, SkippedPremiumCardsNotice } from "@/components/PremiumLock";
 import { usePremium } from "@/hooks/usePremium";
 import { isPremiumCardType } from "@/lib/premium";
@@ -151,7 +152,7 @@ import { isPremiumCardType } from "@/lib/premium";
      return (
        <div className="min-h-screen flex items-center justify-center bg-background">
          <div className="text-center space-y-4">
-           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
+           <SwirlLoader size={64} className="mx-auto" />
            <p className="text-muted-foreground">Loading...</p>
          </div>
        </div>
