@@ -77,7 +77,7 @@ const Unsubscribe = () => {
           <CardContent className="text-center pb-8">
             {status === "loading" && (
               <div className="flex flex-col items-center gap-3 py-4">
-                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                <SwirlLoader size={48} />
                 <p className="text-muted-foreground font-light text-sm">Checking your link...</p>
               </div>
             )}
