@@ -486,6 +486,10 @@ export type Database = {
     }
     Functions: {
       add_shared_flashcards: { Args: { p_share_id: string }; Returns: Json }
+      can_view_shared_flashcard_image: {
+        Args: { p_sender_folder: string }
+        Returns: boolean
+      }
       claim_premium_feature_use: {
         Args: { p_feature: string }
         Returns: string
