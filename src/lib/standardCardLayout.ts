@@ -1,9 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { PreparedPicture } from "@/lib/pictureFiles";
+import { STANDARD_CARD_RATIO } from "@/lib/standardCardGeometry";
+
+export { STANDARD_CARD_RATIO };
 
 export type StandardCardSide = "front" | "back";
 export type StandardImageFit = "contain" | "cover";
-export type StandardTextFlow = "overlap" | "avoid";
+/** How a picture and the card's text share space: "avoid" keeps the text clear of it, "overlap" sits over the text, "behind" under it. */
+export type StandardTextFlow = "overlap" | "avoid" | "behind";
 
 export interface StandardCardImage {
   id: string;
@@ -23,9 +27,6 @@ export interface StandardCardLayout {
   front: StandardCardImage[];
   back: StandardCardImage[];
 }
-
-/** A card face is this many times as wide as it is tall (the PDF draws cards at this ratio too). */
-export const STANDARD_CARD_RATIO = 1.75;
 
 /** The most pictures one side of a card holds. */
 export const MAX_PICTURES_PER_SIDE = 12;
@@ -66,7 +67,7 @@ const parseImage = (value: unknown, index: number): StandardCardImage | null => 
     height: clamp(image.height, 5, 100, 50),
     rotation: clamp(image.rotation, -180, 180, 0),
     fit: image.fit === "cover" ? "cover" : "contain",
-    textFlow: image.textFlow === "avoid" ? "avoid" : "overlap",
+    textFlow: image.textFlow === "avoid" || image.textFlow === "behind" ? image.textFlow : "overlap",
     zIndex: clamp(image.zIndex, 0, 1000, index),
   };
 };

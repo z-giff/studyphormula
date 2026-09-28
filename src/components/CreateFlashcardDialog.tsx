@@ -24,12 +24,14 @@ interface CreateFlashcardDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   setId: string;
+  /** The set's colour, so the card preview looks the way it will be studied */
+  setColor?: string | null;
   onSuccess: () => void;
 }
 
 type FlashcardType = "standard" | "interactive" | "flowchart" | "drawing";
 
-export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: CreateFlashcardDialogProps) => {
+export const CreateFlashcardDialog = ({ open, onOpenChange, setId, setColor, onSuccess }: CreateFlashcardDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [flashcardType, setFlashcardType] = useState<FlashcardType>("standard");
   const { isPremium, loading: premiumLoading, openUpgrade, requirePremium } = usePremium();
@@ -262,7 +264,7 @@ export const CreateFlashcardDialog = ({ open, onOpenChange, setId, onSuccess }: 
                   />
                 </div>
 
-                <StandardCardImageEditor term={formData.term} definition={formData.definition} color="#38b6ff" layout={standardLayout} onChange={setStandardLayout} disabled={isLoading} onBusyChange={setPicturesBusy} />
+                <StandardCardImageEditor term={formData.term} definition={formData.definition} color={setColor || "#38b6ff"} layout={standardLayout} onChange={setStandardLayout} disabled={isLoading} onBusyChange={setPicturesBusy} />
               </TabsContent>
 
               <TabsContent value="interactive" className="space-y-5 mt-6">

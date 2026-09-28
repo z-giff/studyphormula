@@ -67,6 +67,8 @@ interface BulkCardRow {
 interface BulkFlashcardEditorProps {
   setId: string;
   setTitle: string;
+  /** The set's colour, so card previews look the way they will be studied */
+  setColor?: string | null;
   initialFlashcards: Array<{
     id: string;
     term: string;
@@ -84,6 +86,7 @@ interface BulkFlashcardEditorProps {
 export const BulkFlashcardEditor = ({
   setId,
   setTitle,
+  setColor,
   initialFlashcards,
   onClose,
   onSuccess,
@@ -891,7 +894,7 @@ export const BulkFlashcardEditor = ({
                       </div>
                       <Button type="button" variant="outline" onClick={() => setExpandedRow(isExpanded ? null : row.id)}><Image className="mr-2 h-4 w-4" />Pictures ({row.standardLayout.front.length + row.standardLayout.back.length})</Button>
                     </div>
-                    {isExpanded && <StandardCardImageEditor term={row.term} definition={row.definition} color="#38b6ff" layout={row.standardLayout} onChange={(standardLayout) => handleRowChange(row.id, "standardLayout", standardLayout)} />}
+                    {isExpanded && <StandardCardImageEditor term={row.term} definition={row.definition} color={setColor || "#38b6ff"} layout={row.standardLayout} onChange={(standardLayout) => handleRowChange(row.id, "standardLayout", standardLayout)} />}
                     </div>
                   )}
 

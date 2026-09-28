@@ -1,4 +1,6 @@
-import { jsPDF } from "jspdf";
+import { GState, jsPDF } from "jspdf";
+import { hasListFormatting } from "@/lib/flashcardText";
+import { CARD_TEXT_MAX, CARD_TEXT_MIN, STANDARD_CARD_RATIO, pictureBounds, stackOrder, textRegion } from "@/lib/standardCardGeometry";
 import { getStandardCardLayout, resolveStandardImageSource, type StandardCardImage } from "@/lib/standardCardLayout";
 
 export type PdfOrientation = "portrait" | "landscape";
@@ -29,7 +31,7 @@ interface LoadedImage { data: string; format: string; width: number; height: num
 
 const PAGE_MARGIN = 28;
 const PAGE_FOOTER = 16;
-const CARD_RATIO = 1.75;
+const CARD_RATIO = STANDARD_CARD_RATIO;
 const REFERENCE_CARD_WIDTH = 504;
 const REFERENCE_CARD_HEIGHT = 288;
 const imageCache = new Map<string, Promise<LoadedImage | null>>();
@@ -102,36 +104,139 @@ const drawImage = (doc: jsPDF, image: LoadedImage, target: Box) => {
   return fitted;
 };
 
-const drawPositionedImage = (doc: jsPDF, image: LoadedImage, item: StandardCardImage, box: Box) => {
-  const target = { x: box.x + box.w * item.x / 100, y: box.y + box.h * item.y / 100, w: box.w * item.width / 100, h: box.h * item.height / 100 };
-  const fitted = item.fit === "cover" ? target : fitRect(image.width, image.height, target);
-  doc.addImage(image.data, image.format, fitted.x, fitted.y, fitted.w, fitted.h, undefined, "FAST", item.rotation);
+const loadCardPicture = async (item: StandardCardImage) => {
+  const source = await resolveStandardImageSource(item.src).catch(() => null);
+  return source ? loadImage(source) : null;
 };
 
-const drawStandard = async (doc: jsPDF, card: PdfFlashcard, box: Box, side: "front" | "back", color: string, removeImages: boolean) => {
-  const layout = getStandardCardLayout(card.interactive_data, card.image_url);
-  const images = removeImages ? [] : [...layout[side]].sort((a, b) => a.zIndex - b.zIndex);
-  const avoid = images.filter((image) => image.textFlow === "avoid");
-  let textBox = box;
-  if (avoid.length) {
-    const top = Math.min(...avoid.map((image) => image.y));
-    const bottom = 100 - Math.max(...avoid.map((image) => image.y + image.height));
-    textBox = top >= bottom
-      ? { x: box.x + box.w * .06, y: box.y + box.h * .05, w: box.w * .88, h: box.h * Math.max(.18, (top - 8) / 100) }
-      : { x: box.x + box.w * .06, y: box.y + box.h * (1 - Math.max(.18, (bottom - 8) / 100) - .05), w: box.w * .88, h: box.h * Math.max(.18, (bottom - 8) / 100) };
+// A picture as the app shows it on a regular card: fitted inside its frame,
+// or filling it when cropped, and turned clockwise about the frame's centre.
+// jsPDF turns a picture the other way about its bottom-left corner, so the
+// picture is placed where that turn leaves it centred on its frame.
+const drawCardPicture = (doc: jsPDF, image: LoadedImage, item: StandardCardImage, card: Box) => {
+  const frameW = card.w * item.width / 100;
+  const frameH = card.h * item.height / 100;
+  const centreX = card.x + card.w * item.x / 100 + frameW / 2;
+  const centreY = card.y + card.h * item.y / 100 + frameH / 2;
+  const scale = item.fit === "cover"
+    ? Math.max(frameW / image.width, frameH / image.height)
+    : Math.min(frameW / image.width, frameH / image.height);
+  const w = image.width * scale;
+  const h = image.height * scale;
+  const angle = item.rotation * Math.PI / 180;
+  // A point given from the frame's centre, once turned
+  const turned = (dx: number, dy: number) => ({
+    x: centreX + dx * Math.cos(angle) - dy * Math.sin(angle),
+    y: centreY + dx * Math.sin(angle) + dy * Math.cos(angle),
+  });
+  const cropped = w > frameW + 0.01 || h > frameH + 0.01;
+  if (cropped) {
+    doc.saveGraphicsState();
+    const corners = [turned(-frameW / 2, -frameH / 2), turned(frameW / 2, -frameH / 2), turned(frameW / 2, frameH / 2), turned(-frameW / 2, frameH / 2)];
+    doc.moveTo(corners[0].x, corners[0].y);
+    corners.slice(1).forEach((corner) => doc.lineTo(corner.x, corner.y));
+    doc.close().clip().discardPath();
   }
-  for (const item of images.filter((image) => image.textFlow === "avoid")) {
-    const source = await resolveStandardImageSource(item.src).catch(() => null);
-    const image = source ? await loadImage(source) : null;
-    if (image) drawPositionedImage(doc, image, item, box);
+  if (item.rotation) {
+    const corner = turned(-w / 2, h / 2);
+    doc.addImage(image.data, image.format, corner.x, corner.y - h, w, h, undefined, "FAST", -item.rotation);
+  } else doc.addImage(image.data, image.format, centreX - w / 2, centreY - h / 2, w, h, undefined, "FAST");
+  if (cropped) doc.restoreGraphicsState();
+};
+
+// The text of a side with pictures, in the space they leave it, at the
+// largest size up to the app's that fits. Like the app, sizes are a share of
+// the card's width, so the words wrap where they do on screen.
+const drawRegionText = (doc: jsPDF, text: string, region: Box, cardWidth: number, side: "front" | "back", color: string, halo: boolean) => {
+  const clean = (text || "").replace(/\r/g, "");
+  if (!clean.trim()) return;
+  const padding = cardWidth * 0.004;
+  const box = { x: region.x + padding, y: region.y + padding, w: Math.max(1, region.w - padding * 2), h: Math.max(1, region.h - padding * 2) };
+  const lineHeight = side === "front" ? 1.2 : 1.4;
+  doc.setFont("helvetica", side === "front" ? "bold" : "normal");
+  const linesAt = (size: number) => {
+    doc.setFontSize(size);
+    return doc.splitTextToSize(clean, box.w) as string[];
+  };
+  const fits = (size: number) => linesAt(size).length * size * lineHeight <= box.h;
+  const largest = cardWidth * CARD_TEXT_MAX[side] / 100;
+  let size = cardWidth * CARD_TEXT_MIN / 100;
+  if (fits(largest)) size = largest;
+  else {
+    let low = size;
+    let high = largest;
+    for (let step = 0; step < 9; step += 1) {
+      const middle = (low + high) / 2;
+      if (fits(middle)) {
+        size = middle;
+        low = middle;
+      } else high = middle;
+    }
   }
-  const scale = Math.min(box.w / (REFERENCE_CARD_WIDTH * .89), box.h / (REFERENCE_CARD_HEIGHT * .89));
-  drawText(doc, side === "front" ? card.term : card.definition, textBox, color, side === "front", scale);
-  for (const item of images.filter((image) => image.textFlow === "overlap")) {
-    const source = await resolveStandardImageSource(item.src).catch(() => null);
-    const image = source ? await loadImage(source) : null;
-    if (image) drawPositionedImage(doc, image, item, box);
+  const lines = linesAt(size);
+  const top = box.y + Math.max(0, (box.h - lines.length * size * lineHeight) / 2);
+  // The first baseline, with the letters centred in their line as on screen
+  const baseline = top + size * (lineHeight / 2 + 0.2555);
+  const list = hasListFormatting(clean);
+  const x = list ? box.x : box.x + box.w / 2;
+  const options = { align: list ? "left" : "center", lineHeightFactor: lineHeight } as const;
+  if (halo) {
+    // Over a picture behind it, an outline in the opposite shade keeps it readable, like the app's glow
+    const glow = contrastColor(color);
+    doc.saveGraphicsState();
+    doc.setGState(new GState({ "stroke-opacity": glow === "#ffffff" ? 0.85 : 0.7 }));
+    doc.setDrawColor(glow);
+    doc.setLineWidth(size * 0.2);
+    doc.setLineJoin("round");
+    doc.text(lines, x, baseline, { ...options, renderingMode: "stroke" });
+    doc.restoreGraphicsState();
   }
+  doc.setTextColor(color);
+  doc.text(lines, x, baseline, options);
+};
+
+// A regular card's side. With pictures it's laid out as the app draws it:
+// pictures placed on the whole card, those behind the text drawn before it,
+// and the text in the space they leave. Without pictures (or with pictures
+// left out) the text fills the card as it always has.
+const drawStandard = async (doc: jsPDF, card: PdfFlashcard, box: Box, content: Box, side: "front" | "back", color: string, removeImages: boolean, cardScale: number) => {
+  const text = side === "front" ? card.term : card.definition;
+  const pictures = removeImages ? [] : getStandardCardLayout(card.interactive_data, card.image_url)[side];
+  if (!pictures.length) {
+    const scale = Math.min(content.w / (REFERENCE_CARD_WIDTH * .89), content.h / (REFERENCE_CARD_HEIGHT * .89));
+    drawText(doc, text, content, color, side === "front", scale);
+    return;
+  }
+  const images = await Promise.all(pictures.map(loadCardPicture));
+  const loaded = new Map(pictures.map((item, index) => [item.id, images[index]]));
+  const order = stackOrder(pictures);
+  const stacked = [...pictures].sort((a, b) => order[a.id] - order[b.id]);
+  const draw = (item: StandardCardImage) => {
+    const image = loaded.get(item.id);
+    if (image) drawCardPicture(doc, image, item, box);
+  };
+  const region = textRegion(pictures);
+  const radius = 4 * cardScale;
+  // Nothing spills off the card, as in the app
+  doc.saveGraphicsState();
+  doc.roundedRect(box.x, box.y, box.w, box.h, radius, radius, null);
+  doc.clip().discardPath();
+  stacked.filter((item) => item.textFlow === "behind").forEach(draw);
+  drawRegionText(
+    doc,
+    text,
+    { x: box.x + box.w * region.left / 100, y: box.y + box.h * region.top / 100, w: box.w * (region.right - region.left) / 100, h: box.h * (region.bottom - region.top) / 100 },
+    box.w,
+    side,
+    color,
+    pictures.some((item) => item.textFlow === "behind"),
+  );
+  stacked.filter((item) => item.textFlow !== "behind").forEach(draw);
+  doc.restoreGraphicsState();
+  // The edge again, over pictures that reach it, so the card can still be cut out
+  doc.setDrawColor("#cbd5e1");
+  doc.setLineWidth(0.55 * cardScale);
+  doc.roundedRect(box.x, box.y, box.w, box.h, radius, radius, "S");
 };
 
 const drawText = (
@@ -294,7 +399,7 @@ const drawCard = async (
     drawDrawing(doc, card, content, cardScale);
   } else if (side === "back" && card.flashcard_type === "flowchart") {
     await drawFlowchart(doc, card, content, cardScale);
-  } else await drawStandard(doc, card, content, side, contrastColor(cardColor), options.removeStandardImages);
+  } else await drawStandard(doc, card, box, content, side, contrastColor(cardColor), options.removeStandardImages, cardScale);
 };
 
 const chooseGrid = (count: number, width: number, height: number) => {
@@ -382,10 +487,10 @@ interface TableImage {
 
 const tableCellImages = async (card: PdfFlashcard, side: "front" | "back", includeImages: boolean): Promise<TableImage[]> => {
   if (!includeImages || (card.flashcard_type && card.flashcard_type !== "standard")) return [];
-  const layout = getStandardCardLayout(card.interactive_data, card.image_url);
-  const loaded = await Promise.all([...layout[side]].sort((a, b) => a.zIndex - b.zIndex).map(async (item) => {
-    const source = await resolveStandardImageSource(item.src).catch(() => null);
-    const image = source ? await loadImage(source) : null;
+  const pictures = getStandardCardLayout(card.interactive_data, card.image_url)[side];
+  const order = stackOrder(pictures);
+  const loaded = await Promise.all([...pictures].sort((a, b) => order[a.id] - order[b.id]).map(async (item) => {
+    const image = await loadCardPicture(item);
     return image ? { item, image } : null;
   }));
   return loaded.filter((value): value is TableImage => value !== null);
@@ -414,27 +519,26 @@ const fitTableText = (doc: jsPDF, text: string, width: number, maxHeight: number
   return { size, lines, height: lines.length * size * 1.25 };
 };
 
+// The part of the card the pictures cover, arranged and turned as on the card
 const drawTableImages = (doc: jsPDF, images: TableImage[], box: Box) => {
   if (!images.length || box.h <= 0) return;
-  const sourceBounds = images.reduce((bounds, { item }) => ({
-    minX: Math.min(bounds.minX, item.x),
-    minY: Math.min(bounds.minY, item.y),
-    maxX: Math.max(bounds.maxX, item.x + item.width),
-    maxY: Math.max(bounds.maxY, item.y + item.height),
-  }), { minX: 100, minY: 100, maxX: 0, maxY: 0 });
-  const sourceW = Math.max(1, sourceBounds.maxX - sourceBounds.minX);
-  const sourceH = Math.max(1, sourceBounds.maxY - sourceBounds.minY);
-  const fitted = fitRect(sourceW, sourceH, box);
-  images.forEach(({ item, image }) => {
-    const target = {
-      x: fitted.x + (item.x - sourceBounds.minX) / sourceW * fitted.w,
-      y: fitted.y + (item.y - sourceBounds.minY) / sourceH * fitted.h,
-      w: item.width / sourceW * fitted.w,
-      h: item.height / sourceH * fitted.h,
-    };
-    const imageBox = item.fit === "cover" ? target : fitRect(image.width, image.height, target);
-    doc.addImage(image.data, image.format, imageBox.x, imageBox.y, imageBox.w, imageBox.h, undefined, "FAST", item.rotation);
-  });
+  const bounds = images.reduce((all, { item }) => {
+    const picture = pictureBounds(item);
+    return { left: Math.min(all.left, picture.left), top: Math.min(all.top, picture.top), right: Math.max(all.right, picture.right), bottom: Math.max(all.bottom, picture.bottom) };
+  }, { left: 100, top: 100, right: 0, bottom: 0 });
+  // Only what's on the card shows there
+  const left = Math.max(0, bounds.left);
+  const top = Math.max(0, bounds.top);
+  const sourceW = Math.max(1, Math.min(100, bounds.right) - left);
+  const sourceH = Math.max(1, Math.min(100, bounds.bottom) - top);
+  // Fitted at its real shape: a card is 1.75 times as wide as it is tall
+  const fitted = fitRect(sourceW * CARD_RATIO, sourceH, box);
+  const card = { x: fitted.x - left / sourceW * fitted.w, y: fitted.y - top / sourceH * fitted.h, w: 100 / sourceW * fitted.w, h: 100 / sourceH * fitted.h };
+  doc.saveGraphicsState();
+  doc.rect(fitted.x, fitted.y, fitted.w, fitted.h, null);
+  doc.clip().discardPath();
+  images.forEach(({ item, image }) => drawCardPicture(doc, image, item, card));
+  doc.restoreGraphicsState();
 };
 
 const drawTableHeader = (doc: jsPDF, y: number, tableX: number, tableW: number, columnW: number) => {
