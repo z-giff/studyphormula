@@ -11,6 +11,7 @@
  import { SwipeCompletionDialog } from "@/components/SwipeCompletionDialog";
  import { SaveNotLearnedDialog } from "@/components/SaveNotLearnedDialog";
  import { Progress } from "@/components/ui/progress";
+import SwirlLoader from "@/components/SwirlLoader";
 import { PremiumLockedPanel, SkippedPremiumCardsNotice } from "@/components/PremiumLock";
 import { usePremium } from "@/hooks/usePremium";
 import { isPremiumCardType } from "@/lib/premium";
