@@ -412,6 +412,7 @@ const FlashcardSetPage = () => {
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
         setId={id!}
+        setColor={flashcards[0]?.color || set.color}
         onSuccess={fetchFlashcards}
       />
 
@@ -469,6 +470,7 @@ const FlashcardSetPage = () => {
           <BulkFlashcardEditor
             setId={id!}
             setTitle={set.title}
+            setColor={flashcards[0]?.color || set.color}
             initialFlashcards={flashcards}
             onClose={() => setIsBulkEditorOpen(false)}
             onSuccess={fetchFlashcards}

@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
-import { FlashcardText } from "@/components/FlashcardText";
-import { getStandardCardLayout, resolveStandardImageSource, type StandardCardSide } from "@/lib/standardCardLayout";
+import { useMemo } from "react";
+import { ClassicCardText, StandardCardCanvas } from "@/components/StandardCardCanvas";
+import { usePictureSources } from "@/hooks/usePictureSources";
+import { getStandardCardLayout, type StandardCardSide } from "@/lib/standardCardLayout";
 
 interface StandardCardFaceProps {
   side: StandardCardSide;
@@ -12,35 +13,29 @@ interface StandardCardFaceProps {
   className?: string;
 }
 
+/**
+ * A regular card's face in the study views. A side with pictures is drawn by
+ * the same canvas as the editor's preview, kept at the card's shape in the
+ * middle of whatever space the view gives it; a side without pictures shows
+ * its text as it always has.
+ */
 export const StandardCardFace = ({ side, term, definition, imageUrl, interactiveData, textColor, className = "" }: StandardCardFaceProps) => {
   const layout = useMemo(() => getStandardCardLayout(interactiveData, imageUrl), [interactiveData, imageUrl]);
   const images = layout[side];
-  const [sources, setSources] = useState<Record<string, string>>({});
-  useEffect(() => {
-    let active = true;
-    Promise.all(images.map(async (image) => [image.id, await resolveStandardImageSource(image.src)] as const))
-      .then((entries) => active && setSources(Object.fromEntries(entries)))
-      .catch(() => active && setSources({}));
-    return () => { active = false; };
-  }, [images]);
+  const sources = usePictureSources(images);
+  const text = side === "front" ? term : definition;
 
-  const avoid = images.filter((image) => image.textFlow === "avoid");
-  const textStyle = avoid.length ? (() => {
-    const topClear = Math.min(...avoid.map((image) => image.y));
-    const bottomClear = 100 - Math.max(...avoid.map((image) => image.y + image.height));
-    return topClear >= bottomClear
-      ? { left: "6%", right: "6%", top: "5%", height: `${Math.max(18, topClear - 8)}%` }
-      : { left: "6%", right: "6%", bottom: "5%", height: `${Math.max(18, bottomClear - 8)}%` };
-  })() : { inset: "8%" };
+  if (!images.length) {
+    return (
+      <div className={`relative h-full w-full overflow-hidden ${className}`}>
+        <ClassicCardText text={text} side={side} color={textColor} />
+      </div>
+    );
+  }
 
   return (
-    <div className={`relative h-full w-full overflow-hidden ${className}`}>
-      <div className="absolute z-[500] flex items-center justify-center overflow-auto p-4 text-center" style={textStyle}>
-        <FlashcardText text={side === "front" ? term : definition} className={side === "front" ? "text-2xl font-bold" : "text-lg"} style={{ color: textColor }} />
-      </div>
-      {[...images].sort((a, b) => a.zIndex - b.zIndex).map((image) => sources[image.id] && (
-        <img key={image.id} src={sources[image.id]} alt="" loading="lazy" decoding="async" className="pointer-events-none absolute" style={{ left: `${image.x}%`, top: `${image.y}%`, width: `${image.width}%`, height: `${image.height}%`, objectFit: image.fit, transform: `rotate(${image.rotation}deg)`, zIndex: (image.textFlow === "overlap" ? 1000 : 1) + image.zIndex }} />
-      ))}
+    <div className={`flex h-full w-full items-center justify-center overflow-hidden ${className}`} style={{ containerType: "size" }}>
+      <StandardCardCanvas side={side} text={text} images={images} sources={sources} textColor={textColor} style={{ width: "min(100cqw, 175cqh)" }} />
     </div>
   );
 };

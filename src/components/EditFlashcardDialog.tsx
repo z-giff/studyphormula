@@ -83,6 +83,9 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
       : { strokes: [], width: 0, height: 0 }
   );
   const [standardLayout, setStandardLayout] = useState<StandardCardLayout>(() => getStandardCardLayout(flashcard.interactive_data, flashcard.image_url));
+  // Pictures still uploading would be left off the card if it were saved now
+  const [picturesBusy, setPicturesBusy] = useState(false);
+  const waitingForPictures = flashcardType === "standard" && picturesBusy;
 
   // Turning a card into an interactive, flowchart or drawing card needs Premium
   const handleTypeChange = (value: string) => {
@@ -179,6 +182,10 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
     if (flashcardType === "standard") {
       if (!formData.term.trim() || !formData.definition.trim()) {
         toast.error("Please fill in both term and definition");
+        return;
+      }
+      if (picturesBusy) {
+        toast.info("Wait for the pictures to finish uploading");
         return;
       }
     } else if (flashcardType === "interactive") {
@@ -327,7 +334,7 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
                 />
               </div>
 
-              <StandardCardImageEditor term={formData.term} definition={formData.definition} color={selectedSetColor} layout={standardLayout} onChange={setStandardLayout} disabled={isLoading} />
+              <StandardCardImageEditor term={formData.term} definition={formData.definition} color={selectedSetColor} layout={standardLayout} onChange={setStandardLayout} disabled={isLoading} onBusyChange={setPicturesBusy} />
             </TabsContent>
 
             <TabsContent value="interactive" className="space-y-4 mt-4">
@@ -438,8 +445,8 @@ export const EditFlashcardDialog = ({ open, onOpenChange, flashcard, onSuccess }
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Saving..." : "Save Changes"}
+            <Button type="submit" disabled={isLoading || waitingForPictures}>
+              {isLoading ? "Saving..." : waitingForPictures ? "Uploading pictures…" : "Save Changes"}
             </Button>
           </div>
         </form>

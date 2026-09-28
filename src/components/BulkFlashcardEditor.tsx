@@ -67,6 +67,8 @@ interface BulkCardRow {
 interface BulkFlashcardEditorProps {
   setId: string;
   setTitle: string;
+  /** The set's colour, so card previews look the way they will be studied */
+  setColor?: string | null;
   initialFlashcards: Array<{
     id: string;
     term: string;
@@ -84,6 +86,7 @@ interface BulkFlashcardEditorProps {
 export const BulkFlashcardEditor = ({
   setId,
   setTitle,
+  setColor,
   initialFlashcards,
   onClose,
   onSuccess,
@@ -391,10 +394,12 @@ export const BulkFlashcardEditor = ({
     }, 50);
   };
 
+  // A function value is an update to the row's latest value, for changes that
+  // land later, like a picture that finishes uploading
   const handleRowChange = (rowId: string, field: keyof BulkCardRow, value: any) => {
     setRows((prev) =>
       prev.map((row) =>
-        row.id === rowId ? { ...row, [field]: value } : row
+        row.id === rowId ? { ...row, [field]: typeof value === "function" ? value(row[field]) : value } : row
       )
     );
   };
@@ -889,7 +894,7 @@ export const BulkFlashcardEditor = ({
                       </div>
                       <Button type="button" variant="outline" onClick={() => setExpandedRow(isExpanded ? null : row.id)}><Image className="mr-2 h-4 w-4" />Pictures ({row.standardLayout.front.length + row.standardLayout.back.length})</Button>
                     </div>
-                    {isExpanded && <StandardCardImageEditor term={row.term} definition={row.definition} color="#38b6ff" layout={row.standardLayout} onChange={(standardLayout) => handleRowChange(row.id, "standardLayout", standardLayout)} />}
+                    {isExpanded && <StandardCardImageEditor term={row.term} definition={row.definition} color={setColor || "#38b6ff"} layout={row.standardLayout} onChange={(standardLayout) => handleRowChange(row.id, "standardLayout", standardLayout)} />}
                     </div>
                   )}
 
