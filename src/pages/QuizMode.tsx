@@ -78,12 +78,32 @@ const QuizMode = () => {
   useEffect(() => {
     if (!isTrial || !id || isLoading || flashcards.length < 4 || countedFor.current === id) return;
     countedFor.current = id;
+    // Sets whose quiz this user's trial already paid for, kept across visits
+    const storageKey = `phormula-trial-quizzes-${user?.id ?? "anon"}`;
+    let counted: string[] = [];
+    try {
+      counted = JSON.parse(localStorage.getItem(storageKey) ?? "[]");
+      if (!Array.isArray(counted)) counted = [];
+    } catch {
+      counted = [];
+    }
+    if (counted.includes(id)) {
+      setTrialQuiz({ setId: id, outcome: "counted" });
+      return;
+    }
     claimTrialUse("quiz")
       .then((result) => {
         // The trial ended since the page loaded: this becomes the page for no Premium
         if (result === "premium_required") {
           void refresh();
           return;
+        }
+        if (result === "claimed") {
+          try {
+            localStorage.setItem(storageKey, JSON.stringify([...counted, id]));
+          } catch {
+            // Storage unavailable: the quiz still runs
+          }
         }
         setTrialQuiz({ setId: id, outcome: result === "trial_limit_reached" ? "used_up" : "counted" });
       })
@@ -92,7 +112,7 @@ const QuizMode = () => {
         console.error("Couldn't count this MC Quiz against the free trial:", error);
         setTrialQuiz({ setId: id, outcome: "counted" });
       });
-  }, [isTrial, id, isLoading, flashcards.length, claimTrialUse, refresh]);
+  }, [isTrial, id, isLoading, flashcards.length, claimTrialUse, refresh, user?.id]);
 
   const fetchData = async () => {
     try {

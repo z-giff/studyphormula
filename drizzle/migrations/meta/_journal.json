@@ -127,6 +127,13 @@
       "when": 1790370615952,
       "tag": "0017_apply_pending_0014_0016",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1790625383375,
+      "tag": "0018_fix_shared_image_policy",
+      "breakpoints": true
     }
   ]
 }
